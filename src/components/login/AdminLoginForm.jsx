@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import Input from "@/components/ui/Input";
+import Input1 from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAdminLogin } from "@/hooks/useAdminLogin";
 
@@ -18,7 +18,7 @@ export default function AdminLoginForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="mt-2">
-      <Input
+      <Input1
         label="E-mail"
         name="email"
         type="email"
@@ -37,7 +37,7 @@ export default function AdminLoginForm() {
           Esqueceu a senha?
         </a>
       </div>
-      <Input
+      <Input1
         name="senha"
         type={showPassword ? "text" : "password"}
         placeholder="••••••••"

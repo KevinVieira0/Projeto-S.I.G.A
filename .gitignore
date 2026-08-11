@@ -20,8 +20,15 @@ pnpm-debug.log*
 # Local Environment Variables (DO NOT COMMIT SECRETS)
 .env*.local
 .env
+.env.local
+.env*
+!.env.example
 .env.developments
 .env.production
+
+# Private database artifacts and generated Prisma client
+/backups/
+/src/generated/prisma
 
 # Vercel Deployment Metadata
 .vercel

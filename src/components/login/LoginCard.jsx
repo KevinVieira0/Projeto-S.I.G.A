@@ -13,7 +13,7 @@ export default function LoginCard() {
     <div className="w-full max-w-md">
       <PortalHeader activeTab={activeTab} />
 
-      <div className="rounded-5xl bg-gray-200 p-8 shadow-sm ">
+      <div className="rounded-3xl bg-gray-200 p-8 shadow-sm ">
         <h1 className="text-center text-2xl font-bold text-gray-900">
           Entrar na plataforma
         </h1>

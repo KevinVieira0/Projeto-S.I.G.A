@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
 import CnpjInput from "./CnpjInput";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 
 export default function EmpresaLoginForm() {
   const {

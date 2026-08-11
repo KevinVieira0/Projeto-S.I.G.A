@@ -12,7 +12,7 @@ const FOCUS_STYLES = {
 
 import { forwardRef } from "react";
 
-const Input = forwardRef(function Input(
+const Input1 = forwardRef(function Input(
   {
     label,
     name,
@@ -61,4 +61,6 @@ const Input = forwardRef(function Input(
   );
 });
 
-export default Input;
+export default Input1;
+
+

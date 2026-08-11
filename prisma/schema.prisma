@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Administrador {
+  id           String   @id @default(uuid())
+  nome         String   @db.VarChar(150)
+  email        String   @unique @db.VarChar(255)
+  senhaHash    String   @map("senha_hash") @db.VarChar(255)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@map("administradores")
+}
+
+model Empresa {
+  id           String   @id @default(uuid())
+  cnpj         String   @unique @db.Char(14)
+  razaoSocial  String   @map("razao_social") @db.VarChar(255)
+  nomeFantasia String?  @map("nome_fantasia") @db.VarChar(255)
+  email        String?  @db.VarChar(255)
+  telefone     String?  @db.VarChar(20)
+  autorizada   Boolean  @default(false)
+  ativa        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@index([autorizada, ativa])
+  @@map("empresas")
+}
