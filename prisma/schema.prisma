@@ -34,3 +34,27 @@ model Empresa {
   @@index([autorizada, ativa])
   @@map("empresas")
 }
+
+enum Sexo {
+  MASCULINO
+  FEMININO
+  OUTRO
+}
+
+model Solicitacao {
+  id          String   @id @default(uuid())
+  idadeMinima Int[]
+  sexo        Sexo
+  pratica     String  // descrição da prática exigida
+  cursos      String[] // lista de cursos (armazenado como text[] no Postgres)
+  inicio      DateTime
+  fim         DateTime
+  quantidadeAlunos   Int
+  observacoes String?  @db.Text
+  ativa       Boolean @default(true)
+  criadoEm   DateTime @default(now())
+
+  @@map("Solitacoes")
+}
+
+
