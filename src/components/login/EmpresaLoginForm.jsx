@@ -42,7 +42,7 @@ export default function EmpresaLoginForm() {
         type={showPassword ? "text" : "password"}
         placeholder="••••••••"
         icon={Lock}
-        color="blue"
+        color="amber"
         error={errors.senha?.message}
         rightElement={
           <button

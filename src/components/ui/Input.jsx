@@ -19,7 +19,7 @@ const Input1 = forwardRef(function Input(
     error,
     icon: Icon,
     rightElement,
-    color = "blue",
+    color = ("blue","amber"),
     className = "",
     ...rest
   },
