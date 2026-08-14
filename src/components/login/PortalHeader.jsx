@@ -8,7 +8,10 @@ export default function PortalHeader({ activeTab }) {
 
   return (
   <div className="-mt-8 mb-6 flex items-center justify-center gap-y-4 rounded-lg bg-white p-2">
+
     <img src="images/Logo-SENAI.png" alt="Portal Logo" className="h-16"  />
+
+
   </div>
   );
 }
