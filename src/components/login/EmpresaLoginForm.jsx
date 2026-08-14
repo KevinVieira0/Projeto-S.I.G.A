@@ -1,14 +1,18 @@
 "use client";
 
+import { Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { useState } from "react";
 import { Controller } from "react-hook-form";
-import { ArrowRight } from "lucide-react";
 import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
-import CnpjInput from "./CnpjInput";
+import CnpjInput from "../ui/CnpjInput";
 import Button from "@/components/ui/Button";
+import Input1 from "@/components/ui/Input";
 
 export default function EmpresaLoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
   const {
     control,
+    register,
     onSubmit,
     formState: { errors },
     apiError,
@@ -33,7 +37,26 @@ export default function EmpresaLoginForm() {
           />
         )}
       />
-
+      <Input1
+        name="senha"
+        type={showPassword ? "text" : "password"}
+        placeholder="••••••••"
+        icon={Lock}
+        color="blue"
+        error={errors.senha?.message}
+        rightElement={
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="text-gray-400 hover:text-gray-600"
+            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        }
+        {...register("senha")}
+      />
+      
       {apiError && <p className="mb-4 mt-3 text-sm text-red-500">{apiError}</p>}
 
       <Button

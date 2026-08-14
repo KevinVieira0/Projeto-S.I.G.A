@@ -36,8 +36,10 @@ export function useEmpresaLogin() {
 
     setIsLoading(true);
     try {
+      // ATENÇÃO: /api/auth/empresa/login ainda não existe (ver authService.js),
+      // então esta chamada retorna 404 até essa rota ser implementada.
       const data = await loginEmpresa({ cnpj });
-      // TODO: salvar token/empresa no AuthContext e redirecionar
+      // TODO: salvar empresa no AuthContext (useAuth().login) e redirecionar
       console.log("login empresa ok", data, razaoSocial);
     } catch (err) {
       setApiError("Não foi possível entrar. Tente novamente.");
