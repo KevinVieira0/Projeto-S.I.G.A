@@ -17,27 +17,45 @@ async function main() {
   const email = process.env.ADMIN_INITIAL_EMAIL;
   const senha = process.env.ADMIN_INITIAL_PASSWORD;
 
-  // Confere se todos os dados obrigatórios foram configurados
+  // Senha inicial da empresa de teste
+  const senhaEmpresa = process.env.EMPRESA_TEST_PASSWORD;
+
+  // Confere os dados obrigatórios do administrador
   if (!nome || !email || !senha) {
     throw new Error(
       "Configure ADMIN_INITIAL_NAME, ADMIN_INITIAL_EMAIL e ADMIN_INITIAL_PASSWORD no .env."
     );
   }
 
-  // Impede a criação de uma senha inicial muito curta
+  // Confere a senha da empresa de teste
+  if (!senhaEmpresa) {
+    throw new Error(
+      "Configure EMPRESA_TEST_PASSWORD no arquivo .env."
+    );
+  }
+
+  // Impede uma senha administrativa muito curta
   if (senha.length < 8) {
     throw new Error(
       "ADMIN_INITIAL_PASSWORD deve possuir pelo menos 8 caracteres."
     );
   }
 
-  // Remove espaços e transforma o e-mail em letras minúsculas
+  // Impede uma senha de empresa muito curta
+  if (senhaEmpresa.length < 8) {
+    throw new Error(
+      "EMPRESA_TEST_PASSWORD deve possuir pelo menos 8 caracteres."
+    );
+  }
+
+  // Normaliza o e-mail do administrador
   const emailNormalizado = email.trim().toLowerCase();
 
-  // Transforma a senha em um hash seguro antes de armazená-la
-  const senhaHash = await hash(senha, 12);
+  // Cria hashes seguros para as duas senhas
+  const senhaHashAdministrador = await hash(senha, 12);
+  const senhaHashEmpresa = await hash(senhaEmpresa, 12);
 
-  // Cria o administrador ou atualiza seus dados caso ele já exista
+  // Cria ou atualiza o administrador
   const administrador = await prisma.administrador.upsert({
     where: {
       email: emailNormalizado,
@@ -45,20 +63,21 @@ async function main() {
 
     update: {
       nome: nome.trim(),
+      senhaHash: senhaHashAdministrador,
       ativo: true,
     },
 
     create: {
       nome: nome.trim(),
       email: emailNormalizado,
-      senhaHash,
+      senhaHash: senhaHashAdministrador,
       ativo: true,
     },
   });
 
   console.log(`Administrador preparado: ${administrador.email}`);
 
-  // Cria a empresa de teste ou atualiza seus dados caso ela já exista
+  // Cria ou atualiza a empresa de teste
   const empresa = await prisma.empresa.upsert({
     where: {
       cnpj: "11222333000181",
@@ -69,6 +88,7 @@ async function main() {
       nomeFantasia: "Empresa Teste",
       email: "teste@empresa.com",
       telefone: "11999999999",
+      senhaHash: senhaHashEmpresa,
       autorizada: true,
       ativa: true,
     },
@@ -79,6 +99,7 @@ async function main() {
       nomeFantasia: "Empresa Teste",
       email: "teste@empresa.com",
       telefone: "11999999999",
+      senhaHash: senhaHashEmpresa,
       autorizada: true,
       ativa: true,
     },
