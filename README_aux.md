@@ -1,50 +1,62 @@
-# SIGA — Sistema Integrado de Gestão e Acesso
+# SIGA — Sistema de Indicação e Gerenciamento do Aprendiz
 
-Projeto web unificado do SIGA, com frontend em Next.js e integração com PostgreSQL por meio do Prisma ORM.
+O **SIGA** é um sistema desenvolvido para auxiliar o setor de coordenação de estágios do SENAI no gerenciamento de empresas, alunos e oportunidades de aprendizagem.
 
-## Tecnologias
+A proposta é substituir processos realizados separadamente por formulários, planilhas, relatórios e e-mails, reunindo as principais informações em uma única aplicação.
 
-- Next.js 14 (App Router)
-- React 18
-- Tailwind CSS
-- React Hook Form e Zod
-- PostgreSQL 18
-- Prisma ORM 7
-- Axios
-- bcryptjs
+## Objetivo
 
-## Funcionalidades disponíveis
+O sistema tem como objetivo facilitar:
 
-- Tela de acesso para administrador e empresa;
-- Login administrativo consultando o PostgreSQL;
-- Validação de CNPJ de empresa beneficiária;
-- Máscara e validação estrutural de CNPJ;
-- Banco com administradores, empresas e histórico de migrations;
-- Seed para preparar um administrador inicial e uma empresa de teste;
-- Prisma Studio para consultar e editar dados visualmente.
+* autenticação de coordenadores e empresas;
+* validação de empresas beneficiárias por CNPJ;
+* controle das empresas autorizadas;
+* encaminhamento de alunos para vagas de estágio e aprendizagem;
+* organização das informações utilizadas pela coordenação;
+* redução de dados duplicados e excesso de planilhas;
+* consulta rápida de alunos, empresas e oportunidades.
 
-## Pré-requisitos
+## Tecnologias utilizadas
 
-Instale antes de começar:
+### Frontend e backend
 
-- Node.js 20.19 ou superior, 22.12 ou superior, ou 24+;
-- npm;
-- PostgreSQL 18, incluindo Command Line Tools;
-- Opcional: pgAdmin 4;
-- VS Code ou outro editor.
+* Next.js 14;
+* React 18;
+* JavaScript;
+* Tailwind CSS;
+* Axios;
+* React Hook Form;
+* Zod;
+* Lucide React.
 
-Confirme as instalações no PowerShell:
+### Banco de dados
 
-```powershell
-node --version
-npm --version
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
-```
+* PostgreSQL 18;
+* Prisma ORM 7;
+* Prisma Client;
+* Prisma Adapter PG;
+* bcryptjs;
+* dotenv;
+* pg.
+
+## Funcionalidades implementadas
+
+* tela de login responsiva;
+* seleção entre acesso administrativo e acesso empresarial;
+* autenticação do administrador por e-mail e senha;
+* validação de empresa beneficiária por CNPJ;
+* autenticação da empresa por CNPJ e senha;
+* armazenamento seguro de senhas utilizando hash com bcrypt;
+* bloqueio de empresas inativas ou não autorizadas;
+* conexão do Next.js com PostgreSQL utilizando Prisma;
+* migrations para criação e atualização das tabelas;
+* seed para criação dos dados iniciais;
+* backup local do PostgreSQL.
 
 ## Estrutura principal
 
 ```text
-Projeto-SIGA-Unificado/
+Projeto-S.I.G.A/
 ├── backups/
 │   └── siga_local_backup.sql
 ├── prisma/
@@ -55,395 +67,529 @@ Projeto-SIGA-Unificado/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── auth/admin/login/route.js
-│   │   │   └── empresas/cnpj/[cnpj]/validar/route.js
-│   │   ├── login/
-│   │   ├── globals.css
-│   │   ├── layout.js
-│   │   └── page.js
+│   │   │   ├── auth/
+│   │   │   │   ├── admin/login/
+│   │   │   │   └── empresa/login/
+│   │   │   └── empresas/cnpj/[cnpj]/validar/
+│   │   └── (public)/login/
 │   ├── components/
 │   ├── context/
 │   ├── hooks/
-│   └── lib/
-│       ├── api/
-│       ├── validations/
-│       └── prisma.js
+│   ├── lib/
+│   └── generated/
 ├── .env
 ├── .env.example
+├── .gitignore
 ├── package.json
 ├── package-lock.json
-└── prisma.config.ts
+├── prisma.config.ts
+└── README.md
 ```
 
-## 1. Abrir o projeto
+## Modelos do banco
 
-Extraia o ZIP e abra no VS Code a pasta que contém o `package.json`.
+### Administrador
+
+A tabela `administradores` armazena:
+
+* identificador;
+* nome;
+* e-mail;
+* hash da senha;
+* situação ativa ou inativa;
+* data de criação;
+* data de atualização.
+
+### Empresa
+
+A tabela `empresas` armazena:
+
+* identificador;
+* CNPJ;
+* razão social;
+* nome fantasia;
+* e-mail;
+* telefone;
+* hash da senha;
+* situação autorizada ou não autorizada;
+* situação ativa ou inativa;
+* data de criação;
+* data de atualização.
+
+## Pré-requisitos
+
+Antes de executar o projeto, instale:
+
+* Node.js;
+* npm;
+* PostgreSQL 18;
+* Git;
+* Visual Studio Code.
+
+Confira as instalações:
+
+```powershell
+node --version
+npm --version
+git --version
+```
+
+## Configuração do PostgreSQL
+
+O projeto utiliza o banco local:
+
+```text
+Nome: siga_local
+Porta: 5432
+Schema: public
+```
+
+Confira se o PostgreSQL está funcionando:
+
+```powershell
+Get-Service *postgres*
+```
+
+Se o serviço estiver parado:
+
+```powershell
+Start-Service postgresql-x64-18
+```
+
+Esse comando pode exigir que o PowerShell seja aberto como administrador.
+
+## Configuração do ambiente
+
+O projeto utiliza um arquivo `.env` na raiz.
+
+Exemplo:
+
+```env
+DATABASE_URL="postgresql://postgres:SENHA@localhost:5432/siga_local?schema=public"
+DIRECT_URL="postgresql://postgres:SENHA@localhost:5432/siga_local?schema=public"
+
+ADMIN_INITIAL_NAME="Nome do administrador"
+ADMIN_INITIAL_EMAIL="email@exemplo.com"
+ADMIN_INITIAL_PASSWORD="senha-administrativa"
+
+EMPRESA_TEST_PASSWORD="senha-da-empresa"
+```
+
+Substitua `SENHA` pela senha configurada no PostgreSQL desse computador.
+
+As senhas iniciais devem possuir pelo menos oito caracteres.
+
+O arquivo `.env` contém informações privadas e não deve ser enviado para repositórios públicos.
+
+## Instalação
+
+Abra o PowerShell dentro da pasta do projeto.
 
 Exemplo:
 
 ```powershell
-cd "D:\Projeto-S.I.G.A"
-code .
+cd "C:\caminho\Projeto-S.I.G.A"
 ```
 
-Abra o terminal integrado do VS Code com o atalho `Ctrl` + acento grave.
-
-## 2. Política de execução do PowerShell
-
-Se o PowerShell bloquear `npm.ps1`, configure somente o usuário atual:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-```
-
-Como alternativa, não altere a política e use `npm.cmd` e `npx.cmd` nos comandos.
-
-## 3. Instalar as dependências
-
-Na raiz do projeto:
-
-```powershell
-npm install
-```
-
-Ou:
+Instale as dependências:
 
 ```powershell
 npm.cmd install
 ```
 
-Avisos `deprecated` não significam que a instalação falhou. O processo foi concluído quando aparecer uma mensagem semelhante a `added ... packages` ou `up to date` sem `npm error`.
-
-Não execute `npm audit fix --force` sem revisar as alterações, pois ele pode instalar versões incompatíveis.
-
-## 4. Configurar o PostgreSQL
-
-### Verificar o serviço
+Valide o schema:
 
 ```powershell
-Get-Service postgresql-x64-18
+npx.cmd prisma validate
 ```
 
-O status esperado é `Running`.
-
-Confirme que o servidor aceita conexões:
+Gere o Prisma Client:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe" `
-  -h localhost `
-  -p 5432
+npx.cmd prisma generate
 ```
 
-Resultado esperado:
+## Opção 1 — Preparar um banco novo pelas migrations
+
+Crie o banco:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres -h localhost -p 5432 siga_local
+```
+
+Aplique as migrations existentes:
+
+```powershell
+npx.cmd prisma migrate deploy
+```
+
+Crie os dados iniciais:
+
+```powershell
+npx.cmd prisma db seed
+```
+
+Confira a situação:
+
+```powershell
+npx.cmd prisma migrate status
+```
+
+O resultado esperado é:
 
 ```text
-localhost:5432 - accepting connections
+Database schema is up to date!
 ```
 
-Para iniciar ou reiniciar o serviço, abra o PowerShell como administrador:
+## Opção 2 — Restaurar o backup
+
+Utilize esta opção somente durante a preparação de um computador novo ou quando for necessário recuperar os dados do projeto.
+
+Crie o banco:
 
 ```powershell
-Start-Service postgresql-x64-18
-Restart-Service postgresql-x64-18
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres -h localhost -p 5432 siga_local
 ```
 
-Também é possível usar `Win + R`, executar `services.msc` e controlar o serviço `postgresql-x64-18`.
-
-### Criar o banco
+Restaure o backup:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" `
-  -U postgres `
-  -h localhost `
-  -p 5432 `
-  -E UTF8 `
-  siga_local
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -p 5432 -d siga_local -f ".\backups\siga_local_backup.sql"
 ```
 
-Digite a senha do usuário `postgres` quando solicitada. O terminal não mostra caracteres durante a digitação da senha; isso é normal.
-
-Se o comando informar que o banco já existe, prossiga sem recriá-lo.
-
-## 5. Configurar o `.env`
-
-O projeto utiliza um arquivo `.env` privado na raiz. Nunca publique esse arquivo nem envie suas credenciais em mensagens.
-
-Use este formato, substituindo apenas os valores locais:
-
-```dotenv
-DATABASE_URL="postgresql://USUARIO:SENHA@localhost:5432/siga_local?schema=public"
-DIRECT_URL="postgresql://USUARIO:SENHA@localhost:5432/siga_local?schema=public"
-
-ADMIN_INITIAL_NAME="Nome do administrador"
-ADMIN_INITIAL_EMAIL="email@exemplo.com"
-ADMIN_INITIAL_PASSWORD="senha-local-com-8-ou-mais-caracteres"
-
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
-NEXT_PUBLIC_USE_CNPJ_MOCK="false"
-```
-
-Observações:
-
-- `DATABASE_URL` é usada pela aplicação e pelas APIs;
-- `DIRECT_URL` é usada pelos comandos do Prisma;
-- As duas URLs devem apontar para o banco `siga_local`;
-- A senha deve ser a mesma usada ao conectar com `psql` ou pgAdmin;
-- Senhas com `@`, `#`, `%`, `/` ou `:` precisam de codificação de URL;
-- `NEXT_PUBLIC_API_URL` precisa terminar em `/api` porque as rotas estão no próprio Next.js;
-- Reinicie `npm run dev` após alterar qualquer variável `NEXT_PUBLIC_*`.
-
-O `.gitignore` protege `.env`, `.env.local`, backups e o Prisma Client gerado.
-
-## 6. Restaurar o backup SQL
-
-O método recomendado para este pacote é restaurar o backup incluído. O arquivo é um dump textual feito pelo PostgreSQL 18 e deve ser executado com `psql`.
-
-Na raiz do projeto:
+Depois da restauração, aplique qualquer migration criada após o backup:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
-  -U postgres `
-  -h localhost `
-  -p 5432 `
-  -d siga_local `
-  -v ON_ERROR_STOP=1 `
-  -f ".\backups\siga_local_backup.sql"
+npx.cmd prisma migrate deploy
 ```
 
-Não use a opção **Restore** do pgAdmin para esse arquivo `.sql`. Pelo pgAdmin, use o **PSQL Tool** e execute:
-
-```sql
-\i 'D:/Projeto-SIGA-Unificado/backups/siga_local_backup.sql'
-```
-
-Se aparecer `relation already exists`, as tabelas já existem. Não restaure repetidamente. Confira o conteúdo antes de qualquer operação destrutiva.
-
-### Conferir as tabelas
+Gere o Prisma Client:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
-  -U postgres `
-  -h localhost `
-  -p 5432 `
-  -d siga_local `
-  -c "\dt"
+npx.cmd prisma generate
 ```
 
-Tabelas esperadas:
-
-```text
-_prisma_migrations
-administradores
-empresas
-```
-
-No pgAdmin, abra:
-
-```text
-Servers
-└── PostgreSQL 18
-    └── Databases
-        └── siga_local
-            └── Schemas
-                └── public
-                    └── Tables
-```
-
-Se as tabelas não aparecerem, clique com o botão direito em `Tables` e selecione **Refresh**. Não confunda o banco `siga_local` com o banco administrativo padrão chamado `postgres`.
-
-### Conferir os registros
+Atualize os dados iniciais e os hashes das senhas:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
-  -U postgres `
-  -h localhost `
-  -p 5432 `
-  -d siga_local `
-  -c 'SELECT
-        (SELECT COUNT(*) FROM public._prisma_migrations) AS migrations,
-        (SELECT COUNT(*) FROM public.administradores) AS administradores,
-        (SELECT COUNT(*) FROM public.empresas) AS empresas;'
+npx.cmd prisma db seed
 ```
 
-Se as tabelas estiverem vazias, execute o seed:
+Confira:
 
 ```powershell
-npx prisma db seed
+npx.cmd prisma migrate status
 ```
 
-O seed utiliza `ADMIN_INITIAL_NAME`, `ADMIN_INITIAL_EMAIL` e `ADMIN_INITIAL_PASSWORD` do `.env`. Ele também prepara a empresa de teste com CNPJ `11.222.333/0001-81`.
+Não restaure o backup diariamente. Depois que o banco estiver configurado, basta iniciar o projeto normalmente.
 
-> Depois de restaurar o backup, não execute `prisma migrate deploy`: o dump já contém as tabelas e o histórico em `_prisma_migrations`.
+## Executando o sistema
 
-## 7. Validar e gerar o Prisma Client
+Inicie o ambiente de desenvolvimento:
 
 ```powershell
-npx prisma validate
-npx prisma generate
-```
-
-Resultados esperados:
-
-```text
-The schema at prisma\schema.prisma is valid
-Generated Prisma Client
-```
-
-Teste a conexão real:
-
-```powershell
-"SELECT 1;" | npx prisma db execute --stdin
-```
-
-## 8. Executar em desenvolvimento
-
-```powershell
-npm run dev
+npm.cmd run dev
 ```
 
 Acesse:
 
-- Aplicação: http://localhost:3000
-- Login: http://localhost:3000/login
+```text
+http://localhost:3000/login
+```
 
-Interrompa o servidor com `Ctrl + C`.
+Para encerrar:
 
-Se a porta 3000 estiver ocupada, o Next.js poderá iniciar em outra porta. Nesse caso, atualize `NEXT_PUBLIC_API_URL` para a porta exibida e reinicie o servidor.
+```text
+Ctrl + C
+```
 
-## 9. Testar as APIs
+## Testando o build
 
-Com `npm run dev` ativo, abra outro terminal.
-
-### Validação de CNPJ
+Execute:
 
 ```powershell
-Invoke-RestMethod `
-  -Method Get `
-  -Uri "http://localhost:3000/api/empresas/cnpj/11222333000181/validar"
+npm.cmd run build
 ```
 
-Resposta esperada quando a empresa está autorizada e ativa:
+O build deve incluir as rotas:
 
-```json
-{
-  "beneficiaria": true,
-  "razaoSocial": "Empresa Teste SIGA LTDA",
-  "message": "Empresa autorizada."
-}
+```text
+/api/auth/admin/login
+/api/auth/empresa/login
+/api/empresas/cnpj/[cnpj]/validar
+/login
 ```
+
+Depois do build, o projeto pode ser iniciado no modo de produção com:
+
+```powershell
+npm.cmd start
+```
+
+## Prisma Studio
+
+Para visualizar os registros:
+
+```powershell
+npx.cmd prisma studio
+```
+
+O Prisma Studio será aberto em:
+
+```text
+http://localhost:5555
+```
+
+Para encerrar:
+
+```text
+Ctrl + C
+```
+
+## Dados de teste
+
+### Administrador
+
+Utilize:
+
+```text
+E-mail: valor de ADMIN_INITIAL_EMAIL
+Senha: valor de ADMIN_INITIAL_PASSWORD
+```
+
+### Empresa
+
+Utilize:
+
+```text
+CNPJ: 11222333000181
+Senha: valor de EMPRESA_TEST_PASSWORD
+```
+
+Nunca utilize o valor de `senhaHash` como senha de login. O hash iniciado por `$2b$12$` é apenas a versão protegida da senha.
+
+## Alteração das senhas
+
+Para mudar as senhas iniciais, altere no `.env`:
+
+```env
+ADMIN_INITIAL_PASSWORD="nova-senha-administrativa"
+EMPRESA_TEST_PASSWORD="nova-senha-da-empresa"
+```
+
+Depois execute:
+
+```powershell
+npx.cmd prisma db seed
+```
+
+O seed gera novos hashes e atualiza os registros no PostgreSQL.
+
+Não altere manualmente os campos `senhaHash` pelo Prisma Studio ou pelo pgAdmin.
+
+## Rotas da API
 
 ### Login administrativo
 
-Não coloque a senha diretamente no histórico do terminal. Uma forma interativa é:
+```http
+POST /api/auth/admin/login
+```
+
+Corpo:
+
+```json
+{
+  "email": "email@exemplo.com",
+  "senha": "senha-do-administrador"
+}
+```
+
+### Login da empresa
+
+```http
+POST /api/auth/empresa/login
+```
+
+Corpo:
+
+```json
+{
+  "cnpj": "11222333000181",
+  "senha": "senha-da-empresa"
+}
+```
+
+### Validação de CNPJ
+
+```http
+GET /api/empresas/cnpj/11222333000181/validar
+```
+
+A empresa é considerada beneficiária somente quando:
+
+* o CNPJ existe;
+* a empresa está ativa;
+* a empresa está autorizada.
+
+## Migrations
+
+A pasta `prisma/migrations` não deve ser apagada.
+
+Ela contém o histórico de criação e atualização do banco, incluindo:
+
+* criação das tabelas `administradores` e `empresas`;
+* adição do campo `senha_hash` à tabela `empresas`.
+
+O backup SQL e as migrations possuem funções diferentes:
+
+* o backup guarda a estrutura e os dados atuais;
+* as migrations registram como a estrutura evoluiu;
+* a tabela `_prisma_migrations` registra quais alterações foram aplicadas.
+
+Para criar uma migration durante o desenvolvimento:
 
 ```powershell
-$email = Read-Host "E-mail do administrador"
-$senhaSegura = Read-Host "Senha" -AsSecureString
-$senha = [System.Net.NetworkCredential]::new("", $senhaSegura).Password
-$body = @{ email = $email; senha = $senha } | ConvertTo-Json
-Invoke-RestMethod `
-  -Method Post `
-  -Uri "http://localhost:3000/api/auth/admin/login" `
-  -ContentType "application/json" `
-  -Body $body
-Remove-Variable senha, body
+npx.cmd prisma migrate dev --name nome_da_alteracao
 ```
 
-## 10. Abrir o Prisma Studio
+Para aplicar migrations já existentes em outro computador:
 
 ```powershell
-npx prisma studio
+npx.cmd prisma migrate deploy
 ```
 
-Acesse http://localhost:5555 para visualizar e editar `Administrador` e `Empresa`. Encerre com `Ctrl + C`.
+## Criando um backup atualizado
 
-## 11. Build de produção
+Antes do backup, confira as migrations e execute o seed:
 
 ```powershell
-npm run build
-npm start
+npx.cmd prisma migrate status
+npx.cmd prisma db seed
 ```
 
-O build gera `.next`, que não deve ser enviado ao Git. Para uma nova máquina, use sempre `npm install` e gere novamente os artefatos.
-
-## Scripts npm
-
-| Comando | Finalidade |
-|---|---|
-| `npm run dev` | Inicia o Next.js em desenvolvimento |
-| `npm run build` | Gera o build otimizado |
-| `npm start` | Executa o build de produção |
-| `npm run lint` | Executa a verificação configurada no projeto |
-
-## Rotas disponíveis
-
-| Método | Rota | Finalidade |
-|---|---|---|
-| `POST` | `/api/auth/admin/login` | Autentica administrador por e-mail e senha |
-| `GET` | `/api/empresas/cnpj/[cnpj]/validar` | Verifica se a empresa está ativa e autorizada |
-
-## Solução de problemas
-
-### `psql: command not found`
-
-O executável não está no `PATH`. Use o caminho completo:
+Crie o backup:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5432 -d siga_local --clean --if-exists --no-owner --no-privileges -f ".\backups\siga_local_backup.sql"
 ```
 
-### Prisma `P1000`
+O backup pode conter dados privados e hashes de senha. Compartilhe-o somente com integrantes autorizados.
 
-Usuário ou senha incorretos. Corrija `DATABASE_URL` e `DIRECT_URL` no `.env`.
+## Arquivos que não devem ser incluídos no ZIP
 
-### Prisma `P1001`
+Para reduzir o tamanho, não inclua:
 
-O PostgreSQL não está acessível. Confira serviço, host e porta com `pg_isready`.
-
-### Prisma `P1003`
-
-O banco configurado não existe. Crie `siga_local` ou corrija o nome nas URLs.
-
-### Prisma `P2021`
-
-A conexão funciona, mas a tabela não existe. Restaure o backup no banco correto.
-
-### Tabelas não aparecem no pgAdmin
-
-Expanda o banco `siga_local`, não o banco `postgres`, e atualize `Schemas → public → Tables`.
-
-### Tela informa “Não foi possível validar agora”
-
-Confirme no `.env`:
-
-```dotenv
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+```text
+node_modules
+.next
+out
+src/generated/prisma
+.git
+.claude
+.agents
+.windsurf
 ```
 
-Depois reinicie o Next.js. Teste também a rota de CNPJ diretamente para diferenciar erro de frontend de erro no banco.
+Esses arquivos podem ser recriados com:
 
-### `npm.ps1 não pode ser carregado`
+```powershell
+npm.cmd install
+npx.cmd prisma generate
+```
 
-Use `npm.cmd`/`npx.cmd` ou configure `RemoteSigned` para o usuário atual.
+## Arquivos privados
 
-### `relation already exists` ao importar o backup
+Os seguintes arquivos não devem ser publicados no GitHub:
 
-O banco já contém tabelas. Não continue importando repetidamente. Use `\dt` e a consulta de contagem para verificar se os dados já existem.
+```text
+.env
+backups/
+```
+
+Eles devem continuar no `.gitignore`.
+
+## Erro da pasta `.next` no OneDrive
+
+Se aparecer um erro semelhante a:
+
+```text
+EINVAL: invalid argument, readlink
+```
+
+apague somente o cache do Next.js:
+
+```powershell
+Remove-Item -LiteralPath ".\.next" -Recurse -Force
+```
+
+Depois:
+
+```powershell
+npm.cmd run dev
+```
+
+É recomendado manter o projeto fora de pastas sincronizadas pelo OneDrive.
+
+Exemplo:
+
+```text
+C:\Projetos\Projeto-S.I.G.A
+```
 
 ## Segurança
 
-- O `.env` contém credenciais privadas;
-- O backup SQL pode conter dados privados e hashes de senha;
-- Compartilhe o pacote somente com integrantes autorizados;
-- Nunca envie `.env` ou `backups/` ao GitHub;
-- Cada integrante pode precisar alterar a senha em `DATABASE_URL` e `DIRECT_URL`;
-- Use senhas fortes fora do ambiente local;
-- Não publique capturas de tela que mostrem URLs de conexão ou credenciais.
+As senhas não são armazenadas em texto puro. O sistema utiliza bcrypt para gerar hashes com custo 12.
 
-## Estado atual e limitações
+O projeto também:
 
-- Login administrativo e validação de CNPJ possuem APIs integradas;
-- A interface de empresa valida o CNPJ no banco;
-- A criação de sessão/token e o endpoint separado de login da empresa ainda constam como evolução futura no frontend;
-- O `AuthContext` ainda é uma base para a futura persistência de sessão e proteção de rotas;
-- A rota de desenvolvimento `api/teste-banco` não faz parte do projeto.
+* não devolve hashes nas respostas das APIs;
+* recusa empresas inativas;
+* recusa empresas não autorizadas;
+* utiliza mensagens genéricas para credenciais inválidas;
+* mantém credenciais privadas fora do Git.
+
+## Estado atual
+
+Atualmente estão implementados:
+
+* conexão com PostgreSQL;
+* modelos e migrations do Prisma;
+* seed;
+* login administrativo;
+* validação de CNPJ;
+* autenticação da empresa;
+* hash de senhas;
+* interface de login;
+* integração entre frontend, APIs e banco.
+
+Ainda podem ser desenvolvidos:
+
+* sessão persistente no servidor;
+* tokens ou cookies seguros;
+* redirecionamento após o login;
+* dashboard administrativo;
+* dashboard empresarial;
+* CRUD de empresas;
+* gerenciamento de alunos;
+* gerenciamento de vagas;
+* recuperação e redefinição de senha;
+* migração do PostgreSQL local para o Neon.
+
+## Equipe
+
+Projeto Integrador do curso Técnico em Desenvolvimento de Sistemas — SENAI Mariano Ferraz.
+
+Adicione abaixo os integrantes do grupo:
+
+```text
+- Nome do integrante 1
+- Nome do integrante 2
+- Nome do integrante 3
+- Nome do integrante 4
+```
+
+## Finalidade
+
+Este projeto foi desenvolvido para fins acadêmicos e de aprendizagem, envolvendo desenvolvimento web, banco de dados, autenticação, validação de dados e integração entre frontend e backend.
+
+

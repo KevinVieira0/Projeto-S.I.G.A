@@ -43,7 +43,7 @@ enum Sexo {
 
 model Solicitacao {
   id          String   @id @default(uuid())
-  idadeMinima Int[]
+  idadeMinima Int
   sexo        Sexo
   pratica     String  // descrição da prática exigida
   cursos      String[] // lista de cursos (armazenado como text[] no Postgres)
