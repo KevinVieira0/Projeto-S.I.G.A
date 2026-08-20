@@ -32,7 +32,6 @@ export function useAdminLogin() {
       setApiError("E-mail ou senha inválidos.");
     } finally {
       setIsLoading(false);
-      redirect("/login")
     }
   });
 
