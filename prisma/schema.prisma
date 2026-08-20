@@ -46,7 +46,7 @@ model Solicitacao {
   idadeMinima Int
   sexo        Sexo
   pratica     String  // descrição da prática exigida
-  cursos      String[] // lista de cursos (armazenado como text[] no Postgres)
+  cursos      String // lista de cursos (armazenado como text[] no Postgres)
   inicio      DateTime
   fim         DateTime
   quantidadeAlunos   Int
