@@ -47,3 +47,11 @@ next-env.d.ts
 # OS Metadata
 .DS_Store
 Thumbs.db
+# Credenciais do Google
+google-sheets-service-account.json
+*-service-account*.json
+/credentials/
+/credenciais/
+
+# Planilhas locais com dados pessoais
+Alunos*.xlsx
