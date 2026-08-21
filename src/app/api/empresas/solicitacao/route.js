@@ -1,65 +1,107 @@
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
-    const solicitacaoSchema = z.object({
-        idadeMinina: z.number().min(0),
-        sexo: z.array(z.string()).nonempty(),
-        pratica: z.string().min(1),
-        cursos: z.string().min(1),
-        inicio: z.string().min(1),
-        fim: z.string().min(1),
-        quantidadeAlunos: z.number().min(1),
-        observacao: z.string().optional(),
-    });
+const solicitacaoSchema = z.object({
+  idadeMinima: z.coerce.number().int().min(0),
 
-export async function POST(request) {
+  sexo: z.string().min(1),
+
+  pratica: z.string().min(1).max(1000),
+
+  cursos: z.string().min(1),
+
+  inicio: z.coerce.date({
+    message: "Data de início inválida",
+  }),
+
+  fim: z.coerce.date({
+    message: "Data de fim inválida",
+  }),
+
+  quantidadeAlunos: z.coerce.number().int().min(1),
+
+  observacoes: z.string().optional(),
+});
+
+
+export async function POST(request: Request) {
+  try {
     const body = await request.json();
+
+    console.log("BODY RECEBIDO:", body);
+
     const resultado = solicitacaoSchema.safeParse(body);
 
     if (!resultado.success) {
-        return NextResponse.json(
-            {
-                message: "Dados de solicitação inválidos.",
-            },
-            {
-                status: 400,
-            }
-        );
-    }
-    const { idadeMinina, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacao } = resultado.data;
+      console.error("ERRO DE VALIDAÇÃO:", resultado.error.flatten());
 
-    try {
-        const solicitacao = await prisma.solicitacao.create({
-            data: {
-                idadeMinina,
-                sexo: sexo.join(","),
-                pratica,
-                cursos,
-                inicio,
-                fim,
-                quantidadeAlunos,
-                observacao,
-            },
-        });
-
-        return NextResponse.json(
-            {
-                message: "Solicitação criada com sucesso.",
-                solicitacao,
-            },
-            {
-                status: 201,
-            }
-        );
-    } catch (error) {
-        console.error("Erro ao criar solicitação:", error);
-        return NextResponse.json(
-            {
-                message: "Erro ao criar solicitação.",
-            },
-            {
-                status: 500,
-            }
-        );
+      return NextResponse.json(
+        {
+          message: "Dados de solicitação inválidos.",
+          errors: resultado.error.flatten(),
+        },
+        {
+          status: 400,
+        }
+      );
     }
+
+    const {
+      idadeMinima,
+      sexo,
+      pratica,
+      cursos,
+      inicio,
+      fim,
+      quantidadeAlunos,
+      observacoes,
+    } = resultado.data;
+
+    if (fim < inicio) {
+      return NextResponse.json(
+        {
+          message: "A data de fim deve ser posterior à data de início.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const solicitacao = await prisma.solicitacao.create({
+      data: {
+        idadeMinima,
+        sexo,
+        pratica,
+        cursos,
+        inicio,
+        fim,
+        quantidadeAlunos,
+        observacoes,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        message: "Solicitação criada com sucesso.",
+        solicitacao,
+      },
+      {
+        status: 201,
+      }
+    );
+  } catch (error) {
+    console.error("Erro ao criar solicitação:", error);
+
+    return NextResponse.json(
+      {
+        message: "Erro ao criar solicitação.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

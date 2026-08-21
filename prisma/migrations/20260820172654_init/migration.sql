@@ -1,11 +1,9 @@
--- CreateEnum
-CREATE TYPE "Sexo" AS ENUM ('MASCULINO', 'FEMININO', 'OUTRO');
 
 -- CreateTable
-CREATE TABLE "Solitacoes" (
+CREATE TABLE "Solicitacoes" (
     "id" TEXT NOT NULL,
     "idadeMinima" INTEGER NOT NULL,
-    "sexo" "Sexo" NOT NULL,
+    "sexo" TEXT NOT NULL,
     "pratica" TEXT NOT NULL,
     "cursos" TEXT,
     "inicio" TIMESTAMP(3) NOT NULL,
@@ -15,5 +13,5 @@ CREATE TABLE "Solitacoes" (
     "ativa" BOOLEAN NOT NULL DEFAULT true,
     "criadoEm" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Solitacoes_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Solicitacoes_pkey" PRIMARY KEY ("id")
 );

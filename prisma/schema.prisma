@@ -54,7 +54,7 @@ model Solicitacao {
   ativa       Boolean @default(true)
   criadoEm   DateTime @default(now())
 
-  @@map("Solitacoes")
+  @@map("Solicitacoes")
 }
 
 

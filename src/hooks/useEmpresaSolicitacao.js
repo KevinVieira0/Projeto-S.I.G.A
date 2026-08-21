@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { solicitacaoSchema } from "@/lib/validations/solicitacaoSchema";
+import { createSolicitacao } from "@/lib/api/solicitacaoService"
+
 
 
 export function useEmpresaSolicitacao(){
@@ -15,13 +17,13 @@ export function useEmpresaSolicitacao(){
     resolver: zodResolver(solicitacaoSchema),
     defaultValues: {
             idadeMinina: 0,
-            sexo: [],
+            sexo: "",
             pratica: "",
             cursos: "",
             inicio:"",
             fim:"",
             quantidadeAlunos: 0,
-            observacao:""
+            observacoes:""
             },
     });
 
@@ -39,7 +41,5 @@ export function useEmpresaSolicitacao(){
             setIsLoading(false);
        }
     }); 
-
     return { ...form, onSubmit, apiError, isLoading };
-
 }

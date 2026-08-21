@@ -28,9 +28,3 @@ export async function loginEmpresa({ cnpj }) {
   return data;
 }
 
-export async function createSolicitacao({ idadeMinina, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacao }) {
-  const { data } = await apiClient.post("/auth/empresa/solicitacao", {
-    idadeMinina, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacao
-  });
-  return data;
-}
