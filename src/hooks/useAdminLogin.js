@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { adminLoginSchema } from "@/lib/validations/adminLoginSchema";
 import { loginAdmin } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
-import { redirect } from "next/dist/server/api-utils";
 
 export function useAdminLogin() {
   const [apiError, setApiError] = useState(null);
