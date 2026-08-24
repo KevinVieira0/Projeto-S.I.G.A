@@ -29,3 +29,4 @@ export async function loginEmpresa({ cnpj, senha }) {
 
   return data;
 }
+
