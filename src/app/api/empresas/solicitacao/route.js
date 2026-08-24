@@ -26,7 +26,7 @@ const solicitacaoSchema = z.object({
 });
 
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const body = await request.json();
 

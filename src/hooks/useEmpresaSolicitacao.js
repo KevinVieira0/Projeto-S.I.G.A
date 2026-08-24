@@ -16,7 +16,7 @@ export function useEmpresaSolicitacao(){
   const form = useForm({
     resolver: zodResolver(solicitacaoSchema),
     defaultValues: {
-            idadeMinina: 0,
+            idadeMinima: 0,
             sexo: "",
             pratica: "",
             cursos: "",

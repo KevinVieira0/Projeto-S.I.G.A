@@ -1,6 +1,8 @@
-export async function createSolicitacao({ idadeMinina, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacoes }) {
-  const { data } = await apiClient.post("/api/empresa/solicitacao", {
-    idadeMinina, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacoes
+import { apiClient } from "./axiosClient";
+
+export async function createSolicitacao({ idadeMinima, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacoes }) {
+  const { data } = await apiClient.post("/empresas/solicitacao", {
+    idadeMinima, sexo, pratica, cursos, inicio, fim, quantidadeAlunos, observacoes
   });
   return data;
 }
