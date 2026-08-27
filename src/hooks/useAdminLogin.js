@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { adminLoginSchema } from "@/lib/validations/adminLoginSchema";
 import { loginAdmin } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "@/constants/routes";
 
 export function useAdminLogin() {
   const [apiError, setApiError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(adminLoginSchema),
@@ -26,7 +29,7 @@ export function useAdminLogin() {
       // então guardamos a sessão sem token por enquanto. Quando a rota passar a
       // retornar um token, basta trocar `null` por `data.token` aqui.
       login(null, "admin", data.usuario);
-      // TODO: redirecionar para ROUTES.ADMIN_DASHBOARD assim que a tela existir
+      router.push(ROUTES.ADMIN_DASHBOARD);
     } catch (err) {
       setApiError("E-mail ou senha inválidos.");
     } finally {
