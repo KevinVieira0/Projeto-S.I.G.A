@@ -1,225 +1,219 @@
-# Projeto S.I.G.A
+# SIGA — Sistema de Indicação e Gerenciamento do Aprendiz
 
-Portal de acesso do S.I.G.A desenvolvido com Next.js, Prisma e PostgreSQL.
-Atualmente o projeto possui login de administrador e login de empresa
-beneficiária usando CNPJ e senha.
+O SIGA é uma aplicação acadêmica desenvolvida para auxiliar a coordenação de estágios do SENAI no gerenciamento de alunos, empresas beneficiárias e solicitações de aprendizagem.
 
-Este README descreve a instalação completa em um computador novo no qual o
-PostgreSQL já está instalado, mas o banco `siga_local` ainda não possui tabelas
-nem dados.
+O sistema reúne autenticação, banco de dados e sincronização de alunos cadastrados pelo Google Forms.
 
-## Tecnologias utilizadas
+## Fluxo dos alunos
+
+```text
+Google Forms → Google Sheets → botão "Atualizar alunos" → API Next.js → Prisma → PostgreSQL
+```
+
+O CPF é usado como identificador único:
+
+- CPF novo: o aluno é criado.
+- CPF existente: o aluno é atualizado.
+- A sincronização não duplica alunos com o mesmo CPF.
+- Quando o aluno está empregado, ele é relacionado a uma empresa cadastrada no banco.
+
+## Tecnologias
 
 | Camada | Tecnologia |
-|---|---|
-| Aplicação web e API | Next.js 14 e React 18 |
-| Estilos | Tailwind CSS |
-| Formulários e validação | React Hook Form e Zod |
-| Banco de dados | PostgreSQL |
+| --- | --- |
+| Aplicação e API | Next.js 14 e React 18 |
+| Interface | Tailwind CSS |
+| Formulários | React Hook Form e Zod |
+| Banco de dados | PostgreSQL 18 |
 | ORM e migrations | Prisma 7 |
-| Proteção das senhas | bcryptjs |
+| Autenticação de senhas | bcryptjs |
+| Integração externa | Google Sheets API |
 
-## O que já está funcionando
+## Funcionalidades atuais
 
 - Login de administrador por e-mail e senha.
-- Consulta de empresa pelo CNPJ.
-- Login de empresa autorizada por CNPJ e senha.
-- Senhas armazenadas como hash bcrypt, nunca em texto puro.
-- Tabelas `administradores` e `empresas` criadas por migrations.
-- Administrador inicial e empresa de teste criados pelo seed.
+- Login e validação de empresa por CNPJ.
+- Dashboard administrativo em `/admin/dashboard`.
+- Modelos de administrador, empresa, aluno e solicitação.
+- Senhas armazenadas como hash bcrypt.
+- Sincronização da planilha de alunos com o PostgreSQL.
+- Criação e atualização de alunos pelo CPF.
+- Relação entre aluno e empresa.
+- Exibição do resultado da sincronização no dashboard.
 
-## 1. Programas necessários
+## Pré-requisitos
 
-Antes de abrir o projeto, instale:
+Instale no computador:
 
-- PostgreSQL, incluindo as ferramentas de linha de comando.
-- Node.js. Recomenda-se usar uma versão LTS atual.
+- Windows 10 ou 11.
+- Node.js 24, versão utilizada durante o desenvolvimento.
+- PostgreSQL 18, incluindo as ferramentas de linha de comando.
+- Git.
 - Visual Studio Code.
-- Git, caso o projeto seja obtido por `git clone`.
+- Arquivo JSON de uma conta de serviço do Google com acesso à planilha.
 
-Abra o PowerShell e confirme as instalações:
+Confira as instalações no PowerShell:
 
 ```powershell
 node --version
 npm.cmd --version
-psql --version
+git --version
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
 ```
 
-Se `psql` não for reconhecido e o PostgreSQL 18 estiver instalado, execute:
+## Estrutura obrigatória no computador
+
+Utilize esta organização:
+
+```text
+C:\SIGA\
+├── CredenciaisSIGA\
+│   └── google-sheets-service-account.json
+└── Projeto-S.I.G.A\
+    ├── prisma\
+    ├── src\
+    ├── .env
+    ├── .env.example
+    ├── package.json
+    └── README.md
+```
+
+A pasta `CredenciaisSIGA` fica fora do repositório `Projeto-S.I.G.A`. O arquivo JSON contém uma chave privada e nunca deve ser enviado ao GitHub.
+
+## Pré-configuração da Google Sheets API
+
+Para a sincronização funcionar:
+
+1. Ative a **Google Sheets API** no projeto do Google Cloud.
+2. Crie uma conta de serviço.
+3. Gere e baixe uma chave no formato JSON.
+4. Salve o arquivo como:
+
+```text
+C:\SIGA\CredenciaisSIGA\google-sheets-service-account.json
+```
+
+5. Abra o JSON e localize o campo `client_email`.
+6. Compartilhe a planilha do Google Sheets com esse e-mail, no mínimo como leitor.
+7. Confirme que a planilha possui a aba `Alunos` e as colunas esperadas entre `A` e `Q`.
+
+Teste se o arquivo está no local correto:
 
 ```powershell
-$env:Path += ";C:\Program Files\PostgreSQL\18\bin"
-psql --version
+Test-Path "C:\SIGA\CredenciaisSIGA\google-sheets-service-account.json"
 ```
 
-Se outra versão estiver instalada, substitua `18` pelo número correspondente.
+O resultado deve ser `True`.
 
-## 2. Abrir a pasta do projeto
+## 1. Abrir o projeto
 
-Extraia o ZIP ou faça o clone para uma pasta local. No PowerShell, entre na
-pasta que contém o arquivo `package.json`. Exemplo:
+Clone o repositório ou copie a pasta para:
+
+```text
+C:\SIGA\Projeto-S.I.G.A
+```
+
+Entre na pasta:
 
 ```powershell
-cd "C:\Users\Pichau\OneDrive\Documentos\Projeto-S.I.G.A"
-Get-ChildItem
-code .
+cd C:\SIGA\Projeto-S.I.G.A
 ```
 
-O resultado de `Get-ChildItem` deve mostrar, entre outros itens,
-`package.json`, `prisma.config.ts`, `README.md`, `prisma` e `src`.
+Se estiver usando Git, selecione a branch definida pela equipe e atualize-a antes de continuar.
 
-## 3. Confirmar que o PostgreSQL está em execução
+## 2. Configurar o `.env`
 
-```powershell
-Get-Service *postgres*
-```
-
-O serviço deve aparecer como `Running`. Se estiver parado, abra o PowerShell
-como administrador e inicie o serviço. Para uma instalação padrão do
-PostgreSQL 18, o comando normalmente é:
-
-```powershell
-Start-Service postgresql-x64-18
-```
-
-Se o nome for diferente, use exatamente o nome exibido por
-`Get-Service *postgres*`.
-
-## 4. Criar o banco local vazio
-
-Conecte-se ao PostgreSQL usando o usuário definido durante a instalação. Na
-instalação padrão, esse usuário é `postgres`:
-
-```powershell
-psql -U postgres -h localhost -p 5432 -d postgres
-```
-
-Digite a senha do PostgreSQL quando ela for solicitada. Dentro do `psql`, rode:
-
-```sql
-CREATE DATABASE siga_local;
-```
-
-Depois saia:
-
-```sql
-\q
-```
-
-Se aparecer a mensagem de que o banco já existe, não o crie novamente. Apenas
-continue para a próxima etapa.
-
-## 5. Criar e configurar o arquivo `.env`
-
-Na raiz do projeto, crie o `.env` a partir do exemplo somente se ele ainda não
-existir:
+Crie o arquivo a partir do exemplo, caso ainda não exista:
 
 ```powershell
 if (-not (Test-Path ".env")) { Copy-Item ".env.example" ".env" }
 notepad .env
 ```
 
-Confirme que o arquivo possui todas as variáveis abaixo e preencha os valores:
+Use esta estrutura:
 
-```dotenv
+```env
 DATABASE_URL="postgresql://postgres:SUA_SENHA_POSTGRES@localhost:5432/siga_local?schema=public"
 DIRECT_URL="postgresql://postgres:SUA_SENHA_POSTGRES@localhost:5432/siga_local?schema=public"
 
+NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+
 ADMIN_INITIAL_NAME="Nome do administrador"
 ADMIN_INITIAL_EMAIL="administrador@exemplo.com"
-ADMIN_INITIAL_PASSWORD="SENHA_ADMIN_COM_8_OU_MAIS_CARACTERES"
+ADMIN_INITIAL_PASSWORD="senha-com-8-ou-mais-caracteres"
 
-EMPRESA_TEST_PASSWORD="SENHA_EMPRESA_COM_8_OU_MAIS_CARACTERES"
+EMPRESA_TEST_PASSWORD="senha-com-8-ou-mais-caracteres"
+
+GOOGLE_APPLICATION_CREDENTIALS="C:/SIGA/CredenciaisSIGA/google-sheets-service-account.json"
+GOOGLE_SHEETS_ID="ID_DA_PLANILHA"
+GOOGLE_SHEETS_ALUNOS_RANGE="Alunos!A:Q"
 ```
 
-Observações importantes:
+Observações:
 
-- Troque todos os valores de exemplo.
+- Troque `SUA_SENHA_POSTGRES` pela senha definida durante a instalação do PostgreSQL.
 - `DATABASE_URL` e `DIRECT_URL` devem apontar para o mesmo banco local.
-- A porta padrão do PostgreSQL é `5432`.
-- As senhas do administrador e da empresa precisam ter pelo menos 8 caracteres.
-- Se `EMPRESA_TEST_PASSWORD` não estiver no `.env.example`, adicione-a
-  manualmente ao `.env`, conforme mostrado acima.
-- Se a senha do PostgreSQL tiver caracteres especiais de URL, eles precisam ser
-  codificados na conexão.
-- Nunca envie ou faça commit do arquivo `.env`. Ele contém informações privadas.
+- O ID da planilha é o texto localizado entre `/d/` e `/edit` na URL do Google Sheets.
+- Senhas com caracteres especiais de URL precisam ser codificadas na string de conexão.
+- Não faça commit do `.env`.
 
-## 6. Instalar as dependências
+## 3. Preparar o PostgreSQL
 
-Ainda na raiz do projeto:
+Confirme que o serviço está em execução:
+
+```powershell
+Get-Service *postgres*
+```
+
+Se estiver parado, abra o PowerShell como administrador e execute:
+
+```powershell
+Start-Service postgresql-x64-18
+```
+
+Crie o banco local:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres -h localhost -p 5432 siga_local
+```
+
+Digite a senha do PostgreSQL quando solicitado. Se o comando informar que o banco já existe, continue para a próxima etapa.
+
+## 4. Instalar e preparar o Prisma
+
+Na raiz do projeto, execute na ordem:
 
 ```powershell
 npm.cmd install
-```
-
-Esse comando cria a pasta `node_modules`. Ele precisa ser executado na primeira
-instalação ou quando as dependências forem alteradas.
-
-## 7. Preparar o Prisma e criar as tabelas
-
-Execute os comandos abaixo na ordem indicada:
-
-```powershell
 npx.cmd prisma validate
 npx.cmd prisma generate
 npx.cmd prisma migrate deploy
+npx.cmd prisma db seed
 npx.cmd prisma migrate status
 ```
 
-O projeto possui atualmente duas migrations:
+Esses comandos fazem o seguinte:
 
-1. `20260807020159_criar_administrador_empresa` cria as tabelas
-   `administradores` e `empresas`.
-2. `20260813040509_adicionar_senha_empresa` adiciona `senha_hash` à tabela
-   `empresas`.
+| Comando | Função |
+| --- | --- |
+| `npm.cmd install` | Instala as dependências do projeto. |
+| `prisma validate` | Verifica o arquivo `schema.prisma`. |
+| `prisma generate` | Gera o Prisma Client em `src/generated/prisma`. |
+| `prisma migrate deploy` | Aplica no banco todas as migrations já versionadas. |
+| `prisma db seed` | Cria ou atualiza o administrador e as empresas iniciais. |
+| `prisma migrate status` | Confirma se o banco está atualizado. |
 
-Ao final, `prisma migrate status` deve informar que o schema do banco está
-atualizado. Não apague nenhuma dessas pastas de migration: elas são necessárias
-para montar corretamente um banco vazio em outro computador.
-
-## 8. Inserir os dados iniciais
-
-Com o `.env` preenchido e as migrations aplicadas, execute:
-
-```powershell
-npx.cmd prisma db seed
-```
-
-O seed cria ou atualiza:
-
-- O administrador definido nas variáveis `ADMIN_INITIAL_*`.
-- A empresa de teste com CNPJ `11222333000181`.
-- A senha da empresa definida em `EMPRESA_TEST_PASSWORD`.
-
-O resultado esperado inclui mensagens semelhantes a:
+O resultado final esperado é:
 
 ```text
-Administrador preparado: administrador@exemplo.com
-Empresa preparada: Empresa Teste SIGA LTDA
+Database schema is up to date!
 ```
 
-As senhas gravadas no banco aparecem como hashes iniciados normalmente por
-`$2b$12$`. Isso está correto; a senha original não deve aparecer no banco.
+Em computadores novos, utilize `prisma migrate deploy`. O comando `prisma migrate dev` deve ser usado somente quando um desenvolvedor alterar o schema e precisar criar uma nova migration.
 
-## 9. Conferir as tabelas no Prisma Studio
+## 5. Validar e iniciar o sistema
 
-```powershell
-npx.cmd prisma studio
-```
-
-Abra o endereço exibido no terminal, normalmente `http://localhost:5555`, e
-confira:
-
-- `Administrador`: deve existir o administrador configurado no `.env`.
-- `Empresa`: deve existir o CNPJ `11222333000181`.
-- O campo `senhaHash` deve estar preenchido nos dois registros.
-- A empresa de teste deve estar com `autorizada = true` e `ativa = true`.
-
-Encerre o Prisma Studio com `Ctrl + C` quando terminar.
-
-## 10. Validar e executar o projeto
-
-Primeiro valide a compilação:
+Valide o projeto:
 
 ```powershell
 npm.cmd run build
@@ -231,198 +225,213 @@ Depois inicie o ambiente de desenvolvimento:
 npm.cmd run dev
 ```
 
-Abra:
+Acesse:
 
 ```text
 http://localhost:3000/login
 ```
 
-Teste os dois acessos:
+Use o e-mail e a senha configurados em `ADMIN_INITIAL_EMAIL` e `ADMIN_INITIAL_PASSWORD`.
 
-- Administrador: e-mail e senha definidos no `.env`.
-- Empresa: CNPJ `11222333000181` e a senha definida em
-  `EMPRESA_TEST_PASSWORD`.
+## 6. Importar os alunos da planilha
 
-## 11. Comandos usados no dia a dia
+As migrations criam a tabela `Aluno`, mas os registros dos alunos não ficam no Git e não são criados pelo seed.
 
-Depois que a instalação completa tiver sido feita uma vez, normalmente basta:
+Para importar os alunos:
+
+1. Entre como administrador.
+2. Acesse `http://localhost:3000/admin/dashboard`.
+3. Clique em **Atualizar alunos**.
+4. Confira as quantidades de recebidos, criados, atualizados, ignorados e erros.
+
+Em um banco novo, todos os alunos existentes na planilha devem aparecer inicialmente como criados. Nas sincronizações seguintes, eles aparecem como atualizados.
+
+## 7. Conferir o banco no Prisma Studio
+
+Mantenha o Next.js aberto e use outro terminal:
 
 ```powershell
-cd "CAMINHO\PARA\Projeto-S.I.G.A"
+cd C:\SIGA\Projeto-S.I.G.A
+npx.cmd prisma studio
+```
+
+O endereço padrão é:
+
+```text
+http://localhost:5555
+```
+
+Confira as tabelas:
+
+- `Administrador`
+- `Empresa`
+- `Aluno`
+- `Solicitacao`
+
+O Prisma Studio é apenas uma ferramenta visual. O sistema funciona sem ele.
+
+## Comandos usados no dia a dia
+
+Depois da primeira configuração, normalmente basta:
+
+```powershell
+cd C:\SIGA\Projeto-S.I.G.A
 Get-Service *postgres*
 npm.cmd run dev
 ```
 
-Não é necessário repetir `npm install`, migrations ou seed toda vez que o
-projeto for aberto.
+Não é necessário repetir `npm install`, migrations ou seed toda vez que abrir o projeto.
 
-## 12. Alterar as senhas iniciais
+## De onde vêm os dados
 
-Para trocar a senha do administrador ou da empresa de teste:
+| Recurso | Responsabilidade |
+| --- | --- |
+| Migrations | Criam e atualizam a estrutura das tabelas. |
+| Seed | Prepara administrador e empresas iniciais. |
+| Google Sheets | Fornece os alunos para sincronização. |
+| PostgreSQL | Armazena os dados locais do sistema. |
+| GitHub | Armazena o código, nunca os dados do banco ou credenciais. |
 
-1. Pare o servidor com `Ctrl + C`.
-2. Altere `ADMIN_INITIAL_PASSWORD` ou `EMPRESA_TEST_PASSWORD` no `.env`.
-3. Mantenha o mesmo e-mail do administrador caso queira atualizar o mesmo
-   registro.
-4. Execute novamente:
+## Alterar senhas iniciais
+
+1. Altere no `.env`:
+
+```env
+ADMIN_INITIAL_PASSWORD="nova-senha-administrativa"
+EMPRESA_TEST_PASSWORD="nova-senha-da-empresa"
+```
+
+2. Execute novamente:
 
 ```powershell
 npx.cmd prisma db seed
 ```
 
-5. Reinicie o projeto:
+Alterar somente o `.env` não modifica os hashes que já estão no banco. O seed precisa ser executado novamente.
+
+## Alterações futuras no banco
+
+Quando um desenvolvedor alterar `prisma/schema.prisma`, deve criar uma nova migration:
 
 ```powershell
-npm.cmd run dev
+npx.cmd prisma migrate dev --name descricao_da_alteracao
 ```
 
-Alterar apenas o `.env` não modifica um hash que já está salvo no banco. O seed
-é o comando que recalcula e grava o novo hash.
+Devem ser enviados ao Git:
 
-## 13. Criar backup do banco local
+- `prisma/schema.prisma`
+- A nova pasta dentro de `prisma/migrations`
 
-Crie a pasta de backups e gere um arquivo no formato próprio do PostgreSQL:
+Nos outros computadores, aplique a migration com:
 
 ```powershell
-New-Item -ItemType Directory -Force ".\backups"
-$dataBackup = Get-Date -Format "yyyy-MM-dd_HH-mm"
-pg_dump -U postgres -h localhost -p 5432 -d siga_local -F c -f ".\backups\siga_local_$dataBackup.backup"
+npx.cmd prisma migrate deploy
+npx.cmd prisma generate
 ```
 
-A pasta `backups` está ignorada pelo Git porque pode conter dados pessoais e
-credenciais. Guarde o arquivo em local seguro.
+Não apague migrations já compartilhadas.
 
-Migrations e backup têm funções diferentes:
+## Solução de problemas
 
-- As migrations versionam a estrutura do banco.
-- O backup preserva os dados que estavam no banco no momento da cópia.
+### PostgreSQL não encontrado
 
-## 14. Solução de problemas
-
-### `psql`, `pg_dump` ou `pg_restore` não é reconhecido
-
-Adicione temporariamente a pasta `bin` do PostgreSQL ao PowerShell:
+Use o caminho completo dos executáveis ou adicione temporariamente ao PowerShell:
 
 ```powershell
 $env:Path += ";C:\Program Files\PostgreSQL\18\bin"
 ```
 
-### Erro de autenticação do PostgreSQL
+### Erro de conexão com o banco
 
-Confirme usuário, senha, porta e banco nas duas URLs do `.env`. Teste a conexão:
+Confira usuário, senha, porta e nome do banco em `DATABASE_URL` e `DIRECT_URL`:
 
 ```powershell
-psql -U postgres -h localhost -p 5432 -d siga_local
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -p 5432 -d siga_local
 ```
 
-### Prisma informa que existe migration pendente
+### Prisma Client ausente ou desatualizado
+
+```powershell
+npx.cmd prisma generate
+```
+
+### Existem migrations pendentes
 
 ```powershell
 npx.cmd prisma migrate deploy
 npx.cmd prisma migrate status
 ```
 
-### O campo `senhaHash` não aparece no Prisma Studio
+### A tabela `Aluno` está vazia
 
-```powershell
-npx.cmd prisma migrate deploy
-npx.cmd prisma generate
-npx.cmd prisma studio
-```
+Isso é esperado em um banco novo. Inicie o sistema, entre como administrador e clique em **Atualizar alunos**.
 
-Feche uma aba antiga do Studio e abra novamente o endereço exibido pelo comando.
+### Erro ao acessar o Google Sheets
 
-### Erro em `src/generated/prisma`
+Confira:
 
-```powershell
-npx.cmd prisma generate
-```
+- Se o JSON está no caminho configurado.
+- Se `GOOGLE_SHEETS_ID` contém o ID correto.
+- Se o intervalo é `Alunos!A:Q`.
+- Se a planilha foi compartilhada com o `client_email` da conta de serviço.
+- Se a Google Sheets API está habilitada no Google Cloud.
 
-### Erro `EINVAL readlink` dentro da pasta `.next`
+### Erro na pasta `.next`
 
-Esse problema pode acontecer quando a pasta do projeto está sincronizada pelo
-OneDrive. Pare o servidor, apague apenas o cache de compilação e execute de novo:
+Pare o servidor e remova somente o cache:
 
 ```powershell
 Remove-Item -Recurse -Force ".\.next"
 npm.cmd run dev
 ```
 
-Se o erro continuar, mova o projeto para uma pasta local que não seja
-sincronizada, por exemplo `C:\Projetos\Projeto-S.I.G.A`.
+Evite manter o projeto dentro de uma pasta sincronizada pelo OneDrive.
 
-### A porta 3000 já está em uso
+## Segurança
 
-O Next.js pode escolher automaticamente a porta 3001. Use o endereço indicado
-no terminal ou encerre o outro processo que está usando a porta 3000.
+Nunca envie ao GitHub:
 
-## 15. Regras para futuras mudanças no banco
+```text
+.env
+google-sheets-service-account.json
+CredenciaisSIGA/
+node_modules/
+.next/
+backups/
+src/generated/prisma/
+```
 
-- Não apague migrations que já fazem parte do projeto.
-- Depois de alterar `prisma/schema.prisma` em desenvolvimento, crie uma nova
-  migration com um nome descritivo:
+Antes de um commit, confira:
 
 ```powershell
-npx.cmd prisma migrate dev --name nome_da_alteracao
+git status --short
+git check-ignore -v .env
 ```
 
-- Envie ao Git tanto o `schema.prisma` quanto a nova pasta criada em
-  `prisma/migrations`.
-- Em outro computador, aplique migrations existentes com
-  `npx.cmd prisma migrate deploy`.
-- Não substitua migrations por um backup. O projeto precisa das migrations para
-  reproduzir sua estrutura em qualquer banco novo.
+A pasta `CredenciaisSIGA` não aparece no status porque fica fora do repositório.
 
-## 16. Planilha de alunos: próxima etapa
+## Limitação atual
 
-A planilha atualizada foi conferida e contém as abas `Respostas ao formulário
-4`, `Alunos`, `Empresas`, `Listas` e `Estrutura Forms`.
+A sincronização de alunos está habilitada somente em desenvolvimento. Para utilizar o sistema com todas as funções atuais, execute:
 
-A aba `Alunos` possui 16 colunas:
-
-```text
-ID, Nome, CPF, Número para contato, E-mail para contato, Idade,
-Modalidade, Curso, Turma, Período, Termo, Empregado, Empresa,
-Status da indicação, Data de cadastro, Última atualização
+```powershell
+npm.cmd run dev
 ```
 
-A importação ainda não faz parte desta versão do projeto. Na próxima etapa será
-necessário criar o modelo `Aluno`, sua migration e a rotina de sincronização.
-A regra planejada é:
+Antes de publicar o sistema, ainda será necessário implementar uma sessão segura no servidor, preferencialmente com cookie `httpOnly`, e proteger as rotas administrativas no backend.
 
-- Normalizar o CPF e usá-lo como identificador único do aluno.
-- Criar o aluno quando o CPF ainda não existir.
-- Atualizar o aluno quando o CPF já existir.
-- Não excluir alunos antigos apenas porque não aparecem em uma atualização.
-- Relacionar o aluno à tabela `empresas` por uma chave estrangeira opcional,
-  localizando a empresa pelo CNPJ; não armazenar a empresa apenas como texto.
-- Preservar de forma controlada campos administrativos, como o status da
-  indicação.
+## Resumo da instalação
 
-Nenhum comando de sincronização deve ser executado antes dessa implementação.
-
-## Estrutura principal
-
-```text
-prisma/
-├── migrations/          # histórico versionado da estrutura do banco
-├── schema.prisma        # modelos Prisma
-└── seed.js              # administrador e empresa de teste
-
-src/
-├── app/
-│   ├── (public)/login/  # página de login
-│   └── api/             # endpoints de administrador, empresa e CNPJ
-├── components/          # componentes visuais
-├── context/             # contexto de autenticação
-├── hooks/               # regras dos formulários
-└── lib/                 # Prisma, serviços e validações
+```powershell
+cd C:\SIGA\Projeto-S.I.G.A
+npm.cmd install
+npx.cmd prisma validate
+npx.cmd prisma generate
+npx.cmd prisma migrate deploy
+npx.cmd prisma db seed
+npx.cmd prisma migrate status
+npm.cmd run build
+npm.cmd run dev
 ```
 
-## Endpoints atuais
-
-```text
-POST /api/auth/admin/login
-POST /api/auth/empresa/login
-GET  /api/empresas/cnpj/:cnpj/validar
-```
+Depois, acesse `http://localhost:3000/login` e clique em **Atualizar alunos** no dashboard administrativo.
