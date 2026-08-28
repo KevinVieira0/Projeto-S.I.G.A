@@ -69,6 +69,31 @@
   grid-column: 1 / -1;
 }
 
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 10px 12px;
+  border: 1px solid #d5d8dd;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: #0a3d7c;
+}
+
+.campo textarea {
+  font-family: inherit;
+  resize: vertical;
+  min-height: 90px;
+}
+
 .botao {
   display: block;
   width: 100%;

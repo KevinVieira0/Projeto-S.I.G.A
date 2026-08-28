@@ -1,83 +1,97 @@
 "use client";
 import { useState } from "react";
-import styles from "./page.module.css";
+import styles from "../../app/solicitacao/page.module.css";
+import Inputsolicitacao from "../../components/solicitacao/inputsolicitacao";
+import Selectsolicitacao from "../../components/solicitacao/selectsolicitacao";
+
+
+const CURSOS = [
+  { value: "administracao", label: "Administração" },
+  { value: "dev", label: "Desenvolvimento de Sistemas" },
+  { value: "mecatronica", label: "Mecatrônica" },
+];
+
+const UNIDADES = [
+  { value: "vl", label: "Vila Leopoldina" },
+  { value: "osasco", label: "Osasco" },
+];
 
 export default function Solicitacao() {
+  const [form, setForm] = useState({
+    idadeMinima: "",
+    idadeMaxima: "",
+    sexo: "",
+    pratica: "",
+    curso: "",
+    inicio: "",
+    fim: "",
+    quantidade: "",
+    unidade: "",
+    observacoes: "",
+  });
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    console.log(form);
+    // TODO: chamada para a API
+  }
+
   return (
     <div className={styles.pagina}>
       <div className={styles.container}>
         <img src="/images/Logo-SENAI.png" alt="Logo" className={styles.logo} />
         <h1 className={styles.titulo}>Solicitação de Aprendizagem</h1>
 
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className={styles.grupo}>
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Idade Mínima</p>
-              <input type="text" placeholder="De: 16" />
-            </div>
+            <Inputsolicitacao label="Idade Mínima" name="idadeMinima" value={form.idadeMinima} onChange={handleChange} placeholder="De: 16" />
+            <Inputsolicitacao label="Idade Máxima" name="idadeMaxima" value={form.idadeMaxima} onChange={handleChange} placeholder="Até: 24" />
 
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Idade Máxima</p>
-              <input type="text" placeholder="Até: 24" />
-            </div>
+            <Selectsolicitacao
+              label="Sexo"
+              name="sexo"
+              value={form.sexo}
+              onChange={handleChange}
+              options={[
+                { value: "masculino", label: "Masculino" },
+                { value: "feminino", label: "Feminino" },
+                { value: "todos", label: "Todos" },
+              ]}
+            />
 
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Sexo</p>
-              <select>
-                <option value="">Selecione</option>
-                <option value="masculino">Masculino</option>
-                <option value="feminino">Feminino</option>
-                <option value="todos">Todos</option>
-              </select>
-            </div>
+            <Selectsolicitacao
+              label="Prática"
+              name="pratica"
+              value={form.pratica}
+              onChange={handleChange}
+              options={[
+                { value: "com", label: "Com prática" },
+                { value: "sem", label: "Sem prática" },
+              ]}
+            />
 
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Prática</p>
-              <select>
-                <option value="">Selecione</option>
-                <option value="com">Com prática</option>
-                <option value="sem">Sem prática</option>
-              </select>
-            </div>
+            <Selectsolicitacao label="Cursos" name="curso" value={form.curso} onChange={handleChange} options={CURSOS} largo />
 
-            <div className={`${styles.campo} ${styles.campoLargo}`}>
-              <p className={styles.titulodoInput}>Cursos</p>
-              <select>
-                <option value="">Selecione</option>
-                <option value="administracao">Administração</option>
-                <option value="dev">Desenvolvimento de Sistemas</option>
-                <option value="mecatronica">Mecatrônica</option>
-              </select>
-            </div>
+            <Inputsolicitacao label="Início" name="inicio" value={form.inicio} onChange={handleChange} placeholder="DD/MM/AA" />
+            <Inputsolicitacao label="Fim" name="fim" value={form.fim} onChange={handleChange} placeholder="DD/MM/AA" />
+            <Inputsolicitacao label="Quantidade" name="quantidade" value={form.quantidade} onChange={handleChange} placeholder="Até 5" />
 
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Início</p>
-              <input type="text" placeholder="DD/MM/AA" />
-            </div>
+            <Selectsolicitacao label="Unidade" name="unidade" value={form.unidade} onChange={handleChange} options={UNIDADES} />
 
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Fim</p>
-              <input type="text" placeholder="DD/MM/AA" />
-            </div>
-
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Quantidade</p>
-              <input type="text" placeholder="Até 5" />
-            </div>
-
-            <div className={styles.campo}>
-              <p className={styles.titulodoInput}>Unidade</p>
-              <select>
-                <option value="">Selecione</option>
-                <option value="vl">Vila Leopoldina</option>
-                <option value="osasco">Osasco</option>
-              </select>
-            </div>
-
-            <div className={`${styles.campo} ${styles.campoLargo}`}>
-              <p className={styles.titulodoInput}>Observações</p>
-              <input type="text" placeholder="Requisitos adicionais (opcional)" />
-            </div>
+            <Inputsolicitacao
+              label="Observações"
+              name="observacoes"
+              value={form.observacoes}
+              onChange={handleChange}
+              placeholder="Requisitos adicionais (opcional)"
+              largo
+              tipo="textarea"
+            />
           </div>
 
           <button type="submit" className={styles.botao}>CONFIRMAR</button>
