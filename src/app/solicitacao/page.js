@@ -3,6 +3,8 @@ import { useState } from "react";
 import styles from "../../app/solicitacao/page.module.css";
 import Inputsolicitacao from "../../components/solicitacao/inputsolicitacao";
 import Selectsolicitacao from "../../components/solicitacao/selectsolicitacao";
+import Inputdate from "../../components/solicitacao/inputsolicitacao";
+import { Input } from "@/components/ui/Input";
 
 
 const CURSOS = [
@@ -77,10 +79,12 @@ export default function Solicitacao() {
 
             <Selectsolicitacao label="Cursos" name="curso" value={form.curso} onChange={handleChange} options={CURSOS} largo />
 
-            <Inputsolicitacao label="Início" name="inicio" value={form.inicio} onChange={handleChange} placeholder="DD/MM/AA" />
+
+            <Input id="email" type="date" placeholder="email@email.com"></Input>
+
+            <Inputdate label="Início" name="inicio" value={form.inicio} onChange={handleChange} placeholder="DD/MM/AA" />
             <Inputsolicitacao label="Fim" name="fim" value={form.fim} onChange={handleChange} placeholder="DD/MM/AA" />
             <Inputsolicitacao label="Quantidade" name="quantidade" value={form.quantidade} onChange={handleChange} placeholder="Até 5" />
-
             <Selectsolicitacao label="Unidade" name="unidade" value={form.unidade} onChange={handleChange} options={UNIDADES} />
 
             <Inputsolicitacao
