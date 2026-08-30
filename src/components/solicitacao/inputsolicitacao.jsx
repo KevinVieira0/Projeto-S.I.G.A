@@ -14,7 +14,7 @@ export default function Inputsolicitacao({ label, name, value, onChange, placeho
         />
       ) : (
         <input
-          type="String"
+          type={tipo}
           name={name}
           value={value}
           onChange={onChange}

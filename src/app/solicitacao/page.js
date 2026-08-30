@@ -3,19 +3,29 @@ import { useState } from "react";
 import styles from "../../app/solicitacao/page.module.css";
 import Inputsolicitacao from "../../components/solicitacao/inputsolicitacao";
 import Selectsolicitacao from "../../components/solicitacao/selectsolicitacao";
-import Inputdate from "../../components/solicitacao/inputsolicitacao";
-import { Input } from "@/components/ui/Input";
 
 
 const CURSOS = [
+
   { value: "administracao", label: "Administração" },
-  { value: "dev", label: "Desenvolvimento de Sistemas" },
+  { value: "automacao-industrial", label: "Automação Industrial" },
+  { value: "desenvolvimento-sistemas", label: "Desenvolvimento de Sistemas" },
+  { value: "edificacoes", label: "Edificações" },
+  { value: "eletroeletronica", label: "Eletroeletrônica" },
+  { value: "logistica", label: "Logística" },
+  { value: "mecanica", label: "Mecânica" },
   { value: "mecatronica", label: "Mecatrônica" },
+  { value: "metroferroviaria", label: "Metroferroviário" },
+  { value: "seguranca-do-trabalho", label: "Segurança do Trabalho" }
 ];
 
 const UNIDADES = [
-  { value: "vl", label: "Vila Leopoldina" },
+  { value: "barra funda", label: "Barra Funda" },
+  { value: "bras", label: "Brás" },
+  { value: "ipiranga", label: "Ipiranga" },
+  { value: "mooca", label: "Mooca"},
   { value: "osasco", label: "Osasco" },
+  { value: "vl", label: "Vila Leopoldina" }
 ];
 
 export default function Solicitacao() {
@@ -33,9 +43,13 @@ export default function Solicitacao() {
   });
 
   function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
+  const { name, value, type } = e.target;
+
+  setForm((prev) => ({
+    ...prev,
+    [name]: type === "number" && value !== "" ? Number(value) : value,
+  }));
+}
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -51,8 +65,8 @@ export default function Solicitacao() {
 
         <form onSubmit={handleSubmit}>
           <div className={styles.grupo}>
-            <Inputsolicitacao label="Idade Mínima" name="idadeMinima" value={form.idadeMinima} onChange={handleChange} placeholder="De: 16" />
-            <Inputsolicitacao label="Idade Máxima" name="idadeMaxima" value={form.idadeMaxima} onChange={handleChange} placeholder="Até: 24" />
+            <Inputsolicitacao label="Idade Mínima" name="idadeMinima" value={form.idadeMinima} onChange={handleChange} placeholder="De: 16" tipo="number"/>
+            <Inputsolicitacao label="Idade Máxima" name="idadeMaxima" value={form.idadeMaxima} onChange={handleChange} placeholder="Até: 24" tipo="number"/>
 
             <Selectsolicitacao
               label="Sexo"
@@ -80,11 +94,10 @@ export default function Solicitacao() {
             <Selectsolicitacao label="Cursos" name="curso" value={form.curso} onChange={handleChange} options={CURSOS} largo />
 
 
-            <Input id="email" type="date" placeholder="email@email.com"></Input>
+            <Inputsolicitacao label="Início" name="inicio" value={form.inicio} onChange={handleChange} placeholder="DD/MM/AA" tipo="date" />
+            <Inputsolicitacao label="Fim" name="fim" value={form.fim} onChange={handleChange} placeholder="DD/MM/AA" tipo="date"/>
 
-            <Inputdate label="Início" name="inicio" value={form.inicio} onChange={handleChange} placeholder="DD/MM/AA" />
-            <Inputsolicitacao label="Fim" name="fim" value={form.fim} onChange={handleChange} placeholder="DD/MM/AA" />
-            <Inputsolicitacao label="Quantidade" name="quantidade" value={form.quantidade} onChange={handleChange} placeholder="Até 5" />
+            <Inputsolicitacao label="Quantidade" name="quantidade" value={form.quantidade} onChange={handleChange} placeholder="Até 5" tipo="number"/>
             <Selectsolicitacao label="Unidade" name="unidade" value={form.unidade} onChange={handleChange} options={UNIDADES} />
 
             <Inputsolicitacao
