@@ -1,66 +1,23 @@
-/**
- * Input de formulário padrão do projeto.
- * - `icon`: componente de ícone (lucide-react) exibido à esquerda
- * - `rightElement`: nó exibido à direita (ex: botão de mostrar/ocultar senha)
- * - `color`: "blue" | "amber" -> cor da borda/foco, alinhada ao tema da aba ativa
- * - `error`: mensagem vinda do react-hook-form/zod
- */
-const FOCUS_STYLES = {
-  blue: "border-blue-200 focus:border-blue-400 focus:ring-blue-100",
-  amber: "border-amber-200 focus:border-amber-400 focus:ring-amber-100",
-};
+import * as React from "react"
+import { Input as InputPrimitive } from "@base-ui/react/input"
 
-import { forwardRef } from "react";
+import { cn } from "@/lib/utils"
 
-const Input1 = forwardRef(function Input(
-  {
-    label,
-    name,
-    error,
-    icon: Icon,
-    rightElement,
-    color = "blue",
-    className = "",
-    ...rest
-  },
-  ref
-) {
+function Input({
+  className,
+  type,
+  ...props
+}) {
   return (
-    <div className="mb-4">
-      {label && (
-        <label htmlFor={name} className="mb-1 block text-sm font-medium text-gray-700">
-          {label}
-        </label>
+    <InputPrimitive
+      type={type}
+      data-slot="input"
+      className={cn(
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        className
       )}
-
-      <div className="relative">
-        {Icon && (
-          <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        )}
-
-        <input
-          id={name}
-          name={name}
-          ref={ref}
-          className={`w-full rounded-lg border bg-white py-2.5 text-sm text-gray-800 outline-none
-            transition focus:ring-4
-            ${Icon ? "pl-9" : "pl-3"}
-            ${rightElement ? "pr-10" : "pr-3"}
-            ${error ? "border-red-400 focus:border-red-400 focus:ring-red-100" : FOCUS_STYLES[color]}
-            ${className}`}
-          {...rest}
-        />
-
-        {rightElement && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightElement}</div>
-        )}
-      </div>
-
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-    </div>
+      {...props} />
   );
-});
+}
 
-export default Input1;
-
-
+export { Input }
