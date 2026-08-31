@@ -1,49 +1,48 @@
-# Dependencies
+# Dependências
 /node_modules
 /.pnp
 .pnp.js
 
-# Next.js Build Output
+# Next.js
 /.next/
 /out/
-.next
+/build/
 
-# Production Build
-/build
-
-# Debug Logs
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Local Environment Variables (DO NOT COMMIT SECRETS)
-.env*.local
-.env
-.env.local
+# Variáveis de ambiente
 .env*
 !.env.example
-.env.developments
-.env.production
 
-# Private database artifacts and generated Prisma client
+# Prisma / banco
 /backups/
 /src/generated/prisma
 
-# Vercel Deployment Metadata
+# Vercel
 .vercel
 
-# TypeScript Compilation Info
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Testing Coverage
+# Cobertura de testes
 /coverage
 
-# IDE / Editor Settings
+# IDE / sistema operacional
 .vscode/
 .idea/
-
-# OS Metadata
 .DS_Store
 Thumbs.db
+
+# Credenciais do Google
+/google-sheets-service-account.json
+*-service-account*.json
+/credentials/
+/credenciais/
+
+# Planilhas locais com dados pessoais
+Alunos*.xlsx

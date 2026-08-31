@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Executada quando a rota recebe uma requisição GET
-export async function GET(request, { params }) {
+export async function GET(_request, { params }) {
   // Obtém o CNPJ que foi enviado pela URL
   const cnpj = params.cnpj.replace(/\D/g, "");
 

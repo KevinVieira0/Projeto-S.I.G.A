@@ -11,7 +11,7 @@ export default function LoginCard() {
 
   return (
     <div className="w-full max-w-md">
-      <PortalHeader activeTab={activeTab} />
+      <PortalHeader />
 
       <div className="rounded-3xl bg-gray-200 p-8 shadow-sm ">
         <h1 className="text-center text-2xl font-bold text-gray-900">

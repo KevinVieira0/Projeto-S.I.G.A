@@ -30,12 +30,10 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    console.log("BODY RECEBIDO:", body);
 
     const resultado = solicitacaoSchema.safeParse(body);
 
     if (!resultado.success) {
-      console.error("ERRO DE VALIDAÇÃO:", resultado.error.flatten());
 
       return NextResponse.json(
         {

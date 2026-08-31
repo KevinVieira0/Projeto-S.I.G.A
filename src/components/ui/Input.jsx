@@ -1,8 +1,10 @@
+import { forwardRef } from "react";
+
 /**
  * Input de formulário padrão do projeto.
  * - `icon`: componente de ícone (lucide-react) exibido à esquerda
  * - `rightElement`: nó exibido à direita (ex: botão de mostrar/ocultar senha)
- * - `color`: "blue" | "amber" -> cor da borda/foco, alinhada ao tema da aba ativa
+ * - `color`: "blue" | "amber" -> cor da borda/foco
  * - `error`: mensagem vinda do react-hook-form/zod
  */
 const FOCUS_STYLES = {
@@ -10,16 +12,14 @@ const FOCUS_STYLES = {
   amber: "border-amber-200 focus:border-amber-400 focus:ring-amber-100",
 };
 
-import { forwardRef } from "react";
-
-const Input1 = forwardRef(function Input(
+const Input = forwardRef(function Input(
   {
     label,
     name,
     error,
     icon: Icon,
     rightElement,
-    color = ("blue","amber"),
+    color = "blue",
     className = "",
     ...rest
   },
@@ -61,6 +61,4 @@ const Input1 = forwardRef(function Input(
   );
 });
 
-export default Input1;
-
-
+export default Input;

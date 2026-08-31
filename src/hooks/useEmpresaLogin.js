@@ -11,12 +11,10 @@ import { useAuth } from "@/context/AuthContext";
 export function useEmpresaLogin() {
   const [apiError, setApiError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
   const { login } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(empresaLoginSchema),
-
     defaultValues: {
       cnpj: "",
       senha: "",
@@ -24,8 +22,7 @@ export function useEmpresaLogin() {
   });
 
   const cnpjValue = form.watch("cnpj");
-
-  const { status, razaoSocial } = useCnpjValidation(cnpjValue);
+  const { status } = useCnpjValidation(cnpjValue);
 
   const onSubmit = form.handleSubmit(async (values) => {
     setApiError(null);
@@ -41,16 +38,7 @@ export function useEmpresaLogin() {
 
     try {
       const data = await loginEmpresa(values);
-
-      login(null, "empresa", data.usuario);
-
-      console.log(
-        "Login da empresa realizado com sucesso:",
-        data.usuario,
-        razaoSocial
-      );
-
-      // O redirecionamento será adicionado quando o dashboard existir.
+      login("empresa", data.usuario);
     } catch (error) {
       setApiError(
         error.response?.data?.mensagem || "CNPJ ou senha inválidos."

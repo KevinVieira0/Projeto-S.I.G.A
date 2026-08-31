@@ -6,7 +6,7 @@ import { Controller } from "react-hook-form";
 import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
 import CnpjInput from "../ui/CnpjInput";
 import Button from "@/components/ui/Button";
-import Input1 from "@/components/ui/Input";
+import Input from "@/components/ui/Input";
 
 export default function EmpresaLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +37,7 @@ export default function EmpresaLoginForm() {
           />
         )}
       />
-      <Input1
+      <Input
         name="senha"
         type={showPassword ? "text" : "password"}
         placeholder="••••••••"
