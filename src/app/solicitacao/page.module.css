@@ -3,7 +3,6 @@
   background: #f4f5f7;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
   padding: 48px 24px;
 }
 
@@ -42,17 +41,32 @@
   flex-direction: column;
 }
 
-.erro {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
 .titulodoInput {
   font-size: 13px;
   font-weight: 600;
   color: #333;
   margin-bottom: 6px;
+}
+
+.campo input,
+.campo select {
+  padding: 10px 12px;
+  border: 1px solid #d5d8dd;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: #0a3d7c;
+}
+
+.campoLargo {
+  grid-column: 1 / -1;
 }
 
 .campo input,
@@ -74,23 +88,10 @@
   border-color: #0a3d7c;
 }
 
-.campoLargo {
-  grid-column: 1 / -1;
-}
-
 .campo textarea {
   font-family: inherit;
   resize: vertical;
   min-height: 90px;
-}
-
-.campo select option:checked {
-  background-color: #cfe3fb;
-  color: #0a3d7c;
-}
-
-.campo select option:hover {
-  background-color: #e6f0ff;
 }
 
 .botao {
@@ -106,6 +107,15 @@
   cursor: pointer;
   margin-top: 8px;
   transition: background-color 0.15s ease;
+}
+
+.campo select option:checked {
+  background-color: #cfe3fb;
+  color: #0a3d7c;
+}
+
+.campo select option:hover {
+  background-color: #e6f0ff;
 }
 
 .botao:hover {

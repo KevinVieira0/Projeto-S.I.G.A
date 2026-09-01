@@ -4,7 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const solicitacaoSchema = z.object({
-  idadeMinima: z.coerce.number().int().min(0),
+
+  idEmpresa: z.coerce.string().min(1),
+   
+  idadeMinima: z.coerce.number().int().min(16),
+
+  idadeMaxima: z.coerce.number().int().max(24),
 
   sexo: z.string().min(1),
 
@@ -46,8 +51,11 @@ export async function POST(request) {
       );
     }
 
+
     const {
+      idEmpresa,
       idadeMinima,
+      idadeMaxima,
       sexo,
       pratica,
       cursos,
@@ -67,10 +75,24 @@ export async function POST(request) {
         }
       );
     }
+    
+    
+
+    const empresaExiste = await prisma.empresa.findUnique({
+      where: { id: idEmpresa },
+    });
+
+    if (!empresaExiste) {
+      return NextResponse.json(
+        { message: "A empresa informada não existe." },
+        { status: 404 }
+      );
+    }
 
     const solicitacao = await prisma.solicitacao.create({
       data: {
         idadeMinima,
+        idadeMaxima,
         sexo,
         pratica,
         cursos,
@@ -78,6 +100,11 @@ export async function POST(request) {
         fim,
         quantidadeAlunos,
         observacoes,
+        empresa: {
+          connect: {
+            id: idEmpresa,
+          },
+        },
       },
     });
 

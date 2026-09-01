@@ -20,17 +20,18 @@ model Administrador {
 }
 
 model Empresa {
-  id           String   @id @default(uuid())
-  cnpj         String   @unique @db.Char(14)
-  razaoSocial  String   @map("razao_social") @db.VarChar(255)
-  nomeFantasia String?  @map("nome_fantasia") @db.VarChar(255)
-  email        String?  @db.VarChar(255)
-  telefone     String?  @db.VarChar(20)
-  senhaHash    String?  @map("senha_hash") @db.VarChar(255)
-  autorizada   Boolean  @default(false)
-  ativa        Boolean  @default(true)
-  criadoEm     DateTime @default(now()) @map("criado_em")
-  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  id               String   @id @default(uuid())
+  cnpj             String   @unique @db.Char(14)
+  razaoSocial      String   @map("razao_social") @db.VarChar(255)
+  nomeFantasia     String?  @map("nome_fantasia") @db.VarChar(255)
+  email            String?  @db.VarChar(255)
+  telefone         String?  @db.VarChar(20)
+  senhaHash String? @map("senha_hash") @db.VarChar(255)
+  autorizada       Boolean  @default(false)
+  ativa            Boolean  @default(true)
+  solicitacoes     Solicitacao[] 
+  criadoEm         DateTime @default(now()) @map("criado_em")
+  atualizadoEm     DateTime @updatedAt @map("atualizado_em")
 
   alunos Aluno[]
 
@@ -67,16 +68,19 @@ model Aluno {
 
 model Solicitacao {
   id               String   @id @default(uuid())
+  idEmpresa        String
   idadeMinima      Int
+  idadeMaxima      Int
   sexo             String
   pratica          String // descrição da prática exigida
-  cursos           String // lista de cursos armazenada como texto
+  cursos           String // lista de cursos (armazenado como text[] no Postgres)
   inicio           DateTime
   fim              DateTime
   quantidadeAlunos Int
   observacoes      String?  @db.Text
   ativa            Boolean  @default(true)
   criadoEm         DateTime @default(now())
-
+  
+  empresa          Empresa  @relation(fields: [idEmpresa], references: [id])
   @@map("Solicitacoes")
 }
