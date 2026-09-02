@@ -18,15 +18,6 @@ const CURSOS = [
   { value: "seguranca-do-trabalho", label: "Segurança do Trabalho" }
 ];
 
-const UNIDADES = [
-  { value: "barra funda", label: "Barra Funda" },
-  { value: "bras", label: "Brás" },
-  { value: "ipiranga", label: "Ipiranga" },
-  { value: "mooca", label: "Mooca" },
-  { value: "osasco", label: "Osasco" },
-  { value: "vl", label: "Vila Leopoldina" }
-];
-
 export default function Solicitacao() {
   const [form, setForm] = useState({
     idEmpresa: "",
@@ -43,7 +34,7 @@ export default function Solicitacao() {
   });
 
   const [erros, setErros] = useState({});
-  const erroStyle = "text-red-500 text-xs mt-1"
+  const erroStyle = "text-red-500 text-xs mt-px"
   function handleChange(e) {
     const { name, value, type } = e.target;
 
@@ -220,7 +211,7 @@ export default function Solicitacao() {
         <h1 className="mb-8 text-center text-[22px] text-[#0a3d7c]">Solicitação de Aprendizagem</h1>
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-6 grid grid-cols-[repeat(2,1fr)] gap-x-5 gap-y-4">
+          <div className="flex flex-col gap-4 mb-6 grid grid-cols-[repeat(2,1fr)] gap-x-5 gap-y-4">
             <div>
 
               <Inputsolicitacao 
@@ -285,8 +276,8 @@ export default function Solicitacao() {
             name="curso" 
             value={form.curso} 
             onChange={handleChange} 
-            options={CURSOS} 
-            largo />
+            options={CURSOS}
+            />
 
             {erros.curso && (
               <span className={erroStyle}>{erros.curso}</span>
