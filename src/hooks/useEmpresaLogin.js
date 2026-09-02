@@ -7,11 +7,14 @@ import { empresaLoginSchema } from "@/lib/validations/empresaLoginSchema";
 import { useCnpjValidation } from "./useCnpjValidation";
 import { loginEmpresa } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 export function useEmpresaLogin() {
   const [apiError, setApiError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(empresaLoginSchema),
@@ -39,6 +42,7 @@ export function useEmpresaLogin() {
     try {
       const data = await loginEmpresa(values);
       login("empresa", data.usuario);
+      router.push(ROUTES.EMPRESA_SOLICITACAO)
     } catch (error) {
       setApiError(
         error.response?.data?.mensagem || "CNPJ ou senha inválidos."

@@ -21,6 +21,7 @@ const PAGE_SIZES = [5, 10, 25, 50];
 
 const COLUMN_DEFINITIONS = [
   { key: "nome", label: "Nome", sortable: true, alwaysVisible: true },
+  { key: "genero", label: "Gênero", sortable: true },
   { key: "email", label: "E-mail", sortable: true },
   { key: "curso", label: "Curso", sortable: true },
   { key: "turma", label: "Turma", sortable: true },
