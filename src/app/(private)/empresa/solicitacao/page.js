@@ -326,8 +326,30 @@ export default function Solicitacao() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[#f4f5f7] px-6 py-12">
-      <div className="w-full max-w-[700px] rounded-xl bg-white p-10 shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
+    <div
+      className="min-h-screen relative flex items-center justify-center p-6"
+      style={{
+        backgroundColor: "#f8fafc",
+        backgroundImage: `
+          radial-gradient(circle at 90% 10%, rgba(249,115,22,0.18), transparent 45%),
+          radial-gradient(circle at 5% 95%, rgba(249,115,22,0.18), transparent 45%),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 50 Q25 30 50 50 T100 50' fill='none' stroke='%23fb923c' stroke-opacity='0.10' stroke-width='1.5'/%3E%3C/svg%3E")
+        `,
+        backgroundRepeat: "no-repeat, no-repeat, repeat"
+      }}
+    >
+      <div className="
+        relative
+        z-10
+        w-full
+        max-w-4xl
+        rounded-3xl
+        bg-white/90
+        backdrop-blur-sm
+        shadow-xl
+        border border-white
+        p-8
+      ">
         <img
           src="/images/Logo-SENAI.png"
           alt="Logo SENAI"
@@ -458,7 +480,7 @@ export default function Solicitacao() {
 
           <button
             type="submit"
-            className="mt-2 block w-full cursor-pointer rounded-lg border-0 bg-[#0a3d7c] px-5 py-3.5 text-[15px] font-semibold text-white transition-[background-color] duration-150 hover:bg-[#072b58]"
+            className="mt-2 block w-full cursor-pointer rounded-lg border-0 bg-[#f97316] px-5 py-3.5 text-[15px] font-semibold text-white transition-[background-color] duration-150 hover:bg-[#ea580c]"
           >
             CONFIRMAR
           </button>
