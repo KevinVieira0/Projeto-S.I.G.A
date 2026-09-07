@@ -51,12 +51,18 @@ const Input = forwardRef(function Input(
           {...rest}
         />
 
-        {rightElement && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightElement}</div>
+       {rightElement && (
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+            {rightElement}
+          </div>
         )}
       </div>
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p id={`${name}-error`} className="mt-1.5 text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

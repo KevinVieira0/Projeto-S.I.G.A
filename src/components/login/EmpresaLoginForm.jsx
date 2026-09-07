@@ -1,15 +1,22 @@
 "use client";
 
-import { Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Controller } from "react-hook-form";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+} from "lucide-react";
+
 import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
-import CnpjInput from "../ui/CnpjInput";
+import CnpjInput from "@/components/ui/CnpjInput";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function EmpresaLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+
   const {
     control,
     register,
@@ -21,7 +28,7 @@ export default function EmpresaLoginForm() {
   } = useEmpresaLogin();
 
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-2">
+    <form onSubmit={onSubmit} noValidate className="mt-5">
       <Controller
         name="cnpj"
         control={control}
@@ -37,35 +44,53 @@ export default function EmpresaLoginForm() {
           />
         )}
       />
-      <Input
-        name="senha"
-        type={showPassword ? "text" : "password"}
-        placeholder="••••••••"
-        icon={Lock}
-        color="amber"
-        error={errors.senha?.message}
-        rightElement={
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        }
-        {...register("senha")}
-      />
-      
-      {apiError && <p className="mb-4 mt-3 text-sm text-red-500">{apiError}</p>}
+
+      <div className="mt-4">
+        <Input
+          label="Senha"
+          name="senha"
+          type={showPassword ? "text" : "password"}
+          placeholder="••••••••"
+          icon={Lock}
+          color="orange"
+          error={errors.senha?.message}
+          rightElement={
+            <button
+              type="button"
+              onClick={() =>
+                setShowPassword((currentValue) => !currentValue)
+              }
+              className="rounded-md text-slate-400 outline-none hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-orange-500"
+              aria-label={
+                showPassword
+                  ? "Ocultar senha"
+                  : "Mostrar senha"
+              }
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+          {...register("senha")}
+        />
+      </div>
+
+      {apiError && (
+        <p className="mb-4 text-sm text-red-600">
+          {apiError}
+        </p>
+      )}
 
       <Button
         type="submit"
         isLoading={isLoading}
         disabled={cnpjStatus !== "valid"}
-        color="amber"
+        color="orange"
         icon={<ArrowRight className="h-4 w-4" />}
-        className={apiError ? "" : "mt-4"}
+        className="mt-2"
       >
         Entrar como empresa
       </Button>
