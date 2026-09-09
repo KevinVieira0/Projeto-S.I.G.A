@@ -9,7 +9,7 @@ import { forwardRef } from "react";
  */
 const FOCUS_STYLES = {
   blue: "border-blue-200 focus:border-blue-400 focus:ring-blue-100",
-  amber: "border-amber-200 focus:border-amber-400 focus:ring-amber-100",
+  amber: "border-orange-200 focus:border-orange-500 focus:ring-orange-100",
 };
 
 const Input = forwardRef(function Input(
@@ -19,7 +19,7 @@ const Input = forwardRef(function Input(
     error,
     icon: Icon,
     rightElement,
-    color = "blue",
+    color = "blue" || "amber",
     className = "",
     ...rest
   },
@@ -42,8 +42,10 @@ const Input = forwardRef(function Input(
           id={name}
           name={name}
           ref={ref}
-          className={`w-full rounded-lg border bg-white py-2.5 text-sm text-gray-800 outline-none
-            transition focus:ring-4
+          className={` w-full rounded-xl border bg-white py-3 pl-10 pr-3.5
+            text-sm text-slate-900 outline-none
+            transition-colors placeholder:text-slate-400
+            focus:ring-4
             ${Icon ? "pl-9" : "pl-3"}
             ${rightElement ? "pr-10" : "pr-3"}
             ${error ? "border-red-400 focus:border-red-400 focus:ring-red-100" : FOCUS_STYLES[color]}
