@@ -65,6 +65,7 @@ const CnpjInput = forwardRef(function CnpjInput(
           placeholder="00.000.000/0000-00"
           inputMode="numeric"
           aria-invalid={Boolean(error)}
+          aria-describedby={`${name}-help ${name}-status`}
           className={`
             w-full rounded-xl border bg-white py-3 pl-10 pr-3.5
             text-sm text-slate-900 outline-none
@@ -81,20 +82,18 @@ const CnpjInput = forwardRef(function CnpjInput(
       </div>
 
       {error ? (
-        <p className="mt-1.5 text-xs text-red-600">
+        <p id={`${name}-help`} className="mt-1.5 text-xs text-red-600">
           {error}
         </p>
       ) : (
-        <p className="mt-1.5 text-xs text-slate-500">
-          Use o CNPJ cadastrado no onboarding da empresa.
+        <p id={`${name}-help`} className="mt-1.5 text-xs text-slate-500">
+          Informe o CNPJ cadastrado para sua empresa.
         </p>
       )}
 
-      {!error && statusInfo && (
-        <p className={`mt-1 text-xs ${statusInfo.className}`}>
-          {statusInfo.text}
-        </p>
-      )}
+      <p id={`${name}-status`} role="status" className={`mt-1 text-xs ${!error && statusInfo ? statusInfo.className : ""}`}>
+        {!error && statusInfo ? statusInfo.text : ""}
+      </p>
     </div>
   );
 });

@@ -1,73 +1,52 @@
 "use client";
 
 import { useState } from "react";
-
+import Image from "next/image";
 import LoginBackground from "./LoginBackground";
+import LoginInstitutional from "./LoginInstitutional";
 import LoginTabs from "./LoginTabs";
 import AdminLoginForm from "./AdminLoginForm";
 import EmpresaLoginForm from "./EmpresaLoginForm";
+import styles from "./Login.module.css";
 
 export default function LoginCard() {
   const [activeTab, setActiveTab] = useState("admin");
 
   return (
-    <>
-      <LoginBackground activeTab={activeTab} />
-
-      <section
-        className="
-          relative z-10 grid w-full max-w-xl
-          overflow-hidden rounded-[30px]
-          border border-white/80 bg-white
-          shadow-[0_24px_80px_-24px_rgba(15,52,96,0.30)]
-        "
-      >
-
-        <div className="flex min-h-[560px] flex-col justify-center bg-white p-6 sm:p-10 lg:min-h-[620px] lg:p-14 f">
-          <header>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
-              Portal de acesso
-            </p>
-
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
-              Acesse sua conta
-            </h1>
-
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
-              Selecione o perfil e informe seus dados para
-              continuar.
-            </p>
+    <div className={styles.page} data-profile={activeTab}>
+      <LoginBackground />
+      <div className={styles.pageSignature} aria-hidden="true">
+        EDUCAÇÃO<br />TRABALHO<br />INDÚSTRIA<br />FUTURO
+        <span />
+      </div>
+      <section className={styles.shell} aria-label="Acesso ao S.I.G.A.">
+        <LoginInstitutional activeTab={activeTab} />
+        {/* O mesmo cartão muda de posição; apenas o formulário é remontado. */}
+        <div className={styles.formCard}>
+          <header className={styles.formHeader}>
+            <h1>Acesse sua conta</h1>
+            <p>S.I.G.A. – Gestão de Aprendizes</p>
           </header>
-
-          <LoginTabs
-            activeTab={activeTab}
-            onChange={setActiveTab}
-          />
-
+          <LoginTabs activeTab={activeTab} onChange={setActiveTab} />
           <div
-            className="mt-2"
-            aria-live="polite"
-            aria-label={`Formulário de acesso: ${
-              activeTab === "admin"
-                ? "Administrador"
-                : "Empresa"
-            }`}
+            key={activeTab}
+            className={styles.formContent}
+            aria-label={`Formulário de acesso: ${activeTab === "admin" ? "Administrador" : "Empresa"}`}
           >
-            {activeTab === "admin" ? (
-              <AdminLoginForm />
-            ) : (
-              <EmpresaLoginForm />
-            )}
+            {activeTab === "admin" ? <AdminLoginForm /> : <EmpresaLoginForm />}
           </div>
-
-          <footer className="mt-7 border-t border-slate-200 pt-5">
-            <p className="text-center text-xs leading-relaxed text-slate-400">
-              Acesso restrito a administradores e empresas
-              previamente autorizadas.
-            </p>
+          <footer className={styles.formFooter}>
+            Acesso restrito a usuários autorizados.
           </footer>
         </div>
       </section>
-    </>
+      <footer className={styles.pageFooter}>
+        <div className={styles.brandSignature}>
+          <Image src="/images/Logo-SENAI.png" alt="SENAI" width={108} height={32} unoptimized />
+          <span>Pelo desenvolvimento<br />de pessoas e da indústria</span>
+        </div>
+        <p>S.I.G.A. <span aria-hidden="true">|</span> Gestão de Aprendizes</p>
+      </footer>
+    </div>
   );
 }

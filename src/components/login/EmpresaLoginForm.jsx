@@ -36,6 +36,7 @@ export default function EmpresaLoginForm() {
           <CnpjInput
             label="CNPJ da empresa"
             name="cnpj"
+            autoComplete="username"
             ref={field.ref}
             value={field.value}
             onChange={field.onChange}
@@ -49,6 +50,7 @@ export default function EmpresaLoginForm() {
         <Input
           label="Senha"
           name="senha"
+          autoComplete="current-password"
           type={showPassword ? "text" : "password"}
           placeholder="••••••••"
           icon={Lock}
@@ -60,7 +62,7 @@ export default function EmpresaLoginForm() {
               onClick={() =>
                 setShowPassword((currentValue) => !currentValue)
               }
-              className="rounded-md text-slate-400 outline-none hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-orange-500"
+              className="rounded-md p-2 text-slate-400 outline-none hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-orange-500"
               aria-label={
                 showPassword
                   ? "Ocultar senha"
@@ -79,7 +81,7 @@ export default function EmpresaLoginForm() {
       </div>
 
       {apiError && (
-        <p className="mb-4 text-sm text-red-600">
+        <p role="alert" className="mb-4 text-sm text-red-600">
           {apiError}
         </p>
       )}

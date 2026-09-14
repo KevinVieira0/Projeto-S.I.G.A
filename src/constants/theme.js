@@ -8,18 +8,18 @@ export const THEME = {
     tabActive:
       "border-blue-600 bg-blue-600 text-white shadow-sm",
 
-    image: "/images/login/admin.webp",
+    image: "/login/admin.webp",
     imageAlt: "Ambiente moderno de educação técnica",
 
     eyebrow: "Gestão de aprendizes",
-    title: "Formando hoje os talentos de amanhã.",
+    title: "Formando hoje talentos para um amanhã mais forte.",
     description:
       "Gerencie alunos, empresas e oportunidades de aprendizagem em um único ambiente.",
 
     items: [
-      "Gestão centralizada",
-      "Informações organizadas",
-      "Acompanhamento de aprendizes",
+      "Educação para o trabalho",
+      "Indústria mais competitiva",
+      "Pessoas que transformam",
     ],
   },
 
@@ -30,18 +30,18 @@ export const THEME = {
     tabActive:
       "border-orange-600 bg-orange-600 text-white shadow-sm",
 
-    image: "/images/login/empresa.webp",
+    image: "/login/empresa.webp",
     imageAlt: "Ambiente industrial moderno e automatizado",
 
     eyebrow: "Portal da empresa",
-    title: "Parcerias que desenvolvem pessoas.",
+    title: "Parceria que desenvolve pessoas e impulsiona o futuro.",
     description:
       "Solicite aprendizes e acompanhe oportunidades para sua empresa.",
 
     items: [
-      "Solicitação de aprendizes",
-      "Integração com o SENAI",
-      "Processo simples e organizado",
+      "Empresas mais fortes",
+      "Jovens mais preparados",
+      "Indústria mais humana",
     ],
   },
 };

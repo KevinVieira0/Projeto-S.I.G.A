@@ -19,7 +19,7 @@ const Input = forwardRef(function Input(
     error,
     icon: Icon,
     rightElement,
-    color = "blue" || "amber",
+    color = "blue",
     className = "",
     ...rest
   },
@@ -42,6 +42,8 @@ const Input = forwardRef(function Input(
           id={name}
           name={name}
           ref={ref}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${name}-error` : undefined}
           className={` w-full rounded-xl border bg-white py-3 pl-10 pr-3.5
             text-sm text-slate-900 outline-none
             transition-colors placeholder:text-slate-400
