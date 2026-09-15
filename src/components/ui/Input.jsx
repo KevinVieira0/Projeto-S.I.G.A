@@ -9,7 +9,7 @@ import { forwardRef } from "react";
  */
 const FOCUS_STYLES = {
   blue: "border-blue-200 focus:border-blue-400 focus:ring-blue-100",
-  amber: "border-amber-200 focus:border-amber-400 focus:ring-amber-100",
+  amber: "border-orange-200 focus:border-orange-500 focus:ring-orange-100",
 };
 
 const Input = forwardRef(function Input(
@@ -42,8 +42,12 @@ const Input = forwardRef(function Input(
           id={name}
           name={name}
           ref={ref}
-          className={`w-full rounded-lg border bg-white py-2.5 text-sm text-gray-800 outline-none
-            transition focus:ring-4
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${name}-error` : undefined}
+          className={` w-full rounded-xl border bg-white py-3 pl-10 pr-3.5
+            text-sm text-slate-900 outline-none
+            transition-colors placeholder:text-slate-400
+            focus:ring-4
             ${Icon ? "pl-9" : "pl-3"}
             ${rightElement ? "pr-10" : "pr-3"}
             ${error ? "border-red-400 focus:border-red-400 focus:ring-red-100" : FOCUS_STYLES[color]}
@@ -51,12 +55,18 @@ const Input = forwardRef(function Input(
           {...rest}
         />
 
-        {rightElement && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">{rightElement}</div>
+       {rightElement && (
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+            {rightElement}
+          </div>
         )}
       </div>
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p id={`${name}-error`} className="mt-1.5 text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

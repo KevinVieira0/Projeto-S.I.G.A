@@ -1,9 +1,5 @@
-import LoginCard from "@/components/login/LoginCard";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4">
-      <LoginCard />
-    </main>
-  );
+export default function PublicLoginRedirect() {
+  redirect("/login");
 }

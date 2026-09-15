@@ -19,9 +19,10 @@ export default function AdminLoginForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="mt-2">
       <Input
-        label="E-mail"
+        label="E-mail institucional"
         name="email"
         type="email"
+        autoComplete="username"
         placeholder="voce@docente.senai.br"
         icon={Mail}
         color="blue"
@@ -29,11 +30,10 @@ export default function AdminLoginForm() {
         {...register("email")}
       />
 
-      <label htmlFor="senha" className="mb-1 block text-sm font-medium text-gray-700">
-        Senha
-      </label>
       <Input
+        label="Senha"
         name="senha"
+        autoComplete="current-password"
         type={showPassword ? "text" : "password"}
         placeholder="••••••••"
         icon={Lock}
@@ -43,7 +43,7 @@ export default function AdminLoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="text-gray-400 hover:text-gray-600"
+            className="rounded-md p-2 text-gray-400 outline-none hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -52,7 +52,7 @@ export default function AdminLoginForm() {
         {...register("senha")}
       />
 
-      {apiError && <p className="mb-4 text-sm text-red-500">{apiError}</p>}
+      {apiError && <p role="alert" className="mb-4 text-sm text-red-500">{apiError}</p>}
 
       <Button
         type="submit"

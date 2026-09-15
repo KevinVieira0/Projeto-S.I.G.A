@@ -3,8 +3,15 @@
  * `color`: "blue" (admin) | "amber" (empresa).
  */
 const COLOR_STYLES = {
-  blue: "bg-blue-500 text-white hover:bg-blue-600",
-  amber: "bg-amber-400 text-gray-900 hover:bg-amber-500",
+  blue:
+    "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-200",
+
+  orange:
+    "bg-orange-600 text-white hover:bg-orange-700 focus-visible:ring-orange-200",
+
+  // Compatibilidade temporária.
+  amber:
+    "bg-amber-400 text-slate-900 hover:bg-amber-500 focus-visible:ring-amber-200",
 };
 
 export default function Button({
@@ -16,14 +23,23 @@ export default function Button({
   className = "",
   ...rest
 }) {
+  const colorStyle = COLOR_STYLES[color] || COLOR_STYLES.blue;
+
   return (
     <button
       {...rest}
       disabled={isLoading || disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5
-        text-sm font-semibold transition
+      aria-busy={isLoading}
+      className={`
+        flex w-full items-center justify-center gap-2
+        rounded-xl px-4 py-3
+        text-sm font-semibold
+        outline-none transition-colors
+        focus-visible:ring-4
         disabled:cursor-not-allowed disabled:opacity-60
-        ${COLOR_STYLES[color]} ${className}`}
+        ${colorStyle}
+        ${className}
+      `}
     >
       {isLoading ? (
         <Spinner />
@@ -39,7 +55,12 @@ export default function Button({
 
 function Spinner() {
   return (
-    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      className="h-5 w-5 animate-spin"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <circle
         className="opacity-25"
         cx="12"
@@ -48,6 +69,7 @@ function Spinner() {
         stroke="currentColor"
         strokeWidth="4"
       />
+
       <path
         className="opacity-75"
         fill="currentColor"
