@@ -186,9 +186,8 @@ function CampoComErro({
 }) {
   return (
     <div
-      className={`flex flex-col ${
-        largo ? "col-span-full" : ""
-      }`}
+      className={`flex flex-col ${largo ? "col-span-full" : ""
+        }`}
     >
       {children}
 
@@ -320,14 +319,22 @@ export default function Solicitacao() {
       return;
     }
 
-    // Por enquanto, apenas teste local.
-    // Depois será substituído pelo POST.
     console.log(form);
   }
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center p-6"
+      className="
+        min-h-screen
+        relative
+        flex
+        items-center
+        justify-between
+        gap-12
+        px-10
+        py-8
+        overflow-hidden
+      "
       style={{
         backgroundColor: "#f8fafc",
         backgroundImage: `
@@ -338,33 +345,270 @@ export default function Solicitacao() {
         backgroundRepeat: "no-repeat, no-repeat, repeat"
       }}
     >
+
+      {/* CONTEÚDO DA ESQUERDA */}
+      <div className="
+        relative
+        z-10
+        flex-1
+        max-w-xl
+        pl-4
+        lg:pl-10
+      ">
+
+        <div className="
+          mb-6
+          flex
+          items-center
+          gap-3
+        ">
+          <div className="
+            h-1
+            w-12
+            bg-[#f97316]
+          " />
+
+          <span className="
+            text-sm
+            font-bold
+            uppercase
+            tracking-[0.22em]
+            text-[#f97316]
+          ">
+            SENAI
+          </span>
+        </div>
+
+        <h2 className="
+          max-w-lg
+          text-5xl
+          font-black
+          uppercase
+          leading-[0.95]
+          tracking-tight
+          text-[#0a3d7c]
+        ">
+          Encontre o talento
+          <span className="block text-[#f97316]">
+            que sua empresa precisa.
+          </span>
+        </h2>
+
+        <p className="
+          mt-7
+          max-w-lg
+          text-lg
+          leading-8
+          text-slate-600
+        ">
+          Solicite um aprendiz formado pelo SENAI
+          e encontre jovens preparados para
+          transformar conhecimento técnico em
+          resultados para sua empresa.
+        </p>
+
+        <div className="
+          mt-10
+          grid
+          max-w-lg
+          grid-cols-1
+          gap-5
+          sm:grid-cols-3
+        ">
+
+          <div className="
+            border-l-2
+            border-[#f97316]
+            pl-4
+          ">
+            <p className="
+              text-2xl
+              font-black
+              text-[#0a3d7c]
+            ">
+              01
+            </p>
+
+            <p className="
+              mt-1
+              text-sm
+              font-medium
+              leading-5
+              text-slate-600
+            ">
+              Defina o perfil
+              profissional
+            </p>
+          </div>
+
+          <div className="
+            border-l-2
+            border-[#f97316]
+            pl-4
+          ">
+            <p className="
+              text-2xl
+              font-black
+              text-[#0a3d7c]
+            ">
+              02
+            </p>
+
+            <p className="
+              mt-1
+              text-sm
+              font-medium
+              leading-5
+              text-slate-600
+            ">
+              Escolha a
+              formação
+            </p>
+          </div>
+
+          <div className="
+            border-l-2
+            border-[#f97316]
+            pl-4
+          ">
+            <p className="
+              text-2xl
+              font-black
+              text-[#0a3d7c]
+            ">
+              03
+            </p>
+
+            <p className="
+              mt-1
+              text-sm
+              font-medium
+              leading-5
+              text-slate-600
+            ">
+              Receba novos
+              talentos
+            </p>
+          </div>
+
+        </div>
+
+        <div className="
+          mt-12
+          max-w-lg
+          border-t
+          border-slate-200
+          pt-5
+        ">
+          <p className="
+            text-sm
+            font-semibold
+            uppercase
+            tracking-wider
+            text-slate-400
+          ">
+            Formação que conecta
+          </p>
+
+          <p className="
+            mt-2
+            text-sm
+            leading-6
+            text-slate-500
+          ">
+            Sua empresa desenvolve.
+            O SENAI prepara.
+            Juntos, formamos o próximo profissional.
+          </p>
+        </div>
+
+      </div>
+
+
+      {/* FORMULÁRIO À DIREITA */}
       <div className="
         relative
         z-10
         w-full
-        max-w-4xl
+        max-w-3xl
         rounded-3xl
-        bg-white/90
-        backdrop-blur-sm
-        shadow-xl
-        border border-white
+        border
+        border-slate-200
+        bg-white
         p-8
+        shadow-2xl
+        lg:p-10
       ">
-        <img
-          src="/images/Logo-SENAI.png"
-          alt="Logo SENAI"
-          className="mx-auto mb-4 mt-0 block h-auto w-[140px]"
-        />
 
-        <h1 className="mb-8 text-center text-[22px] text-[#0a3d7c]">
-          Solicitação de Aprendizagem
-        </h1>
+        <div className="
+          mb-8
+          flex
+          items-center
+          gap-5
+        ">
+
+          <div className="
+            flex
+            h-14
+            w-14
+            shrink-0
+            items-center
+            justify-center
+            rounded-2xl
+            bg-[#0a3d7c]
+            shadow-md
+          ">
+            <img
+              src="/images/Logo-SENAI.png"
+              alt="Logo SENAI"
+              className="h-auto w-10"
+            />
+          </div>
+
+          <div>
+            <p className="
+              text-xs
+              font-bold
+              uppercase
+              tracking-[0.18em]
+              text-[#f97316]
+            ">
+              Solicitação
+            </p>
+
+            <h1 className="
+              mt-1
+              text-2xl
+              font-black
+              uppercase
+              tracking-tight
+              text-[#0a3d7c]
+            ">
+              Solicitação de Aprendizagem
+            </h1>
+          </div>
+
+        </div>
+
+        <div className="
+          mb-7
+          h-px
+          w-full
+          bg-slate-200
+        " />
 
         <form
           onSubmit={handleSubmit}
           noValidate
         >
-          <div className="mb-6 grid grid-cols-[repeat(2,1fr)] gap-x-5 gap-y-4">
+          <div className="
+            mb-6
+            grid
+            grid-cols-1
+            gap-x-5
+            gap-y-5
+            sm:grid-cols-2
+          ">
 
             <CampoComErro
               erro={erros.idadeMinima}
@@ -426,7 +670,11 @@ export default function Solicitacao() {
               />
 
               {carregandoCursos && (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="
+                  mt-1
+                  text-sm
+                  text-gray-500
+                ">
                   Carregando cursos...
                 </p>
               )}
@@ -476,16 +724,41 @@ export default function Solicitacao() {
               largo
               tipo="textarea"
             />
+
           </div>
 
           <button
             type="submit"
-            className="mt-2 block w-full cursor-pointer rounded-lg border-0 bg-[#f97316] px-5 py-3.5 text-[15px] font-semibold text-white transition-[background-color] duration-150 hover:bg-[#ea580c]"
+            className="
+              mt-2
+              block
+              w-full
+              cursor-pointer
+              rounded-xl
+              border-0
+              bg-[#f97316]
+              px-5
+              py-4
+              text-[15px]
+              font-bold
+              tracking-wide
+              text-white
+              shadow-lg
+              shadow-orange-500/20
+              transition-all
+              duration-150
+              hover:-translate-y-0.5
+              hover:bg-[#ea580c]
+              hover:shadow-xl
+              active:translate-y-0
+            "
           >
             CONFIRMAR
           </button>
+
         </form>
       </div>
+
     </div>
   );
 }
