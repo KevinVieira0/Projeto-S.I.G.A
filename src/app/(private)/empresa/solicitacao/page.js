@@ -4,6 +4,7 @@ import { useState } from "react";
 import Inputsolicitacao from "../../../../components/solicitacao/inputsolicitacao";
 import Selectsolicitacao from "../../../../components/solicitacao/selectsolicitacao";
 import { useCursos } from "@/hooks/useCursos";
+import Tooltip from "../../../../components/solicitacao/tutorialDeUso";
 
 const SEXOS = [
   { value: "masculino", label: "Masculino" },
@@ -337,16 +338,65 @@ export default function Solicitacao() {
       "
       style={{
         backgroundColor: "#f8fafc",
-        backgroundImage: `
-          radial-gradient(circle at 90% 10%, rgba(249,115,22,0.18), transparent 45%),
-          radial-gradient(circle at 5% 95%, rgba(249,115,22,0.18), transparent 45%),
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 50 Q25 30 50 50 T100 50' fill='none' stroke='%23fb923c' stroke-opacity='0.10' stroke-width='1.5'/%3E%3C/svg%3E")
-        `,
-        backgroundRepeat: "no-repeat, no-repeat, repeat"
       }}
     >
 
-      {/* CONTEÚDO DA ESQUERDA */}
+      {/* CAMADA DE DESTAQUE - fica atrás da imagem, um pouco mais larga */}
+      <div
+        className="
+          absolute
+          inset-y-0
+          left-0
+          z-0
+          w-full
+          lg:w-1/2
+        "
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 81% 100%, 0 100%)",
+          background: "linear-gradient(180deg, #f97316 0%, #ffffff 50%, #0a3d7c 100%)",
+          filter: "drop-shadow(0 0 25px rgba(249, 115, 22, 0.5))"
+        }}
+      />
+
+
+      <div
+        className="
+          absolute
+          inset-y-0
+          left-0
+          z-[1]
+          w-full
+          lg:w-1/2
+        "
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 78% 100%, 0 100%)"
+        }}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1738162837369-a2beec3a1d47?auto=format&fit=crop&w=1200&q=80"
+          alt="Aprendiz em treinamento no ambiente industrial"
+          className="
+            h-full
+            w-full
+            object-cover
+          "
+        />
+
+
+        <div className="
+          absolute
+          left-0
+          top-1/4
+          h-1/2
+          w-3/4
+          bg-gradient-to-r
+          from-black/60
+          via-black/30
+          to-transparent
+          blur-xl
+        " />
+      </div>
+
       <div className="
         relative
         z-10
@@ -367,15 +417,14 @@ export default function Solicitacao() {
             w-12
             bg-[#f97316]
           " />
-
           <span className="
-            text-sm
+            text-xs
             font-bold
             uppercase
-            tracking-[0.22em]
-            text-[#f97316]
+            tracking-widest
+            text-white/80
           ">
-            SENAI
+            SENAI - Mariano Ferraz
           </span>
         </div>
 
@@ -386,7 +435,7 @@ export default function Solicitacao() {
           uppercase
           leading-[0.95]
           tracking-tight
-          text-[#0a3d7c]
+          text-white
         ">
           Encontre o talento
           <span className="block text-[#f97316]">
@@ -396,10 +445,10 @@ export default function Solicitacao() {
 
         <p className="
           mt-7
-          max-w-lg
+          max-w-md
           text-lg
           leading-8
-          text-slate-600
+          text-slate-200
         ">
           Solicite um aprendiz formado pelo SENAI
           e encontre jovens preparados para
@@ -408,118 +457,13 @@ export default function Solicitacao() {
         </p>
 
         <div className="
-          mt-10
-          grid
-          max-w-lg
-          grid-cols-1
-          gap-5
-          sm:grid-cols-3
-        ">
-
-          <div className="
-            border-l-2
-            border-[#f97316]
-            pl-4
-          ">
-            <p className="
-              text-2xl
-              font-black
-              text-[#0a3d7c]
-            ">
-              01
-            </p>
-
-            <p className="
-              mt-1
-              text-sm
-              font-medium
-              leading-5
-              text-slate-600
-            ">
-              Defina o perfil
-              profissional
-            </p>
-          </div>
-
-          <div className="
-            border-l-2
-            border-[#f97316]
-            pl-4
-          ">
-            <p className="
-              text-2xl
-              font-black
-              text-[#0a3d7c]
-            ">
-              02
-            </p>
-
-            <p className="
-              mt-1
-              text-sm
-              font-medium
-              leading-5
-              text-slate-600
-            ">
-              Escolha a
-              formação
-            </p>
-          </div>
-
-          <div className="
-            border-l-2
-            border-[#f97316]
-            pl-4
-          ">
-            <p className="
-              text-2xl
-              font-black
-              text-[#0a3d7c]
-            ">
-              03
-            </p>
-
-            <p className="
-              mt-1
-              text-sm
-              font-medium
-              leading-5
-              text-slate-600
-            ">
-              Receba novos
-              talentos
-            </p>
-          </div>
-
-        </div>
-
-        <div className="
-          mt-12
+          mt-8
           max-w-lg
           border-t
-          border-slate-200
+          border-white/20
           pt-5
         ">
-          <p className="
-            text-sm
-            font-semibold
-            uppercase
-            tracking-wider
-            text-slate-400
-          ">
-            Formação que conecta
-          </p>
 
-          <p className="
-            mt-2
-            text-sm
-            leading-6
-            text-slate-500
-          ">
-            Sua empresa desenvolve.
-            O SENAI prepara.
-            Juntos, formamos o próximo profissional.
-          </p>
         </div>
 
       </div>
@@ -547,38 +491,11 @@ export default function Solicitacao() {
           gap-5
         ">
 
-          <div className="
-            flex
-            h-14
-            w-14
-            shrink-0
-            items-center
-            justify-center
-            rounded-2xl
-            bg-[#0a3d7c]
-            shadow-md
-          ">
-            <img
-              src="/images/Logo-SENAI.png"
-              alt="Logo SENAI"
-              className="h-auto w-10"
-            />
-          </div>
-
           <div>
-            <p className="
-              text-xs
-              font-bold
-              uppercase
-              tracking-[0.18em]
-              text-[#f97316]
-            ">
-              Solicitação
-            </p>
-
             <h1 className="
               mt-1
               text-2xl
+              text-center
               font-black
               uppercase
               tracking-tight
@@ -598,124 +515,124 @@ export default function Solicitacao() {
         " />
 
         <form
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          <div className="
-            mb-6
-            grid
-            grid-cols-1
-            gap-x-5
-            gap-y-5
-            sm:grid-cols-2
-          ">
+  onSubmit={handleSubmit}
+  noValidate
+>
+  <div
+    className="
+      mb-6
+      grid
+      grid-cols-1
+      gap-x-5
+      gap-y-5
+      sm:grid-cols-2
+    "
+  >
 
-            <CampoComErro
-              erro={erros.idadeMinima}
-            >
+    <CampoComErro erro={erros.idadeMinima}>
+      <Inputsolicitacao
+        label="Idade Mínima"
+        name="idadeMinima"
+        value={form.idadeMinima}
+        onChange={handleChange}
+        placeholder="De: 16"
+        tipo="number"
+        tooltip="Define a idade mínima que o aprendiz deve ter para participar da solicitação."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.idadeMaxima}>
+      <Inputsolicitacao
+        label="Idade Máxima"
+        name="idadeMaxima"
+        value={form.idadeMaxima}
+        onChange={handleChange}
+        placeholder="Até: 24"
+        tipo="number"
+        tooltip="Define a idade máxima que o aprendiz pode ter para participar da solicitação."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.sexo}>
+      <Selectsolicitacao
+        label="Sexo"
+        name="sexo"
+        value={form.sexo}
+        onChange={handleChange}
+        options={SEXOS}
+        tooltip="Define o sexo do aprendiz desejado para esta solicitação."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.pratica}>
+      <Selectsolicitacao
+        label="Prática"
+        name="pratica"
+        value={form.pratica}
+        onChange={handleChange}
+        options={PRATICAS}
+        tooltip="Define se o aprendiz atuará de forma presencial ou remota, conforme a natureza da vaga."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.curso || erroCursos}>
+      <Selectsolicitacao
+        label="Cursos"
+        name="curso"
+        value={form.curso}
+        onChange={handleChange}
+        options={cursos}
+        tooltip="Define o curso do SENAI relacionado à vaga que a empresa deseja solicitar."
+      />
+
+      {carregandoCursos && (
+        <p className="
+          mt-1
+          text-sm
+          text-gray-500
+        ">
+          Carregando cursos...
+        </p>
+      )}
+    </CampoComErro>
+
+    <CampoComErro erro={erros.inicio}>
+      <Inputsolicitacao
+        label="Início"
+        name="inicio"
+        value={form.inicio}
+        onChange={handleChange}
+        placeholder="DD/MM/AA"
+        tipo="date"
+        tooltip="Define a data prevista para o início da contratação do aprendiz."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.fim}>
+      <Inputsolicitacao
+        label="Fim"
+        name="fim"
+        value={form.fim}
+        onChange={handleChange}
+        placeholder="DD/MM/AA"
+        tipo="date"
+        tooltip="Define a data prevista para o término da contratação do aprendiz."
+      />
+    </CampoComErro>
+
+    <CampoComErro erro={erros.quantidade}>
+      <Inputsolicitacao
+        label="Quantidade"
+        name="quantidade"
+        value={form.quantidade}
+        onChange={handleChange}
+        placeholder="Até 5"
+        tipo="number"
+        tooltip="Define o número máximo de aprendizes que a empresa deseja receber nessa solicitação."
+      />
+    </CampoComErro>
+
               <Inputsolicitacao
-                label="Idade Mínima"
-                name="idadeMinima"
-                value={form.idadeMinima}
-                onChange={handleChange}
-                placeholder="De: 16"
-                tipo="number"
-              />
-            </CampoComErro>
-
-            <CampoComErro
-              erro={erros.idadeMaxima}
-            >
-              <Inputsolicitacao
-                label="Idade Máxima"
-                name="idadeMaxima"
-                value={form.idadeMaxima}
-                onChange={handleChange}
-                placeholder="Até: 24"
-                tipo="number"
-              />
-            </CampoComErro>
-
-            <CampoComErro erro={erros.sexo}>
-              <Selectsolicitacao
-                label="Sexo"
-                name="sexo"
-                value={form.sexo}
-                onChange={handleChange}
-                options={SEXOS}
-              />
-            </CampoComErro>
-
-            <CampoComErro
-              erro={erros.pratica}
-            >
-              <Selectsolicitacao
-                label="Prática"
-                name="pratica"
-                value={form.pratica}
-                onChange={handleChange}
-                options={PRATICAS}
-              />
-            </CampoComErro>
-
-            <CampoComErro
-              erro={erros.curso || erroCursos}
-            >
-              <Selectsolicitacao
-                label="Cursos"
-                name="curso"
-                value={form.curso}
-                onChange={handleChange}
-                options={cursos}
-              />
-
-              {carregandoCursos && (
-                <p className="
-                  mt-1
-                  text-sm
-                  text-gray-500
-                ">
-                  Carregando cursos...
-                </p>
-              )}
-            </CampoComErro>
-
-            <CampoComErro erro={erros.inicio}>
-              <Inputsolicitacao
-                label="Início"
-                name="inicio"
-                value={form.inicio}
-                onChange={handleChange}
-                placeholder="DD/MM/AA"
-                tipo="date"
-              />
-            </CampoComErro>
-
-            <CampoComErro erro={erros.fim}>
-              <Inputsolicitacao
-                label="Fim"
-                name="fim"
-                value={form.fim}
-                onChange={handleChange}
-                placeholder="DD/MM/AA"
-                tipo="date"
-              />
-            </CampoComErro>
-
-            <CampoComErro
-              erro={erros.quantidade}
-            >
-              <Inputsolicitacao
-                label="Quantidade"
-                name="quantidade"
-                value={form.quantidade}
-                onChange={handleChange}
-                placeholder="Até 5"
-                tipo="number"
-              />
-            </CampoComErro>
-
-            <Inputsolicitacao
               label="Observações"
               name="observacoes"
               value={form.observacoes}
@@ -723,6 +640,7 @@ export default function Solicitacao() {
               placeholder="Requisitos adicionais (opcional)"
               largo
               tipo="textarea"
+              tooltip="Use este campo para informar requisitos, observações ou informações adicionais sobre a solicitação."
             />
 
           </div>
@@ -757,6 +675,7 @@ export default function Solicitacao() {
           </button>
 
         </form>
+
       </div>
 
     </div>
