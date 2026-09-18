@@ -3,13 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LetterText, LetterTextIcon, Mail } from "lucide-react";
+import { Building2Icon, BuildingIcon, GraduationCap, Home, LetterText, LetterTextIcon, Mail } from "lucide-react";
 import logoSenai from "../../../public/images/Logo-SENAI.png";
 import { useAuth } from "@/context/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Visão Geral", href: "/admin/dashboard", icon: Home },
   { label: "Solicitações", href: "/admin/solicitacoes", icon: Mail },
+  { label: "Alunos", href: "/admin/alunos", icon: GraduationCap },
+  { label: "Empresas", href: "/admin/empresas", icon: Building2Icon },
 ];
 
 export default function Sidebar() {
