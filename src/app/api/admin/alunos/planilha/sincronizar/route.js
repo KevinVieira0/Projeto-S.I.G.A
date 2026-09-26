@@ -1,3 +1,4 @@
+import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { lerAlunosDaPlanilha } from "@/lib/googleSheets";
@@ -183,7 +184,7 @@ function converterData(valor, nomeCampo) {
   );
 }
 
-export async function POST() {
+export async function POST(request) {
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json(
       {
@@ -197,6 +198,8 @@ export async function POST() {
   }
 
   try {
+    const { error: authError } = await authorize(request, "admin");
+    if (authError) return authError;
     const linhas = await lerAlunosDaPlanilha();
 
     if (linhas.length === 0) {

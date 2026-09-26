@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "tsx --tsconfig jsconfig.json --test tests/solicitacao.test.js",
+    "test:integration": "tsx --tsconfig jsconfig.json --test tests/solicitacao.integration.test.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

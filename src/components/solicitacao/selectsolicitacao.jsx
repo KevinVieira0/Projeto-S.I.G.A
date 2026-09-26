@@ -8,19 +8,23 @@ export default function Selectsolicitacao({
   options,
   largo = false,
   tooltip,
+  erro,
 }) {
   return (
     <div className={`flex flex-col ${largo ? "col-span-full" : ""}`}>
 
       <div className="mb-1.0 flex items-center">
-        <p className="text-[13px] font-semibold text-[#1e3a5f]">
+        <label htmlFor={name} className="text-[13px] font-semibold text-[#1e3a5f]">
           {label}
-        </p>
+        </label>
 
         {tooltip && <Tooltip text={tooltip} />}
       </div>
 
       <select
+        id={name}
+        aria-invalid={Boolean(erro)}
+        aria-describedby={erro ? name + "-erro" : undefined}
         name={name}
         value={value}
         onChange={onChange}

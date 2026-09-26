@@ -136,7 +136,8 @@ Use esta estrutura:
 DATABASE_URL="postgresql://postgres:SUA_SENHA_POSTGRES@localhost:5432/siga_local?schema=public"
 DIRECT_URL="postgresql://postgres:SUA_SENHA_POSTGRES@localhost:5432/siga_local?schema=public"
 
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXT_PUBLIC_API_URL="/api"
+AUTH_SECRET="GERE_UM_SEGREDO_ALEATORIO_LOCALMENTE"
 
 ADMIN_INITIAL_NAME="Nome do administrador"
 ADMIN_INITIAL_EMAIL="administrador@exemplo.com"
@@ -147,6 +148,7 @@ EMPRESA_TEST_PASSWORD="senha-com-8-ou-mais-caracteres"
 GOOGLE_APPLICATION_CREDENTIALS="C:/SIGA/CredenciaisSIGA/google-sheets-service-account.json"
 GOOGLE_SHEETS_ID="ID_DA_PLANILHA"
 GOOGLE_SHEETS_ALUNOS_RANGE="Alunos!A:Q"
+GOOGLE_SHEETS_LISTAS_RANGE="Listas!A:Z"
 ```
 
 Observações:
@@ -156,6 +158,8 @@ Observações:
 - O ID da planilha é o texto localizado entre `/d/` e `/edit` na URL do Google Sheets.
 - Senhas com caracteres especiais de URL precisam ser codificadas na string de conexão.
 - Não faça commit do `.env`.
+- Gere `AUTH_SECRET` com `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`; não use o texto ilustrativo acima como segredo.
+- Consulte `CONTINUIDADE_SOLICITACOES.md` antes de atualizar uma instalação existente. Esta entrega não exige novas migrations nem executar o seed novamente.
 
 ## 3. Preparar o PostgreSQL
 
@@ -418,7 +422,7 @@ A sincronização de alunos está habilitada somente em desenvolvimento. Para ut
 npm.cmd run dev
 ```
 
-Antes de publicar o sistema, ainda será necessário implementar uma sessão segura no servidor, preferencialmente com cookie `httpOnly`, e proteger as rotas administrativas no backend.
+A sessão agora usa cookie `HttpOnly` assinado e as rotas administrativas validam o perfil no servidor. É necessário configurar `AUTH_SECRET` e entrar novamente após a atualização. Em produção, use HTTPS; quando houver proxy reverso, configure `APP_ORIGIN` com a origem pública exata. A etapa de preparação para produção ainda inclui rate limiting, auditoria e revogação individual de sessões.
 
 ## Resumo da instalação
 

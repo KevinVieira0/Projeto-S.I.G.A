@@ -1,150 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import Inputsolicitacao from "../../../../components/solicitacao/inputsolicitacao";
-import Selectsolicitacao from "../../../../components/solicitacao/selectsolicitacao";
+import Link from "next/link";
+import Inputsolicitacao from "@/components/solicitacao/inputsolicitacao";
+import Selectsolicitacao from "@/components/solicitacao/selectsolicitacao";
+import LogoutButton from "@/components/login/LogoutButton";
 import { useCursos } from "@/hooks/useCursos";
-import Tooltip from "../../../../components/solicitacao/tutorialDeUso";
+import { useEmpresaSolicitacao } from "@/hooks/useEmpresaSolicitacao";
+import { SEXOS, PRATICAS } from "@/lib/validations/solicitacaoSchema";
+import { ROUTES } from "@/constants/routes";
 
-const SEXOS = [
-  { value: "masculino", label: "Masculino" },
-  { value: "feminino", label: "Feminino" },
-  { value: "todos", label: "Todos" },
-];
-
-const PRATICAS = [
-  { value: "com", label: "Com prática" },
-  { value: "sem", label: "Sem prática" },
-];
-
-function lerDataLocal(valor) {
-  if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    return null;
-  }
-
-  const [ano, mes, dia] = valor.split("-").map(Number);
-
-  if (ano < 1) {
-    return null;
-  }
-
-  const data = new Date(0);
-
-  data.setHours(0, 0, 0, 0);
-  data.setFullYear(ano, mes - 1, dia);
-
-  if (
-    Number.isNaN(data.getTime()) ||
-    data.getFullYear() !== ano ||
-    data.getMonth() !== mes - 1 ||
-    data.getDate() !== dia
-  ) {
-    return null;
-  }
-
-  return data;
-}
-
-function validarFormulario(form, cursosDisponiveis = []) {
-  const erros = {};
-
-  if (
-    !Number.isInteger(form.idadeMinima) ||
-    form.idadeMinima < 16 ||
-    form.idadeMinima > 24
-  ) {
-    erros.idadeMinima = "A idade mínima deve ser um número inteiro entre 16 e 24.";
-  }
-
-  if (
-    !Number.isInteger(form.idadeMaxima) ||
-    form.idadeMaxima < 16 ||
-    form.idadeMaxima > 24
-  ) {
-    erros.idadeMaxima = "A idade máxima deve ser um número inteiro entre 16 e 24.";
-  }
-
-  if (
-    !erros.idadeMinima &&
-    !erros.idadeMaxima &&
-    form.idadeMinima > form.idadeMaxima
-  ) {
-    erros.idadeMinima = "A idade mínima não pode ser maior que a idade máxima.";
-    erros.idadeMaxima = "A idade máxima não pode ser menor que a idade mínima.";
-  }
-
-  if (!SEXOS.some((opcao) => opcao.value === form.sexo)) {
-    erros.sexo = "Selecione uma opção de sexo válida.";
-  }
-
-  if (!PRATICAS.some((opcao) => opcao.value === form.pratica)) {
-    erros.pratica = "Selecione uma opção de prática válida.";
-  }
-
-  if (!form.curso) {
-    erros.curso = "Selecione um curso.";
-  } else if (
-    cursosDisponiveis.length > 0 &&
-    !cursosDisponiveis.some((opcao) => opcao.value === form.curso)
-  ) {
-    erros.curso = "O curso selecionado não está mais disponível.";
-  }
-
-  if (
-    !Number.isInteger(form.quantidade) ||
-    form.quantidade < 1 ||
-    form.quantidade > 5
-  ) {
-    erros.quantidade = "A quantidade deve ser um número inteiro entre 1 e 5.";
-  }
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  const dataInicio = lerDataLocal(form.inicio);
-  const dataFim = lerDataLocal(form.fim);
-
-  if (!form.inicio) {
-    erros.inicio = "Informe a data de início.";
-  } else if (!dataInicio) {
-    erros.inicio = "Informe uma data de início válida.";
-  } else if (dataInicio < hoje) {
-    erros.inicio = "A data de início não pode ser uma data passada.";
-  }
-
-  if (!form.fim) {
-    erros.fim = "Informe a data de fim.";
-  } else if (!dataFim) {
-    erros.fim = "Informe uma data de fim válida.";
-  } else if (dataFim < hoje) {
-    erros.fim = "A data de fim não pode ser uma data passada.";
-  }
-
-  if (!erros.inicio && !erros.fim && dataInicio && dataFim) {
-    if (dataInicio > dataFim) {
-      erros.inicio = "A data de início não pode ser depois da data de fim.";
-      erros.fim = "A data de fim não pode ser antes da data de início.";
-    } else {
-      const limiteDataFim = new Date(dataInicio);
-
-      limiteDataFim.setFullYear(limiteDataFim.getFullYear() + 2);
-
-      if (dataFim > limiteDataFim) {
-        erros.fim = "A data de fim não pode exceder 2 anos após a data de início.";
-      }
-    }
-  }
-
-  return erros;
-}
-
-function CampoComErro({ children, erro, largo = false }) {
+function CampoComErro({ children, erro, largo = false, campo }) {
   return (
     <div className={`flex flex-col ${largo ? "col-span-full" : ""}`}>
       {children}
 
       {erro && (
-        <p role="alert" className="mt-1 text-sm text-red-600">
+        <p id={campo + "-erro"} role="alert" className="mt-1 text-sm text-red-600">
           {erro}
         </p>
       )}
@@ -154,95 +25,7 @@ function CampoComErro({ children, erro, largo = false }) {
 
 export default function Solicitacao() {
   const { cursos, carregandoCursos, erroCursos } = useCursos();
-
-  const [form, setForm] = useState({
-    idEmpresa: "",
-    idadeMinima: "",
-    idadeMaxima: "",
-    sexo: "",
-    pratica: "",
-    curso: "",
-    inicio: "",
-    fim: "",
-    quantidade: "",
-    unidade: "",
-    observacoes: "",
-  });
-
-  const [erros, setErros] = useState({});
-  const [mensagemSucesso, setMensagemSucesso] = useState(false);
-
-  function handleChange(e) {
-    const { name, value, type } = e.target;
-
-    const novoValor = type === "number" && value !== "" ? Number(value) : value;
-
-    if (type === "number" && value !== "") {
-      if (!Number.isFinite(novoValor)) {
-        return;
-      }
-
-      if (
-        (name === "idadeMinima" || name === "idadeMaxima") &&
-        (novoValor < 0 || novoValor > 24)
-      ) {
-        return;
-      }
-
-      if (name === "quantidade" && (novoValor < 1 || novoValor > 5)) {
-        return;
-      }
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: novoValor,
-    }));
-
-    setErros((prev) => {
-      const proximosErros = { ...prev };
-
-      delete proximosErros[name];
-
-      if (name === "idadeMinima" || name === "idadeMaxima") {
-        delete proximosErros.idadeMinima;
-        delete proximosErros.idadeMaxima;
-      }
-
-      if (name === "inicio" || name === "fim") {
-        delete proximosErros.inicio;
-        delete proximosErros.fim;
-      }
-
-      return proximosErros;
-    });
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-
-    if (carregandoCursos) {
-      setErros((prev) => ({
-        ...prev,
-        curso: "Aguarde o carregamento dos cursos.",
-      }));
-
-      return;
-    }
-
-    const novosErros = validarFormulario(form, cursos);
-
-    setErros(novosErros);
-
-    if (Object.keys(novosErros).length > 0) {
-      return;
-    }
-
-    console.log(form);
-
-    setMensagemSucesso(true);
-    setTimeout(() => setMensagemSucesso(false), 4000);
-  }
+  const { form, erros, apiError, mensagemSucesso, isLoading, carregandoSessao, sessaoExpirada, handleChange, handleSubmit } = useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos });
 
   return (
     <div
@@ -250,10 +33,13 @@ export default function Solicitacao() {
         min-h-screen
         relative
         flex
+        flex-col
+        lg:flex-row
         items-center
         justify-between
         gap-12
-        px-10
+        px-4
+        sm:px-10
         py-8
         overflow-hidden
       "
@@ -269,9 +55,9 @@ export default function Solicitacao() {
           z-0
           w-full
           lg:w-1/2
+          lg:[clip-path:polygon(0_0,100%_0,81%_100%,0_100%)]
         "
         style={{
-          clipPath: "polygon(0 0, 100% 0, 81% 100%, 0 100%)",
           background: "linear-gradient(180deg, #f97316 0%, #ffffff 50%, #0a3d7c 100%)",
           filter: "drop-shadow(0 0 25px rgba(249, 115, 22, 0.5))",
         }}
@@ -286,9 +72,6 @@ export default function Solicitacao() {
           w-full
           lg:w-1/2
         "
-        style={{
-          clipPath: "polygon(0 0, 100% 0, 78% 100%, 0 100%)",
-        }}
       >
         <img
           src="https://images.unsplash.com/photo-1738162837369-a2beec3a1d47?auto=format&fit=crop&w=1200&q=80"
@@ -320,7 +103,9 @@ export default function Solicitacao() {
         className="
           relative
           z-10
-          flex-1
+          min-w-0
+          w-full
+          lg:flex-1
           max-w-xl
           pl-4
           lg:pl-10
@@ -351,7 +136,8 @@ export default function Solicitacao() {
         <h2
           className="
             max-w-lg
-            text-5xl
+            text-4xl
+            lg:text-5xl
             font-black
             uppercase
             leading-[0.95]
@@ -401,7 +187,8 @@ export default function Solicitacao() {
           border
           border-slate-200
           bg-white
-          p-8
+          p-5
+          sm:p-8
           shadow-2xl
           lg:p-10
         "
@@ -433,8 +220,17 @@ export default function Solicitacao() {
 
         <div className="mb-7 h-px w-full bg-slate-200" />
 
+        <div className="mb-3 flex justify-end"><LogoutButton /></div>
+
+        {apiError && (
+          <div role="alert" className="mb-4 rounded-xl bg-red-50 px-5 py-4 text-sm text-red-700">
+            {apiError}
+            {sessaoExpirada && <Link className="ml-2 font-semibold underline" href={ROUTES.LOGIN}>Entrar novamente</Link>}
+          </div>
+        )}
+
         {mensagemSucesso && (
-          <div
+          <div role="status"
             className="
               mb-4
               rounded-xl
@@ -450,7 +246,8 @@ export default function Solicitacao() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
+          <fieldset disabled={isLoading} className="min-w-0">
           <div
             className="
               mb-6
@@ -461,10 +258,11 @@ export default function Solicitacao() {
               sm:grid-cols-2
             "
           >
-            <CampoComErro erro={erros.idadeMinima}>
+            <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
               <Inputsolicitacao
                 label="Idade Mínima"
                 name="idadeMinima"
+                erro={erros.idadeMinima}
                 value={form.idadeMinima}
                 onChange={handleChange}
                 placeholder="De: 16"
@@ -473,10 +271,11 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.idadeMaxima}>
+            <CampoComErro campo="idadeMaxima" erro={erros.idadeMaxima}>
               <Inputsolicitacao
                 label="Idade Máxima"
                 name="idadeMaxima"
+                erro={erros.idadeMaxima}
                 value={form.idadeMaxima}
                 onChange={handleChange}
                 placeholder="Até: 24"
@@ -485,10 +284,11 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.sexo}>
+            <CampoComErro campo="sexo" erro={erros.sexo}>
               <Selectsolicitacao
                 label="Sexo"
                 name="sexo"
+                erro={erros.sexo}
                 value={form.sexo}
                 onChange={handleChange}
                 options={SEXOS}
@@ -496,10 +296,11 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.pratica}>
+            <CampoComErro campo="pratica" erro={erros.pratica}>
               <Selectsolicitacao
                 label="Prática"
                 name="pratica"
+                erro={erros.pratica}
                 value={form.pratica}
                 onChange={handleChange}
                 options={PRATICAS}
@@ -507,11 +308,12 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.curso || erroCursos}>
+            <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
               <Selectsolicitacao
                 label="Cursos"
-                name="curso"
-                value={form.curso}
+                name="cursos"
+                erro={erros.cursos || erroCursos}
+                value={form.cursos}
                 onChange={handleChange}
                 options={cursos}
                 tooltip="Define o curso do SENAI relacionado à vaga que a empresa deseja solicitar."
@@ -524,10 +326,11 @@ export default function Solicitacao() {
               )}
             </CampoComErro>
 
-            <CampoComErro erro={erros.inicio}>
+            <CampoComErro campo="inicio" erro={erros.inicio}>
               <Inputsolicitacao
                 label="Início"
                 name="inicio"
+                erro={erros.inicio}
                 value={form.inicio}
                 onChange={handleChange}
                 placeholder="DD/MM/AA"
@@ -536,10 +339,11 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.fim}>
+            <CampoComErro campo="fim" erro={erros.fim}>
               <Inputsolicitacao
                 label="Fim"
                 name="fim"
+                erro={erros.fim}
                 value={form.fim}
                 onChange={handleChange}
                 placeholder="DD/MM/AA"
@@ -548,11 +352,12 @@ export default function Solicitacao() {
               />
             </CampoComErro>
 
-            <CampoComErro erro={erros.quantidade}>
+            <CampoComErro campo="quantidadeAlunos" erro={erros.quantidadeAlunos}>
               <Inputsolicitacao
                 label="Quantidade"
-                name="quantidade"
-                value={form.quantidade}
+                name="quantidadeAlunos"
+                erro={erros.quantidadeAlunos}
+                value={form.quantidadeAlunos}
                 onChange={handleChange}
                 placeholder="Até 5"
                 tipo="number"
@@ -572,8 +377,10 @@ export default function Solicitacao() {
             />
           </div>
 
+          </fieldset>
           <button
             type="submit"
+            disabled={isLoading || carregandoCursos || carregandoSessao}
             className="
               mt-2
               block
@@ -596,9 +403,12 @@ export default function Solicitacao() {
               hover:bg-[#ea580c]
               hover:shadow-xl
               active:translate-y-0
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+              disabled:hover:translate-y-0
             "
           >
-            CONFIRMAR
+            {isLoading ? "ENVIANDO..." : "CONFIRMAR"}
           </button>
         </form>
       </div>

@@ -1,10 +1,11 @@
+import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { lerAlunosDaPlanilha } from "@/lib/googleSheets";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request) {
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json(
       {
@@ -17,6 +18,8 @@ export async function GET() {
   }
 
   try {
+    const { error: authError } = await authorize(request, "admin");
+    if (authError) return authError;
     const linhas = await lerAlunosDaPlanilha();
 
     const cabecalhos =

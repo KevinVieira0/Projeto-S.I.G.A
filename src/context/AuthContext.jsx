@@ -1,38 +1,44 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { obterSessao, encerrarSessao } from "@/lib/api/authService";
 
 const AuthContext = createContext(null);
-const STORAGE_KEY = "siga:session";
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const generation = useRef(0);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSession(JSON.parse(raw));
-    } catch {
-      setSession(null);
-    } finally {
-      setIsLoading(false);
-    }
+    let active = true;
+    const version = generation.current;
+    // Sessões legadas nunca são usadas como prova de identidade.
+    try { localStorage.removeItem("siga:session"); } catch {}
+    obterSessao().then((data) => {
+      if (active && generation.current === version) setSession(data.session);
+    }).catch(() => {
+      if (active && generation.current === version) setSession(null);
+    }).finally(() => {
+      if (active) setIsLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const login = (tipo, dados) => {
-    const novaSessao = { tipo, dados };
-    setSession(novaSessao);
+    generation.current += 1;
+    setSession({ tipo, dados });
+    setIsLoading(false);
+  };
 
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(novaSessao));
-    } catch {
-      // A sessão continua válida em memória quando o storage está indisponível.
-    }
+  const logout = async () => {
+    await encerrarSessao();
+    generation.current += 1;
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ session, login, isLoading }}>
+    <AuthContext.Provider value={{ session, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -40,10 +46,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de <AuthProvider>");
-  }
-
+  if (!context) throw new Error("useAuth deve ser usado dentro de <AuthProvider>");
   return context;
 }

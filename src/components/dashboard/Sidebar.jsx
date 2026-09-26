@@ -1,4 +1,5 @@
 "use client";
+import LogoutButton from "@/components/login/LogoutButton";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -54,6 +55,7 @@ export default function Sidebar() {
           <p className="text-xs text-gray-500">Administrador</p>
         </div>
       </div>
+      <div className="px-5 pb-4"><LogoutButton /></div>
     </aside>
   );
 }

@@ -14,3 +14,12 @@ export async function loginEmpresa({ cnpj, senha }) {
 
   return data;
 }
+
+export async function obterSessao() {
+  const { data } = await apiClient.get("/auth/session");
+  return data;
+}
+
+export async function encerrarSessao() {
+  await apiClient.post("/auth/logout", {});
+}

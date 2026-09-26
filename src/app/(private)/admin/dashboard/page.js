@@ -1,5 +1,7 @@
+import OverviewStatusCard from "@/components/dashboard/OverviewStatusCard";
 import StudentSyncCard from "@/components/dashboard/StudentSyncCard";
 import StudentsTable from "@/components/dashboard/StudentsTable";
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
 
 export const metadata = {
   title: "Visão Geral | Projeto S.I.G.A",
@@ -7,17 +9,14 @@ export const metadata = {
 
 export default function AdminDashboardPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900">
-        Visão Geral
-      </h1>
-
-      <p className="mt-1 text-sm text-gray-500">
-        Bem-vindo ao painel administrativo do S.I.G.A.
-      </p>
-
+    <DashboardOverview>
       <StudentsTable />
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <OverviewStatusCard showViewToggle={false} />
+      </div>
+      
       <StudentSyncCard />
-    </div>
+    </DashboardOverview>
   );
 }
