@@ -18,7 +18,7 @@ export default function Button({
   children,
   isLoading,
   disabled = false,
-  color = "blue",
+  color = ["blue", "orange"],
   icon,
   className = "",
   ...rest

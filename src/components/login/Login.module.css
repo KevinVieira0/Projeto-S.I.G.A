@@ -2,6 +2,7 @@
 .page {
   --accent: #0059df;
   --accent-dark: #0044bc;
+  --accent-disabled: #315d9b;
   --duration: 350ms;
   --ease: cubic-bezier(.22, .68, .2, 1);
   position: relative;
@@ -21,6 +22,7 @@
 .page[data-profile="empresa"] {
   --accent: #bf4608;
   --accent-dark: #a63706;
+  --accent-disabled: #9b6240;
 }
 
 /* A decoração é estática; não há filtros ou animações contínuas no fundo. */
@@ -137,7 +139,7 @@
 .formContent button[type="submit"] svg { width: 22px; height: 22px; color: currentColor; }
 .formContent button[type="submit"]:hover:not(:disabled) { filter: brightness(.96); }
 .formContent button[type="submit"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.formContent button[type="submit"]:disabled { opacity: 1; background: #9b6240; box-shadow: none; }
+.formContent button[type="submit"]:disabled { opacity: 1; background: var(--accent-disabled); box-shadow: none; }
 .formFooter { margin-top: auto; padding-top: 21px; border-top: 1px solid #d7e3f4; text-align: center; font-size: 14px; line-height: 1.5; color: #4b6283; }
 .formContent + .formFooter { margin-top: 30px; }
 

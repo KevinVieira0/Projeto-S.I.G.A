@@ -163,7 +163,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
   }
 
   return (
-    <section className="group relative overflow-hidden rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-950/10">
+    <section className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-950/10">
       <header className="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]">
@@ -235,8 +235,8 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
             onRetry={() => setVersao((valorAtual) => valorAtual + 1)}
           />
         ) : (
-          <div className="grid grid-cols-[132px_1fr] items-center gap-3 px-4 py-5 sm:grid-cols-[160px_1fr] sm:gap-5 sm:px-6">
-            <div className="relative mx-auto h-32 w-32 sm:h-36 sm:w-36">
+          <div className="grid grid-cols-[132px_1fr] items-center gap-3 px-4 py-5 sm:grid-cols-[160px_1fr] sm:gap-5 sm:px-6 xl:grid-cols-[132px_1fr] xl:gap-3 xl:px-4 2xl:grid-cols-[160px_1fr] 2xl:gap-5 2xl:px-6">
+            <div className="relative mx-auto h-32 w-32 sm:h-36 sm:w-36 xl:h-32 xl:w-32 2xl:h-36 2xl:w-36">
               <div className="absolute inset-[18px] rounded-full bg-gray-50 transition duration-300 group-hover:bg-blue-50/60" />
               <svg
                 viewBox="0 0 160 160"
@@ -300,7 +300,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
         )}
       </div>
 
-      <footer className="flex min-h-12 items-center gap-2.5 border-t border-gray-100 bg-gray-50/80 px-4 py-2.5 sm:px-5">
+      <footer className="mt-auto flex min-h-12 items-center gap-2.5 border-t border-gray-100 bg-gray-50/80 px-4 py-2.5 sm:px-5">
         <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-blue-50 text-[#0a3d7c] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
