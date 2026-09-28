@@ -47,12 +47,14 @@ export async function GET(request) {
     const { error: authError } = await authorize(request, "admin");
     if (authError) return authError;
     const { searchParams } = new URL(request.url);
-    const periodo = Number(searchParams.get("periodo") || 30);
+    const parametroPeriodo = searchParams.get("periodo") || "30";
+    const periodo = parametroPeriodo === "todos" ? "todos" : Number(parametroPeriodo);
+    const todoPeriodo = periodo === "todos";
 
-    if (!PERIODOS_PERMITIDOS.has(periodo)) {
+    if (!todoPeriodo && !PERIODOS_PERMITIDOS.has(periodo)) {
       return NextResponse.json(
         {
-          mensagem: "Período inválido. Utilize 7, 30 ou 90 dias.",
+          mensagem: "Período inválido. Utilize todos, 7, 30 ou 90 dias.",
         },
         {
           status: 400,
@@ -61,23 +63,23 @@ export async function GET(request) {
     }
 
     const inicioDoPeriodo = new Date();
-    inicioDoPeriodo.setDate(inicioDoPeriodo.getDate() - periodo);
+    if (!todoPeriodo) inicioDoPeriodo.setDate(inicioDoPeriodo.getDate() - periodo);
 
     // Ainda não existe uma tabela de histórico de mudanças de status.
     // Por isso, alunos e empresas usam a última atualização como recorte.
-    const filtroAlunos = {
+    const filtroAlunos = todoPeriodo ? {} : {
       ultimaAtualizacao: {
         gte: inicioDoPeriodo,
       },
     };
 
-    const filtroEmpresas = {
+    const filtroEmpresas = todoPeriodo ? {} : {
       atualizadoEm: {
         gte: inicioDoPeriodo,
       },
     };
 
-    const filtroSolicitacoes = {
+    const filtroSolicitacoes = todoPeriodo ? {} : {
       criadoEm: {
         gte: inicioDoPeriodo,
       },
@@ -140,9 +142,9 @@ export async function GET(request) {
     return NextResponse.json({
       periodo,
       criterio: {
-        alunos: "ultimaAtualizacao",
-        empresas: "atualizadoEm",
-        solicitacoes: "criadoEm",
+        alunos: todoPeriodo ? "todos" : "ultimaAtualizacao",
+        empresas: todoPeriodo ? "todos" : "atualizadoEm",
+        solicitacoes: todoPeriodo ? "todos" : "criadoEm",
       },
       alunos: {
         total: totalAlunos,
@@ -192,7 +194,7 @@ export async function GET(request) {
           vagas: somaVagas._sum.quantidadeAlunos || 0,
         },
       },
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Erro ao carregar o resumo do dashboard:", error);
 

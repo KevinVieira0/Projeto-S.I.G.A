@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { BarChart3, GraduationCap, RefreshCw } from "lucide-react";
 import { buscarAlunosPorCurso } from "@/lib/api/dashboardService";
+import DashboardCard, { DashboardCardHeader, DashboardCardFooter, dashboardStyles } from "./DashboardCard";
 
 const numero = (valor) => valor.toLocaleString("pt-BR");
 
@@ -37,14 +38,8 @@ export default function StudentsByCourseCard() {
   }, []);
 
   return (
-    <section aria-labelledby={headingId} className="group/course flex min-w-0 flex-col rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-950/10 motion-reduce:transform-none motion-reduce:transition-none">
-      <header className="flex min-h-[85px] items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]">Distribuição de alunos</p>
-          <h2 id={headingId} className="mt-1 text-lg font-semibold text-gray-900">Alunos por curso</h2>
-        </div>
-        <BarChart3 className="h-5 w-5 shrink-0 text-[#0a3d7c] transition-transform duration-300 group-hover/course:-rotate-6 group-hover/course:scale-110 motion-reduce:transform-none motion-reduce:transition-none" aria-hidden="true" />
-      </header>
+    <DashboardCard aria-labelledby={headingId} lift>
+      <DashboardCardHeader headingId={headingId} eyebrow="Distribuição de alunos" title="Alunos por curso" icon={BarChart3} />
 
       <div className="flex flex-1 flex-col px-4 py-4 sm:px-5" aria-busy={carregando}>
         {carregando ? (
@@ -55,7 +50,7 @@ export default function StudentsByCourseCard() {
         ) : erro ? (
           <div className="flex min-h-[216px] flex-col items-center justify-center text-center">
             <p role="alert" className="text-sm text-gray-600">{erro}</p>
-            <button type="button" onClick={() => setVersao((atual) => atual + 1)} className="mt-3 min-h-11 rounded-lg px-3 text-sm font-semibold text-[#0a3d7c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500">Tentar novamente</button>
+            <button type="button" onClick={() => setVersao((atual) => atual + 1)} className={`mt-3 ${dashboardStyles.secondaryAction}`}>Tentar novamente</button>
           </div>
         ) : !dados?.cursos.length ? (
           <div role="status" className="flex min-h-[216px] flex-col items-center justify-center text-center">
@@ -68,11 +63,11 @@ export default function StudentsByCourseCard() {
         )}
       </div>
 
-      <footer className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-b-2xl border-t border-gray-100 bg-gray-50/80 px-5 py-3 text-[11px] text-gray-500">
+      <DashboardCardFooter className="justify-between">
         <span>{!carregando && !erro && dados ? `${dados.cursos.length} de ${numero(dados.totalCursos)} cursos · maiores totais` : "Cursos com mais alunos"}</span>
         <span>Todos os cadastros</span>
-      </footer>
-    </section>
+      </DashboardCardFooter>
+    </DashboardCard>
   );
 }
 

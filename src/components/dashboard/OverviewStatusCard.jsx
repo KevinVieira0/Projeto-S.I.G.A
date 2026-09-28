@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buscarResumoDashboard } from "@/lib/api/dashboardService";
+import DashboardCard, { DashboardCardHeader, DashboardCardFooter, dashboardStyles } from "./DashboardCard";
 
 const PERIODOS = [7, 30, 90];
 const RAIO = 58;
@@ -66,7 +67,7 @@ const CONFIGURACAO = {
 
 export default function OverviewStatusCard({ showViewToggle = true }) {
   const [visao, setVisao] = useState("alunos");
-  const [periodo, setPeriodo] = useState(30);
+  const [periodo, setPeriodo] = useState("todos");
   const [resumo, setResumo] = useState(null);
   const [erro, setErro] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -81,10 +82,10 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
 
     buscarResumoDashboard(periodo, { signal })
       .then((dados) => {
-        setResumo(dados);
+        if (!signal.aborted) setResumo(dados);
       })
       .catch((error) => {
-        if (error.code === "ERR_CANCELED") return;
+        if (signal.aborted || error.code === "ERR_CANCELED") return;
 
         setErro(
           error.response?.data?.mensagem ||
@@ -159,22 +160,12 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
 
   function selecionarPeriodo(event) {
     setAnimar(false);
-    setPeriodo(Number(event.target.value));
+    setPeriodo(event.target.value === "todos" ? "todos" : Number(event.target.value));
   }
 
   return (
-    <section className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-950/10">
-      <header className="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#0a3d7c] ring-4 ring-blue-50" />
-            Visão geral
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-gray-900">
-            Panorama do período
-          </h2>
-        </div>
-
+    <DashboardCard className="overflow-hidden" aria-labelledby="panorama-titulo" lift>
+      <DashboardCardHeader headingId="panorama-titulo" eyebrow="Visão geral" title="Panorama do período">
         <div className="flex flex-wrap items-center gap-2">
           {showViewToggle && <div
             className="flex rounded-lg bg-gray-100 p-1"
@@ -206,6 +197,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
               onChange={selecionarPeriodo}
               className="h-9 appearance-none rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-xs font-medium text-gray-700 outline-none transition hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
+              <option value="todos">Todo o período</option>
               {PERIODOS.map((quantidadeDeDias) => (
                 <option key={quantidadeDeDias} value={quantidadeDeDias}>
                   {quantidadeDeDias} dias
@@ -215,7 +207,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
             <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           </label>
         </div>
-      </header>
+      </DashboardCardHeader>
 
       <div
         id="panorama-conteudo"
@@ -279,7 +271,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
                   {configuracao.titulo}
                 </h3>
                 <span className="text-[11px] text-gray-500">
-                  atualizados em {periodo} dias
+                  {periodo === "todos" ? "todos os cadastros" : `atualizados em ${periodo} dias`}
                 </span>
               </div>
 
@@ -295,17 +287,24 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
                   />
                 ))}
               </div>
+              {dadosAtivos?.total === 0 && (
+                <p className="mt-3 text-xs leading-relaxed text-gray-500">
+                  {periodo === "todos"
+                    ? "Nenhum cadastro disponível."
+                    : "Nenhum cadastro atualizado neste período. Selecione Todo o período para ver todos os registros."}
+                </p>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      <footer className="mt-auto flex min-h-12 items-center gap-2.5 border-t border-gray-100 bg-gray-50/80 px-4 py-2.5 sm:px-5">
+      <DashboardCardFooter>
         <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-blue-50 text-[#0a3d7c] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
 
-        <ResumoRodape visao={visao} dados={dadosAtivos?.resumo} />
+        <ResumoRodape visao={visao} dados={dadosAtivos?.resumo} periodo={periodo} />
 
         <Link
           href={configuracao.link}
@@ -314,8 +313,8 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
           Ver detalhes
           <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </Link>
-      </footer>
-    </section>
+      </DashboardCardFooter>
+    </DashboardCard>
   );
 }
 
@@ -361,6 +360,8 @@ function ChartSegments({
     const visual = configuracao.categorias[categoria.id];
 
     deslocamento += comprimento;
+
+    if (proporcao === 0) return null;
 
     return (
       <circle
@@ -412,7 +413,7 @@ function LegendItem({ categoria, total, visual, animar, onHighlight }) {
   );
 }
 
-function ResumoRodape({ visao, dados }) {
+function ResumoRodape({ visao, dados, periodo }) {
   if (!dados) {
     return <p className="min-w-0 flex-1 text-xs text-gray-500">Sem dados.</p>;
   }
@@ -424,7 +425,7 @@ function ResumoRodape({ visao, dados }) {
           {dados.indicados} indicados
         </strong>{" "}
         <span className="mx-1">•</span>
-        {dados.disponiveis} disponíveis no recorte
+        {dados.disponiveis} disponíveis{periodo === "todos" ? "" : " no recorte"}
       </p>
     );
   }
@@ -472,7 +473,7 @@ function ErrorState({ mensagem, onRetry }) {
       <button
         type="button"
         onClick={onRetry}
-        className="mt-3 text-xs font-semibold text-[#0a3d7c] transition hover:text-blue-700"
+        className={`mt-3 ${dashboardStyles.secondaryAction}`}
       >
         Tentar novamente
       </button>

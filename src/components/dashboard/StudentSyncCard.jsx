@@ -6,7 +6,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import Button from "@/components/ui/Button";
+import DashboardCard, { DashboardCardHeader, dashboardStyles } from "./DashboardCard";
 import { useSincronizacaoAlunos } from "@/hooks/useSincronizacaoAlunos";
 
 export default function StudentSyncCard() {
@@ -20,34 +20,23 @@ export default function StudentSyncCard() {
   const resultado = resposta?.resultado;
 
   return (
-    <section className="mt-8 max-w-3xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Atualização de alunos
-          </h2>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Importe os dados atuais da planilha do Google
-            Sheets para o sistema.
-          </p>
-        </div>
-
-        <div className="w-full sm:w-52">
-          <Button
+    <DashboardCard className="mt-6 max-w-3xl" aria-labelledby="sincronizacao-titulo">
+      <DashboardCardHeader headingId="sincronizacao-titulo" eyebrow="Integração" title="Atualização de alunos" description="Importe os dados atuais da planilha do Google Sheets para o sistema.">
+          <button
             type="button"
             onClick={sincronizar}
-            isLoading={isLoading}
-            icon={<RefreshCw className="h-4 w-4" />}
+            disabled={isLoading}
+            aria-busy={isLoading}
+            className={dashboardStyles.primaryAction}
           >
-            Atualizar alunos
-          </Button>
-        </div>
-      </div>
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin motion-reduce:animate-none" : ""}`} aria-hidden="true" />
+            {isLoading ? "Atualizando…" : "Atualizar alunos"}
+          </button>
+      </DashboardCardHeader>
 
-      <div className="mt-5" aria-live="polite">
+      <div className={erro || resposta ? dashboardStyles.body : ""} aria-live="polite">
         {erro && (
-          <div className="flex gap-3 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+          <div role="alert" className={`flex gap-3 ${dashboardStyles.error}`}>
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             <p>{erro}</p>
           </div>
@@ -107,7 +96,7 @@ export default function StudentSyncCard() {
           </div>
         )}
       </div>
-    </section>
+    </DashboardCard>
   );
 }
 

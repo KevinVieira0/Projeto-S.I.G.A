@@ -33,13 +33,10 @@ export default function Solicitacao() {
         min-h-screen
         relative
         flex
-        flex-col
-        lg:flex-row
         items-center
         justify-between
         gap-12
-        px-4
-        sm:px-10
+        px-10
         py-8
         overflow-hidden
       "
@@ -55,9 +52,9 @@ export default function Solicitacao() {
           z-0
           w-full
           lg:w-1/2
-          lg:[clip-path:polygon(0_0,100%_0,81%_100%,0_100%)]
         "
         style={{
+          clipPath: "polygon(0 0, 100% 0, 81% 100%, 0 100%)",
           background: "linear-gradient(180deg, #f97316 0%, #ffffff 50%, #0a3d7c 100%)",
           filter: "drop-shadow(0 0 25px rgba(249, 115, 22, 0.5))",
         }}
@@ -72,6 +69,9 @@ export default function Solicitacao() {
           w-full
           lg:w-1/2
         "
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 78% 100%, 0 100%)",
+        }}
       >
         <img
           src="https://images.unsplash.com/photo-1738162837369-a2beec3a1d47?auto=format&fit=crop&w=1200&q=80"
@@ -103,9 +103,7 @@ export default function Solicitacao() {
         className="
           relative
           z-10
-          min-w-0
-          w-full
-          lg:flex-1
+          flex-1
           max-w-xl
           pl-4
           lg:pl-10
@@ -136,8 +134,7 @@ export default function Solicitacao() {
         <h2
           className="
             max-w-lg
-            text-4xl
-            lg:text-5xl
+            text-5xl
             font-black
             uppercase
             leading-[0.95]
@@ -187,8 +184,7 @@ export default function Solicitacao() {
           border
           border-slate-200
           bg-white
-          p-5
-          sm:p-8
+          p-8
           shadow-2xl
           lg:p-10
         "
@@ -216,11 +212,10 @@ export default function Solicitacao() {
               Solicitação de Aprendizagem
             </h1>
           </div>
+          <div className="ml-auto shrink-0"><LogoutButton /></div>
         </div>
 
         <div className="mb-7 h-px w-full bg-slate-200" />
-
-        <div className="mb-3 flex justify-end"><LogoutButton /></div>
 
         {apiError && (
           <div role="alert" className="mb-4 rounded-xl bg-red-50 px-5 py-4 text-sm text-red-700">
