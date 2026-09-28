@@ -1,11 +1,14 @@
+import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const { error: authError } = await authorize(request, "admin");
+    if (authError) return authError;
     const alunos = await prisma.aluno.findMany({
       orderBy: {
         nome: "asc",

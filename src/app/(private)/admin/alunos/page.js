@@ -11,5 +11,6 @@ export default function AdminAlunosPage() {
             Alunos
           </h1>
         </div>
+
   );
 }

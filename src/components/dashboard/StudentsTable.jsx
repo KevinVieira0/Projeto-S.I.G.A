@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listarAlunos } from "@/lib/api/alunosService";
+import DashboardCard, { DashboardCardHeader, DashboardCardFooter, dashboardStyles } from "./DashboardCard";
 
 const PAGE_SIZES = [5, 10, 25, 50];
 
@@ -201,18 +202,9 @@ export default function StudentsTable() {
   const rangeEnd = Math.min(firstRow + pageSize, alunosOrdenados.length);
 
   return (
-    <section className="mt-8 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex flex-col gap-1">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Alunos cadastrados</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Consulte, filtre, organize e exporte os registros sincronizados.
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <DashboardCard aria-labelledby="alunos-tabela-titulo">
+      <DashboardCardHeader headingId="alunos-tabela-titulo" eyebrow="Cadastros" title="Alunos cadastrados" description="Consulte, filtre, organize e exporte os registros sincronizados." />
+      <div className={dashboardStyles.body}>
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-1 flex-wrap items-center gap-2">
           <div className="relative min-w-[240px] flex-1 sm:max-w-sm">
@@ -236,7 +228,7 @@ export default function StudentsTable() {
           </div>
 
           <details className="relative">
-            <summary className="flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+            <summary className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}>
               <Filter className="h-4 w-4 text-gray-500" />
               Status
               {statusSelecionados.length > 0 && (
@@ -274,7 +266,7 @@ export default function StudentsTable() {
           </details>
 
           <details className="relative">
-            <summary className="flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+            <summary className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}>
               <Columns3 className="h-4 w-4 text-gray-500" />
               Colunas
             </summary>
@@ -306,7 +298,7 @@ export default function StudentsTable() {
         </div>
 
         <details className="relative self-start xl:self-auto">
-          <summary className="flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg border border-blue-500 bg-blue-500 px-4 text-sm font-semibold text-white transition hover:bg-blue-600">
+          <summary className={`cursor-pointer list-none ${dashboardStyles.primaryAction}`}>
             <Download className="h-4 w-4" />
             Exportar
           </summary>
@@ -325,7 +317,7 @@ export default function StudentsTable() {
       </div>
 
       {erro && (
-        <div className="mt-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className={`mt-4 ${dashboardStyles.error}`}>
           {erro}
         </div>
       )}
@@ -400,7 +392,8 @@ export default function StudentsTable() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      </div>
+      <DashboardCardFooter className="flex-col lg:flex-row lg:justify-between">
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>Linhas por página</span>
           <select
@@ -453,8 +446,8 @@ export default function StudentsTable() {
             <ChevronLast className="h-4 w-4" />
           </PaginationButton>
         </div>
-      </div>
-    </section>
+      </DashboardCardFooter>
+    </DashboardCard>
   );
 }
 

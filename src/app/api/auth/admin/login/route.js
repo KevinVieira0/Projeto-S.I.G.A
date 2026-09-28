@@ -1,3 +1,5 @@
+import { setSessionCookie } from "@/lib/auth/session";
+import { validateMutationOrigin } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { z } from "zod";
@@ -10,6 +12,8 @@ const loginSchema = z.object({
 
 export async function POST(request) {
   try {
+    const originError = validateMutationOrigin(request);
+    if (originError) return originError;
     const body = await request.json();
     const resultado = loginSchema.safeParse(body);
 
@@ -64,7 +68,7 @@ export async function POST(request) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       mensagem: "Login realizado com sucesso.",
       usuario: {
         id: administrador.id,
@@ -73,8 +77,10 @@ export async function POST(request) {
         role: "admin",
       },
     });
+    return setSessionCookie(response, "admin", administrador);
   } catch (error) {
-    console.error("Erro no login administrativo:", error);
+    if (error instanceof SyntaxError) return NextResponse.json({ mensagem: "JSON inválido." }, { status: 400 });
+    console.error("Falha no login. Verifique a configuração do servidor.");
 
     return NextResponse.json(
       {

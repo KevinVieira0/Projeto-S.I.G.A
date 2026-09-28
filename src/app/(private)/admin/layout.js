@@ -1,31 +1,10 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { redirect } from "next/navigation";
+import { getCurrentSession } from "@/lib/auth/authorize";
 import { ROUTES } from "@/constants/routes";
-import Sidebar from "@/components/dashboard/Sidebar";
+import AdminShell from "@/components/dashboard/AdminShell";
 
-export default function AdminLayout({ children }) {
-  const { session, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && (!session || session.tipo !== "admin")) {
-      router.replace(ROUTES.LOGIN);
-    }
-  }, [isLoading, session, router]);
-
-  // Enquanto restaura a sessão (localStorage) ou redireciona, não renderiza
-  // o conteúdo protegido — evita "flash" da tela de admin sem estar logado.
-  if (isLoading || !session || session.tipo !== "admin") {
-    return null;
-  }
-
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1">{children}</main>
-    </div>
-  );
+export default async function AdminLayout({ children }) {
+  const session = await getCurrentSession();
+  if (session?.tipo !== "admin") redirect(ROUTES.LOGIN);
+  return <AdminShell>{children}</AdminShell>;
 }

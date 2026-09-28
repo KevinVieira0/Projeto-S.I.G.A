@@ -22,7 +22,10 @@ Aplicação acadêmica em Next.js para autenticação de administradores e empre
 - Associação de alunos empregados às empresas cadastradas.
 - Tabela de alunos com busca, filtro, ordenação, paginação e seleção de colunas.
 - Exportação dos registros filtrados em CSV, Excel (`.xls`) e JSON.
-- Endpoint para criação de solicitações de empresa.
+- Formulário de solicitação conectado à API e ao PostgreSQL, com validação compartilhada.
+- Sessão assinada em cookie HttpOnly, verificação de perfil no servidor e logout.
+
+Veja [CONTINUIDADE_SOLICITACOES.md](CONTINUIDADE_SOLICITACOES.md) para o resumo desta entrega, configuração e limites dos testes.
 
 ## Fluxo de dados dos alunos
 
@@ -38,16 +41,24 @@ Google Forms → Google Sheets → API Next.js → Prisma → PostgreSQL → Das
 npm install
 ```
 
-2. Crie o `.env` com base no `.env.example` e configure as credenciais do PostgreSQL, administrador inicial, senha das empresas de teste e Google Sheets.
+2. Crie o `.env` com base no `.env.example` e configure as credenciais do PostgreSQL, administrador inicial, senha das empresas de teste e Google Sheets. Configure também `AUTH_SECRET` com pelo menos 32 caracteres aleatórios. Essa variável é obrigatória para os dois logins.
+
+Gere o segredo localmente e copie o resultado para `AUTH_SECRET` no seu `.env`:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+Use `NEXT_PUBLIC_API_URL="/api"` para manter a API e os cookies na mesma origem. Após atualizar esta versão, entre novamente: a sessão antiga do `localStorage` não é aceita pelo servidor.
 
 3. Prepare o Prisma:
 
 ```bash
 npx prisma validate
 npx prisma generate
-npx prisma migrate deploy
-npx prisma db seed
 ```
+
+Não há novas migrations nesta entrega. Em um banco novo, aplique as migrations existentes com `npx prisma migrate deploy` e execute `npx prisma db seed` somente quando precisar criar/atualizar os usuários iniciais. Em um banco existente, verifique primeiro `npx prisma migrate status`; o seed pode alterar senhas e não deve ser repetido apenas para iniciar o projeto.
 
 4. Inicie a aplicação:
 
@@ -64,11 +75,14 @@ Consulte `.env.example`. As principais são:
 - `DATABASE_URL`: conexão usada pela aplicação.
 - `DIRECT_URL`: conexão usada pelo Prisma CLI/migrations.
 - `NEXT_PUBLIC_API_URL`: opcional; por padrão os serviços usam `/api` na mesma origem.
+- `AUTH_SECRET`: segredo aleatório com pelo menos 32 caracteres para assinar as sessões.
+- `APP_ORIGIN`: origem pública exata, sem barra final, quando houver proxy reverso, por exemplo `https://siga.exemplo.com`.
 - `ADMIN_INITIAL_NAME`, `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`: administrador criado pelo seed.
 - `EMPRESA_TEST_PASSWORD`: senha das empresas de teste criadas pelo seed.
 - `GOOGLE_APPLICATION_CREDENTIALS`: caminho do JSON da conta de serviço.
 - `GOOGLE_SHEETS_ID`: ID da planilha.
 - `GOOGLE_SHEETS_ALUNOS_RANGE`: intervalo da aba de alunos, por exemplo `Alunos!A:Q`.
+- `GOOGLE_SHEETS_LISTAS_RANGE`: intervalo da lista de cursos, por padrão `Listas!A:Z`.
 
 Nunca versione o `.env` nem o JSON da conta de serviço.
 
@@ -103,7 +117,11 @@ src/
 ```bash
 npx prisma validate
 npx prisma generate
+npm test
+npm run lint
 npm run build
 ```
 
-A rota de teste da planilha e a sincronização estão atualmente limitadas ao ambiente de desenvolvimento pelo próprio backend.
+A rota de teste da planilha e a sincronização estão limitadas ao ambiente de desenvolvimento e exigem sessão de administrador. Essa limitação foi preservada.
+
+Em produção, o cookie usa `Secure` e exige HTTPS. O logout remove o cookie do navegador; a sessão expira em oito horas e também é invalidada por troca de senha ou bloqueio do usuário no banco. Rate limiting, auditoria e revogação individual de tokens ainda precisam de uma etapa dedicada antes da publicação.
