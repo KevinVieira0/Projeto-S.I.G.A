@@ -17,7 +17,7 @@ export default function AdminDashboardPage() {
         <OverviewStatusCard showViewToggle={false} />
         <StudentsByCourseCard />
       </div>
-      
+
       <StudentSyncCard />
     </DashboardOverview>
   );
