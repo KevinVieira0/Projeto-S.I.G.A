@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import Sidebar from "@/components/dashboard/Sidebar";
+import StudentSyncNotification from "@/components/dashboard/StudentSyncNotification";
 
 export default function AdminShell({ children }) {
   const { session, isLoading } = useAuth();
@@ -22,10 +23,15 @@ export default function AdminShell({ children }) {
     return null;
   }
 
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <main className="min-w-0 flex-1">{children}</main>
-    </div>
-  );
+return (
+  <div className="relative flex min-h-screen bg-gray-50">
+    <Sidebar />
+
+    <main className="min-w-0 flex-1">
+      {children}
+    </main>
+
+    <StudentSyncNotification />
+  </div>
+);
 }

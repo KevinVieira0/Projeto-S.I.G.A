@@ -10,7 +10,7 @@ import {
 import { sincronizarAlunosDaPlanilha } from "@/lib/api/alunosService";
 
 export const INTERVALO_SINCRONIZACAO_MS =
-  30 * 1000;
+  5 * 60 * 1000;
 
 export function useSincronizacaoAlunos({
   automatico = false,
