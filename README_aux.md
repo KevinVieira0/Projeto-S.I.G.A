@@ -188,12 +188,7 @@ Digite a senha do PostgreSQL quando solicitado. Se o comando informar que o banc
 Na raiz do projeto, execute na ordem:
 
 ```powershell
-npm.cmd install
-npx.cmd prisma validate
-npx.cmd prisma generate
-npx.cmd prisma migrate deploy
-npx.cmd prisma db seed
-npx.cmd prisma migrate status
+
 ```
 
 Esses comandos fazem o seguinte:
@@ -378,7 +373,12 @@ Confira:
 - Se `GOOGLE_SHEETS_ID` contém o ID correto.
 - Se o intervalo é `Alunos!A:Q`.
 - Se a planilha foi compartilhada com o `client_email` da conta de serviço.
-- Se a Google Sheets API está habilitada no Google Cloud.
+- Se a Google Sheets APInpm.cmd install
+npx.cmd prisma validate
+npx.cmd prisma generate
+npx.cmd prisma migrate deploy
+npx.cmd prisma db seed
+npx.cmd prisma migrate status está habilitada no Google Cloud.
 
 ### Erro na pasta `.next`
 

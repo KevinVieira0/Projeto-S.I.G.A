@@ -10,6 +10,10 @@ export default function Inputsolicitacao({
   tipo = "input",
   tooltip,
   erro,
+  minAge,
+  maxAge,
+
+  
 }) {
   return (
     <div className={`flex flex-col ${largo ? "col-span-full" : ""}`}>
@@ -44,6 +48,8 @@ export default function Inputsolicitacao({
           value={valor}
           onChange={onChange}
           placeholder={placeholder}
+          min={minAge}
+          max={maxAge}
         />
       )}
     </div>

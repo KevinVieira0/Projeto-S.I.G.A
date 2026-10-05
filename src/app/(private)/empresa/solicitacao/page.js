@@ -274,6 +274,8 @@ export default function Solicitacao() {
                   placeholder="De: 16"
                   tipo="number"
                   tooltip="Define a idade mínima que o aprendiz deve ter para participar da solicitação."
+                  minAge={16}
+                  maxAge={24}
                 />
               </CampoComErro>
 
@@ -287,6 +289,8 @@ export default function Solicitacao() {
                   placeholder="Até: 24"
                   tipo="number"
                   tooltip="Define a idade máxima que o aprendiz pode ter para participar da solicitação."
+                  minAge={16}
+                  maxAge={24}
                 />
               </CampoComErro>
 
@@ -366,6 +370,8 @@ export default function Solicitacao() {
                   placeholder="Até 5"
                   tipo="number"
                   tooltip="Define o número máximo de aprendizes que a empresa deseja receber nessa solicitação."
+                  minAge={1}
+                  maxAge={5}
                 />
               </CampoComErro>
 

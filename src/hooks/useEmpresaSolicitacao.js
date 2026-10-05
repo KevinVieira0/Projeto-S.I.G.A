@@ -6,14 +6,14 @@ import { createSolicitacaoSchema } from "@/lib/validations/solicitacaoSchema";
 import { createSolicitacao } from "@/lib/api/solicitacaoService";
 
 const FORMULARIO_INICIAL = {
-  idadeMinima: "",
-  idadeMaxima: "",
+  idadeMinima: "16",
+  idadeMaxima: "16",
   sexo: "",
   pratica: "",
   cursos: "",
   inicio: "",
   fim: "",
-  quantidadeAlunos: "",
+  quantidadeAlunos: "1",
   observacoes: "",
 };
 
