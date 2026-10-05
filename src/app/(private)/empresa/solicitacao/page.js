@@ -25,8 +25,17 @@ function CampoComErro({ children, erro, largo = false, campo }) {
 
 export default function Solicitacao() {
   const { cursos, carregandoCursos, erroCursos } = useCursos();
-  const { form, erros, apiError, mensagemSucesso, isLoading, carregandoSessao, sessaoExpirada, handleChange, handleSubmit } = useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos });
-
+  const {
+    form: formulario,
+    erros,
+    apiError: erroApi,
+    mensagemSucesso,
+    isLoading: carregando,
+    carregandoSessao,
+    sessaoExpirada,
+    handleChange: alterarCampo,
+    handleSubmit: enviarFormulario,
+  } = useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos });
   return (
     <div
       className="
@@ -40,9 +49,7 @@ export default function Solicitacao() {
         py-8
         overflow-hidden
       "
-      style={{
-        backgroundColor: "#f8fafc",
-      }}
+      style={{ backgroundColor: "#f8fafc" }}
     >
       <div
         className="
@@ -69,9 +76,7 @@ export default function Solicitacao() {
           w-full
           lg:w-1/2
         "
-        style={{
-          clipPath: "polygon(0 0, 100% 0, 78% 100%, 0 100%)",
-        }}
+        style={{ clipPath: "polygon(0 0, 100% 0, 78% 100%, 0 100%)" }}
       >
         <img
           src="https://images.unsplash.com/photo-1738162837369-a2beec3a1d47?auto=format&fit=crop&w=1200&q=80"
@@ -143,9 +148,7 @@ export default function Solicitacao() {
           "
         >
           Encontre o talento
-          <span className="block text-[#f97316]">
-            que sua empresa precisa.
-          </span>
+          <span className="block text-[#f97316]">que sua empresa precisa.</span>
         </h2>
 
         <p
@@ -157,10 +160,8 @@ export default function Solicitacao() {
             text-slate-200
           "
         >
-          Solicite um aprendiz formado pelo SENAI
-          e encontre jovens preparados para
-          transformar conhecimento técnico em
-          resultados para sua empresa.
+          Solicite um aprendiz formado pelo SENAI e encontre jovens preparados para
+          transformar conhecimento técnico em resultados para sua empresa.
         </p>
 
         <div
@@ -212,20 +213,30 @@ export default function Solicitacao() {
               Solicitação de Aprendizagem
             </h1>
           </div>
-          <div className="ml-auto shrink-0"><LogoutButton /></div>
+          <div className="ml-auto shrink-0">
+            <LogoutButton />
+          </div>
         </div>
 
         <div className="mb-7 h-px w-full bg-slate-200" />
 
-        {apiError && (
-          <div role="alert" className="mb-4 rounded-xl bg-red-50 px-5 py-4 text-sm text-red-700">
-            {apiError}
-            {sessaoExpirada && <Link className="ml-2 font-semibold underline" href={ROUTES.LOGIN}>Entrar novamente</Link>}
+        {erroApi && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl bg-red-50 px-5 py-4 text-sm text-red-700"
+          >
+            {erroApi}
+            {sessaoExpirada && (
+              <Link className="ml-2 font-semibold underline" href={ROUTES.LOGIN}>
+                Entrar novamente
+              </Link>
+            )}
           </div>
         )}
 
         {mensagemSucesso && (
-          <div role="status"
+          <div
+            role="status"
             className="
               mb-4
               rounded-xl
@@ -241,10 +252,10 @@ export default function Solicitacao() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
-          <fieldset disabled={isLoading} className="min-w-0">
-          <div
-            className="
+        <form onSubmit={enviarFormulario} noValidate aria-busy={carregando}>
+          <fieldset disabled={carregando} className="min-w-0">
+            <div
+              className="
               mb-6
               grid
               grid-cols-1
@@ -252,130 +263,127 @@ export default function Solicitacao() {
               gap-y-5
               sm:grid-cols-2
             "
-          >
-            <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
+            >
+              <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
+                <Inputsolicitacao
+                  label="Idade Mínima"
+                  name="idadeMinima"
+                  erro={erros.idadeMinima}
+                  value={formulario.idadeMinima}
+                  onChange={alterarCampo}
+                  placeholder="De: 16"
+                  tipo="number"
+                  tooltip="Define a idade mínima que o aprendiz deve ter para participar da solicitação."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="idadeMaxima" erro={erros.idadeMaxima}>
+                <Inputsolicitacao
+                  label="Idade Máxima"
+                  name="idadeMaxima"
+                  erro={erros.idadeMaxima}
+                  value={formulario.idadeMaxima}
+                  onChange={alterarCampo}
+                  placeholder="Até: 24"
+                  tipo="number"
+                  tooltip="Define a idade máxima que o aprendiz pode ter para participar da solicitação."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="sexo" erro={erros.sexo}>
+                <Selectsolicitacao
+                  label="Sexo"
+                  name="sexo"
+                  erro={erros.sexo}
+                  value={formulario.sexo}
+                  onChange={alterarCampo}
+                  options={SEXOS}
+                  tooltip="Define o sexo do aprendiz desejado para esta solicitação."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="pratica" erro={erros.pratica}>
+                <Selectsolicitacao
+                  label="Prática"
+                  name="pratica"
+                  erro={erros.pratica}
+                  value={formulario.pratica}
+                  onChange={alterarCampo}
+                  options={PRATICAS}
+                  tooltip="Define se o aprendiz atuará de forma presencial ou remota, conforme a natureza da vaga."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
+                <Selectsolicitacao
+                  label="Cursos"
+                  name="cursos"
+                  erro={erros.cursos || erroCursos}
+                  value={formulario.cursos}
+                  onChange={alterarCampo}
+                  options={cursos}
+                  tooltip="Define o curso do SENAI relacionado à vaga que a empresa deseja solicitar."
+                />
+
+                {carregandoCursos && (
+                  <p className="mt-1 text-sm text-gray-500">Carregando cursos...</p>
+                )}
+              </CampoComErro>
+
+              <CampoComErro campo="inicio" erro={erros.inicio}>
+                <Inputsolicitacao
+                  label="Início"
+                  name="inicio"
+                  erro={erros.inicio}
+                  value={formulario.inicio}
+                  onChange={alterarCampo}
+                  placeholder="DD/MM/AA"
+                  tipo="date"
+                  tooltip="Define a data prevista para o início da contratação do aprendiz."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="fim" erro={erros.fim}>
+                <Inputsolicitacao
+                  label="Fim"
+                  name="fim"
+                  erro={erros.fim}
+                  value={formulario.fim}
+                  onChange={alterarCampo}
+                  placeholder="DD/MM/AA"
+                  tipo="date"
+                  tooltip="Define a data prevista para o término da contratação do aprendiz."
+                />
+              </CampoComErro>
+
+              <CampoComErro campo="quantidadeAlunos" erro={erros.quantidadeAlunos}>
+                <Inputsolicitacao
+                  label="Quantidade"
+                  name="quantidadeAlunos"
+                  erro={erros.quantidadeAlunos}
+                  value={formulario.quantidadeAlunos}
+                  onChange={alterarCampo}
+                  placeholder="Até 5"
+                  tipo="number"
+                  tooltip="Define o número máximo de aprendizes que a empresa deseja receber nessa solicitação."
+                />
+              </CampoComErro>
+
               <Inputsolicitacao
-                label="Idade Mínima"
-                name="idadeMinima"
-                erro={erros.idadeMinima}
-                value={form.idadeMinima}
-                onChange={handleChange}
-                placeholder="De: 16"
-                tipo="number"
-                tooltip="Define a idade mínima que o aprendiz deve ter para participar da solicitação."
+                label="Observações"
+                name="observacoes"
+                value={formulario.observacoes}
+                onChange={alterarCampo}
+                placeholder="Requisitos adicionais (opcional)"
+                largo
+                tipo="textarea"
+                tooltip="Use este campo para informar requisitos, observações ou informações adicionais sobre a solicitação."
               />
-            </CampoComErro>
-
-            <CampoComErro campo="idadeMaxima" erro={erros.idadeMaxima}>
-              <Inputsolicitacao
-                label="Idade Máxima"
-                name="idadeMaxima"
-                erro={erros.idadeMaxima}
-                value={form.idadeMaxima}
-                onChange={handleChange}
-                placeholder="Até: 24"
-                tipo="number"
-                tooltip="Define a idade máxima que o aprendiz pode ter para participar da solicitação."
-              />
-            </CampoComErro>
-
-            <CampoComErro campo="sexo" erro={erros.sexo}>
-              <Selectsolicitacao
-                label="Sexo"
-                name="sexo"
-                erro={erros.sexo}
-                value={form.sexo}
-                onChange={handleChange}
-                options={SEXOS}
-                tooltip="Define o sexo do aprendiz desejado para esta solicitação."
-              />
-            </CampoComErro>
-
-            <CampoComErro campo="pratica" erro={erros.pratica}>
-              <Selectsolicitacao
-                label="Prática"
-                name="pratica"
-                erro={erros.pratica}
-                value={form.pratica}
-                onChange={handleChange}
-                options={PRATICAS}
-                tooltip="Define se o aprendiz atuará de forma presencial ou remota, conforme a natureza da vaga."
-              />
-            </CampoComErro>
-
-            <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
-              <Selectsolicitacao
-                label="Cursos"
-                name="cursos"
-                erro={erros.cursos || erroCursos}
-                value={form.cursos}
-                onChange={handleChange}
-                options={cursos}
-                tooltip="Define o curso do SENAI relacionado à vaga que a empresa deseja solicitar."
-              />
-
-              {carregandoCursos && (
-                <p className="mt-1 text-sm text-gray-500">
-                  Carregando cursos...
-                </p>
-              )}
-            </CampoComErro>
-
-            <CampoComErro campo="inicio" erro={erros.inicio}>
-              <Inputsolicitacao
-                label="Início"
-                name="inicio"
-                erro={erros.inicio}
-                value={form.inicio}
-                onChange={handleChange}
-                placeholder="DD/MM/AA"
-                tipo="date"
-                tooltip="Define a data prevista para o início da contratação do aprendiz."
-              />
-            </CampoComErro>
-
-            <CampoComErro campo="fim" erro={erros.fim}>
-              <Inputsolicitacao
-                label="Fim"
-                name="fim"
-                erro={erros.fim}
-                value={form.fim}
-                onChange={handleChange}
-                placeholder="DD/MM/AA"
-                tipo="date"
-                tooltip="Define a data prevista para o término da contratação do aprendiz."
-              />
-            </CampoComErro>
-
-            <CampoComErro campo="quantidadeAlunos" erro={erros.quantidadeAlunos}>
-              <Inputsolicitacao
-                label="Quantidade"
-                name="quantidadeAlunos"
-                erro={erros.quantidadeAlunos}
-                value={form.quantidadeAlunos}
-                onChange={handleChange}
-                placeholder="Até 5"
-                tipo="number"
-                tooltip="Define o número máximo de aprendizes que a empresa deseja receber nessa solicitação."
-              />
-            </CampoComErro>
-
-            <Inputsolicitacao
-              label="Observações"
-              name="observacoes"
-              value={form.observacoes}
-              onChange={handleChange}
-              placeholder="Requisitos adicionais (opcional)"
-              largo
-              tipo="textarea"
-              tooltip="Use este campo para informar requisitos, observações ou informações adicionais sobre a solicitação."
-            />
-          </div>
-
+            </div>
           </fieldset>
           <button
             type="submit"
-            disabled={isLoading || carregandoCursos || carregandoSessao}
+            disabled={carregando || carregandoCursos || carregandoSessao}
             className="
               mt-2
               block
@@ -403,7 +411,7 @@ export default function Solicitacao() {
               disabled:hover:translate-y-0
             "
           >
-            {isLoading ? "ENVIANDO..." : "CONFIRMAR"}
+            {carregando ? "ENVIANDO..." : "CONFIRMAR"}
           </button>
         </form>
       </div>

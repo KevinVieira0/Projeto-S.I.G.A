@@ -7,8 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "format": "prettier --write \"src/**/*.{js,jsx}\" \"scripts/**/*.{js,gs}\" \"tests/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"scripts/**/*.{js,gs}\" \"tests/**/*.js\"",
     "test": "tsx --tsconfig jsconfig.json --test tests/solicitacao.test.js",
-    "test:integration": "tsx --tsconfig jsconfig.json --test tests/solicitacao.integration.test.js"
+    "test:integration": "tsx --tsconfig jsconfig.json --test tests/solicitacao.integration.test.js",
+    "test:academico": "tsx --tsconfig jsconfig.json --test tests/migracaoAcademica.test.js tests/previaAcademica.test.js tests/formularioAlunosV2.test.js tests/recebimentos.test.js tests/statusAlunos.test.js tests/formularioEmpresasV2.test.js",
+    "db:recebimentos": "tsx --tsconfig jsconfig.json scripts/buscar-recebimentos.js",
+    "db:demonstracao:previa": "tsx --tsconfig jsconfig.json scripts/preparar-demonstracao.js",
+    "test:automacao:integration": "tsx --tsconfig jsconfig.json --test tests/automacaoAlunos.integration.test.js",
+    "test:gestao:integration": "tsx --tsconfig jsconfig.json --test tests/gestaoAlunos.integration.test.js",
+    "test:recebimentos:integration": "tsx --tsconfig jsconfig.json --test tests/recebimentos.integration.test.js",
+    "db:previa-academica": "tsx --tsconfig jsconfig.json scripts/previa-base-academica.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -39,6 +48,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.47",
+    "prettier": "3.6.2",
     "prisma": "^7.9.1",
     "tailwindcss": "^3.4.13",
     "tsx": "^4.23.9"

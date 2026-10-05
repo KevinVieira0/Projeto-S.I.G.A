@@ -16,24 +16,31 @@ model Administrador {
   criadoEm     DateTime @default(now()) @map("criado_em")
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
+  eventosAcompanhamento HistoricoAcompanhamento[]
+  recebimentosRevisados RecebimentoCadastro[]
+  alteracoesAlunos AuditoriaAluno[]
+
   @@map("administradores")
 }
 
 model Empresa {
-  id               String   @id @default(uuid())
-  cnpj             String   @unique @db.Char(14)
-  razaoSocial      String   @map("razao_social") @db.VarChar(255)
-  nomeFantasia     String?  @map("nome_fantasia") @db.VarChar(255)
-  email            String?  @db.VarChar(255)
-  telefone         String?  @db.VarChar(20)
-  senhaHash String? @map("senha_hash") @db.VarChar(255)
-  autorizada       Boolean  @default(false)
-  ativa            Boolean  @default(true)
-  solicitacoes     Solicitacao[] 
-  criadoEm         DateTime @default(now()) @map("criado_em")
-  atualizadoEm     DateTime @updatedAt @map("atualizado_em")
+  id           String        @id @default(uuid())
+  cnpj         String        @unique @db.Char(14)
+  razaoSocial  String        @map("razao_social") @db.VarChar(255)
+  nomeFantasia String?       @map("nome_fantasia") @db.VarChar(255)
+  email        String?       @db.VarChar(255)
+  telefone     String?       @db.VarChar(20)
+  senhaHash    String?       @map("senha_hash") @db.VarChar(255)
+  autorizada   Boolean       @default(false)
+  ativa        Boolean       @default(true)
+  solicitacoes Solicitacao[]
+  criadoEm     DateTime      @default(now()) @map("criado_em")
+  atualizadoEm DateTime      @updatedAt @map("atualizado_em")
 
-  alunos Aluno[]
+  alunos                Aluno[]
+  contribuinte          Boolean?
+  matriculas            Matricula[]
+  eventosAcompanhamento HistoricoAcompanhamento[]
 
   @@index([autorizada, ativa])
   @@map("empresas")
@@ -54,9 +61,22 @@ model Aluno {
   termo             Int
   empregado         Boolean  @default(false)
   empresaId         String?  @map("empresa_id")
-  statusIndicacao   String   @default("Não indicado") @map("status_indicacao") @db.VarChar(30)
+  statusIndicacao   String   @default("Disponível") @map("status_indicacao") @db.VarChar(30)
+  arquivadoEm       DateTime? @map("arquivado_em")
+  alteracoes        AuditoriaAluno[]
   dataCadastro      DateTime @default(now()) @map("data_cadastro")
   ultimaAtualizacao DateTime @updatedAt @map("ultima_atualizacao")
+
+  // Etapa de expansão: campos legados acima permanecem até adaptar as APIs.
+  // Nascimento não é inferido a partir da idade antiga.
+  dataNascimento      DateTime?           @map("data_nascimento") @db.Date
+  telefone            String?             @db.VarChar(30)
+  endereco            String?             @db.VarChar(300)
+  cep                 String?             @db.Char(8)
+  origemCadastro      String?             @map("origem_cadastro") @db.VarChar(40)
+  ultimaSincronizacao DateTime?           @map("ultima_sincronizacao")
+  matriculas          Matricula[]
+  pendenciasMigracao  PendenciaMigracao[]
 
   empresa Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
@@ -80,7 +100,155 @@ model Solicitacao {
   observacoes      String?  @db.Text
   ativa            Boolean  @default(true)
   criadoEm         DateTime @default(now())
-  
-  empresa          Empresa  @relation(fields: [idEmpresa], references: [id])
+
+  empresa               Empresa                   @relation(fields: [idEmpresa], references: [id])
+  eventosAcompanhamento HistoricoAcompanhamento[]
+
   @@map("Solicitacoes")
+}
+
+enum StatusAcompanhamento {
+  DISPONIVEL
+  INDICADO
+  EM_PROCESSO
+  CONTRATADO
+}
+
+enum TipoEventoAcompanhamento {
+  CARGA_INICIAL
+  ALTERACAO_STATUS
+}
+
+model Curso {
+  id           String   @id @default(uuid())
+  chave        String   @unique @db.VarChar(64)
+  nome         String   @db.VarChar(150)
+  tipoCurso    String   @map("tipo_curso") @db.VarChar(50)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  turmas       Turma[]
+
+  @@map("cursos")
+}
+
+model Turma {
+  id                 String              @id @default(uuid())
+  chave              String              @unique @db.VarChar(64)
+  cursoId            String              @map("curso_id")
+  codigo             String              @db.VarChar(50)
+  turno              String              @db.VarChar(30)
+  dataInicio         DateTime?           @map("data_inicio") @db.Date
+  dataFim            DateTime?           @map("data_fim") @db.Date
+  quantidadeTermos   Int?                @map("quantidade_termos")
+  origem             String              @default("SISTEMA") @db.VarChar(40)
+  criadoEm           DateTime            @default(now()) @map("criado_em")
+  atualizadoEm       DateTime            @updatedAt @map("atualizado_em")
+  curso              Curso               @relation(fields: [cursoId], references: [id], onDelete: Restrict)
+  matriculas         Matricula[]
+  pendenciasMigracao PendenciaMigracao[]
+
+  @@index([cursoId, codigo])
+  @@map("turmas")
+}
+
+model Matricula {
+  id                    String                    @id @default(uuid())
+  alunoId               String                    @map("aluno_id")
+  turmaId               String                    @map("turma_id")
+  termoAtual            Int                       @map("termo_atual")
+  // Todo cadastro possui um dos quatro estados profissionais.
+  status                StatusAcompanhamento @default(DISPONIVEL)
+  classificacaoPendente Boolean                   @default(false) @map("classificacao_pendente")
+  empresaAtualId        String?                   @map("empresa_atual_id")
+  chaveLegado           String?                   @unique @map("chave_legado")
+  hashLegado            String?                   @map("hash_legado") @db.VarChar(64)
+  dadosLegado           Json?                     @map("dados_legado")
+  criadoEm              DateTime                  @default(now()) @map("criado_em")
+  atualizadoEm          DateTime                  @updatedAt @map("atualizado_em")
+  ultimaSincronizacao   DateTime?                 @map("ultima_sincronizacao")
+  aluno                 Aluno                     @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  turma                 Turma                     @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  empresaAtual          Empresa?                  @relation(fields: [empresaAtualId], references: [id], onDelete: Restrict)
+  historico             HistoricoAcompanhamento[]
+  pendenciasMigracao    PendenciaMigracao[]
+
+  @@index([alunoId, turmaId])
+  @@index([turmaId, status])
+  @@index([empresaAtualId])
+  @@map("matriculas")
+}
+
+model HistoricoAcompanhamento {
+  id             String                   @id @default(uuid())
+  matriculaId    String                   @map("matricula_id")
+  empresaId      String?                  @map("empresa_id")
+  solicitacaoId  String?                  @map("solicitacao_id")
+  responsavelId  String?                  @map("responsavel_id")
+  tipo           TipoEventoAcompanhamento
+  statusAnterior StatusAcompanhamento?    @map("status_anterior")
+  novoStatus     StatusAcompanhamento?    @map("novo_status")
+  registradoEm   DateTime                 @default(now()) @map("registrado_em")
+  origem         String                   @db.VarChar(40)
+  chaveMigracao  String?                  @unique @map("chave_migracao")
+  matricula      Matricula                @relation(fields: [matriculaId], references: [id], onDelete: Restrict)
+  empresa        Empresa?                 @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  solicitacao    Solicitacao?             @relation(fields: [solicitacaoId], references: [id], onDelete: Restrict)
+  responsavel    Administrador?           @relation(fields: [responsavelId], references: [id], onDelete: Restrict)
+
+  @@index([matriculaId, registradoEm])
+  @@map("historico_acompanhamento")
+}
+
+model PendenciaMigracao {
+  id          String     @id @default(uuid())
+  chave       String     @unique @db.VarChar(160)
+  codigo      String     @db.VarChar(60)
+  alunoId     String?    @map("aluno_id")
+  turmaId     String?    @map("turma_id")
+  matriculaId String?    @map("matricula_id")
+  descricao   String
+  criadoEm    DateTime   @default(now()) @map("criado_em")
+  resolvidaEm DateTime?  @map("resolvida_em")
+  aluno       Aluno?     @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  turma       Turma?     @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  matricula   Matricula? @relation(fields: [matriculaId], references: [id], onDelete: Restrict)
+
+  @@index([codigo, resolvidaEm])
+  @@map("pendencias_migracao")
+}
+
+// Empresas exigem revisão. Alunos válidos são processados automaticamente por CPF.
+model RecebimentoCadastro {
+  id             String   @id @default(uuid())
+  fonte          String   @db.VarChar(100)
+  tipo           String   @db.VarChar(10)
+  envioId        String   @map("envio_id") @db.VarChar(200)
+  hash           String   @db.VarChar(64)
+  dados          Json
+  erros          Json
+  estado         String   @default("PENDENTE") @db.VarChar(20)
+  recebidoEm     DateTime @map("recebido_em")
+  criadoEm       DateTime @default(now()) @map("criado_em")
+  revisadoEm     DateTime? @map("revisado_em")
+  responsavelId  String?  @map("responsavel_id")
+  entidadeId     String?  @map("entidade_id")
+  auditoria      Json?
+  responsavel Administrador? @relation(fields: [responsavelId], references: [id], onDelete: Restrict, map: "recebimentos_responsavel_fkey")
+
+  @@unique([fonte, tipo, envioId])
+  @@index([tipo, estado, recebidoEm])
+  @@map("recebimentos_cadastro")
+}
+
+model AuditoriaAluno {
+  id String @id @default(uuid())
+  alunoId String @map("aluno_id")
+  responsavelId String @map("responsavel_id")
+  acao String @db.VarChar(20)
+  dados Json
+  criadoEm DateTime @default(now()) @map("criado_em")
+  aluno Aluno @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  responsavel Administrador @relation(fields: [responsavelId], references: [id], onDelete: Restrict)
+  @@index([alunoId, criadoEm])
+  @@map("auditoria_alunos")
 }

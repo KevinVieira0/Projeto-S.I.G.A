@@ -1,14 +1,11 @@
 import { apiClient } from "./axiosClient";
 
 export async function listarAlunos() {
-  const { data } = await apiClient.get("/admin/alunos");
-  return data;
+  const { data: dados } = await apiClient.get("/admin/alunos");
+  return dados;
 }
 
 export async function sincronizarAlunosDaPlanilha() {
-  const { data } = await apiClient.post(
-    "/admin/alunos/planilha/sincronizar", {}
-  );
-
-  return data;
+  const { data: dados } = await apiClient.post("/admin/alunos/planilha/sincronizar", {});
+  return dados;
 }

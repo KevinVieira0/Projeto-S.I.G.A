@@ -6,46 +6,51 @@ import { obterSessao, encerrarSessao } from "@/lib/api/authService";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const generation = useRef(0);
-
+  const [sessao, setSessao] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const geracao = useRef(0);
   useEffect(() => {
-    let active = true;
-    const version = generation.current;
+    let ativo = true;
+    const versao = geracao.current;
     // Sessões legadas nunca são usadas como prova de identidade.
-    try { localStorage.removeItem("siga:session"); } catch {}
-    obterSessao().then((data) => {
-      if (active && generation.current === version) setSession(data.session);
-    }).catch(() => {
-      if (active && generation.current === version) setSession(null);
-    }).finally(() => {
-      if (active) setIsLoading(false);
-    });
-    return () => { active = false; };
+    try {
+      localStorage.removeItem("siga:session");
+    } catch {}
+    obterSessao()
+      .then((dados) => {
+        if (ativo && geracao.current === versao) setSessao(dados.session);
+      })
+      .catch(() => {
+        if (ativo && geracao.current === versao) setSessao(null);
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
   }, []);
-
   const login = (tipo, dados) => {
-    generation.current += 1;
-    setSession({ tipo, dados });
-    setIsLoading(false);
+    geracao.current += 1;
+    setSessao({ tipo, dados });
+    setCarregando(false);
   };
-
   const logout = async () => {
     await encerrarSessao();
-    generation.current += 1;
-    setSession(null);
+    geracao.current += 1;
+    setSessao(null);
   };
-
   return (
-    <AuthContext.Provider value={{ session, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ session: sessao, login, logout, isLoading: carregando }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth deve ser usado dentro de <AuthProvider>");
-  return context;
+  const contexto = useContext(AuthContext);
+  if (!contexto) throw new Error("useAuth deve ser usado dentro de <AuthProvider>");
+  return contexto;
 }

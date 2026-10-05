@@ -4,14 +4,13 @@ import { useState } from "react";
 
 export default function Tooltip({ text }) {
   const [open, setOpen] = useState(false);
-
   return (
     <span className="relative inline-flex items-center">
       <button
         type="button"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => setOpen((anterior) => !anterior)}
         className="
           ml-1.5
           flex
@@ -33,7 +32,8 @@ export default function Tooltip({ text }) {
       </button>
 
       {open && (
-        <div className="
+        <div
+          className="
           absolute
           bottom-full
           left-1/2
@@ -49,9 +49,11 @@ export default function Tooltip({ text }) {
           leading-5
           text-white
           shadow-lg
-        ">
+        "
+        >
           {text}
-          <div className="
+          <div
+            className="
             absolute
             left-1/2
             top-full
@@ -61,7 +63,8 @@ export default function Tooltip({ text }) {
             -translate-y-1/2
             rotate-45
             bg-[#0a3d7c]
-          " />
+          "
+          />
         </div>
       )}
     </span>

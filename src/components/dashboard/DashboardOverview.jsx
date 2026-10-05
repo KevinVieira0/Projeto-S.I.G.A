@@ -3,30 +3,26 @@
 import { Building2, GraduationCap } from "lucide-react";
 import { useRef, useState } from "react";
 
-const VIEWS = [
+const VISOES = [
   { id: "alunos", label: "Alunos", icon: GraduationCap },
   { id: "empresas", label: "Empresas", icon: Building2 },
 ];
 
-export default function DashboardOverview({ children }) {
-  const [view, setView] = useState("alunos");
-  const tabRefs = useRef([]);
-
-  function handleKeyDown(event, index) {
-    let nextIndex;
-
-    if (event.key === "ArrowRight") nextIndex = (index + 1) % VIEWS.length;
-    else if (event.key === "ArrowLeft") {
-      nextIndex = (index + VIEWS.length - 1) % VIEWS.length;
-    } else if (event.key === "Home") nextIndex = 0;
-    else if (event.key === "End") nextIndex = VIEWS.length - 1;
+export default function DashboardOverview({ children, empresas }) {
+  const [visao, setVisao] = useState("alunos");
+  const abasRef = useRef([]);
+  function tratarTeclado(evento, indice) {
+    let proximoIndice;
+    if (evento.key === "ArrowRight") proximoIndice = (indice + 1) % VISOES.length;
+    else if (evento.key === "ArrowLeft") {
+      proximoIndice = (indice + VISOES.length - 1) % VISOES.length;
+    } else if (evento.key === "Home") proximoIndice = 0;
+    else if (evento.key === "End") proximoIndice = VISOES.length - 1;
     else return;
-
-    event.preventDefault();
-    setView(VIEWS[nextIndex].id);
-    tabRefs.current[nextIndex]?.focus();
+    evento.preventDefault();
+    setVisao(VISOES[proximoIndice].id);
+    abasRef.current[proximoIndice]?.focus();
   }
-
   return (
     <div className="p-5 sm:p-8">
       <header className="grid items-center gap-5 lg:grid-cols-[1fr_auto_1fr]">
@@ -44,39 +40,37 @@ export default function DashboardOverview({ children }) {
         >
           <span
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-full bg-[#0a3d7c] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
-              view === "empresas" ? "translate-x-full" : "translate-x-0"
-            }`}
+            className={`pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-full bg-[#0a3d7c] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${visao === "empresas" ? "translate-x-full" : "translate-x-0"}`}
           />
-          {VIEWS.map(({ id, label, icon: Icon }, index) => (
+          {VISOES.map(({ id, label: rotulo, icon: Icon }, indice) => (
             <button
               key={id}
-              ref={(element) => { tabRefs.current[index] = element; }}
+              ref={(elemento) => {
+                abasRef.current[indice] = elemento;
+              }}
               id={`overview-${id}-tab`}
               type="button"
               role="tab"
-              aria-selected={view === id}
+              aria-selected={visao === id}
               aria-controls={`overview-${id}-panel`}
-              tabIndex={view === id ? 0 : -1}
-              onClick={() => setView(id)}
-              onKeyDown={(event) => handleKeyDown(event, index)}
-              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 motion-reduce:transition-none ${
-                view === id ? "text-white" : "text-gray-500 hover:text-gray-900"
-              }`}
+              tabIndex={visao === id ? 0 : -1}
+              onClick={() => setVisao(id)}
+              onKeyDown={(evento) => tratarTeclado(evento, indice)}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 motion-reduce:transition-none ${visao === id ? "text-white" : "text-gray-500 hover:text-gray-900"}`}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              {rotulo}
             </button>
           ))}
         </div>
       </header>
 
-      {/* Keep the student view mounted so filters and pagination survive switching. */}
+      {/* Mantém filtros e paginação dos alunos ao alternar a visão. */}
       <section
         id="overview-alunos-panel"
         role="tabpanel"
         aria-labelledby="overview-alunos-tab"
-        hidden={view !== "alunos"}
+        hidden={visao !== "alunos"}
         className="overview-panel mt-6"
       >
         {children}
@@ -86,18 +80,20 @@ export default function DashboardOverview({ children }) {
         id="overview-empresas-panel"
         role="tabpanel"
         aria-labelledby="overview-empresas-tab"
-        hidden={view !== "empresas"}
+        hidden={visao !== "empresas"}
         className="overview-panel mt-6"
       >
-        <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center">
-          <Building2 className="h-8 w-8 text-[#0a3d7c]" aria-hidden="true" />
-          <h2 className="mt-4 text-lg font-semibold text-gray-900">
-            Visão geral das empresas
-          </h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Os indicadores desta visão serão disponibilizados em breve.
-          </p>
-        </div>
+        {empresas || (
+          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center">
+            <Building2 className="h-8 w-8 text-[#0a3d7c]" aria-hidden="true" />
+            <h2 className="mt-4 text-lg font-semibold text-gray-900">
+              Visão geral das empresas
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Os indicadores desta visão serão disponibilizados em breve.
+            </p>
+          </div>
+        )}
       </section>
 
       <style jsx>{`

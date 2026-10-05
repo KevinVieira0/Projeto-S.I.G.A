@@ -1,7 +1,7 @@
 import { apiClient } from "./axiosClient";
 
-export async function createSolicitacao(values) {
+export async function createSolicitacao(valores) {
   // A empresa é identificada pelo cookie HttpOnly, nunca pelo formulário.
-  const { data } = await apiClient.post("/empresas/solicitacao", values);
-  return data;
+  const { data: dados } = await apiClient.post("/empresas/solicitacao", valores);
+  return dados;
 }

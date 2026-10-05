@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/shadcn/dropdown-menu";
 import { Input } from "@/components/ui/shadcn/input";
 import { Label } from "@/components/ui/shadcn/label";
-import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/shadcn/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/shadcn/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/shadcn/popover";
 import {
   Select,
@@ -69,38 +73,37 @@ import {
   ListFilter,
   Trash,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
-// Filtro que busca simultaneamente em nome e e-mail.
-const multiColumnFilterFn = (row, columnId, filterValue) => {
-  const searchableRowContent = `${row.original.name} ${row.original.email}`.toLowerCase();
-  const searchTerm = (filterValue ?? "").toLowerCase();
-  return searchableRowContent.includes(searchTerm);
+const filtrarNomeEmail = (linha, idColuna, valorFiltro) => {
+  const conteudoPesquisavel =
+    `${linha.original.name} ${linha.original.email}`.toLowerCase();
+  const termoBusca = (valorFiltro ?? "").toLowerCase();
+  return conteudoPesquisavel.includes(termoBusca);
 };
-
-const statusFilterFn = (row, columnId, filterValue) => {
-  if (!filterValue?.length) return true;
-  const status = row.getValue(columnId);
-  return filterValue.includes(status);
+const filtrarStatus = (linha, idColuna, valorFiltro) => {
+  if (!valorFiltro?.length) return true;
+  const status = linha.getValue(idColuna);
+  return valorFiltro.includes(status);
 };
-
-// Monta as colunas exibidas na tabela. "actions" fica de fora do CSV/Excel
-// porque não é um dado real — é só o botão de menu de cada linha.
-const columns = [
+const colunas = [
   {
     id: "select",
-    header: ({ table }) => (
+    header: ({ table: tabela }) => (
       <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        checked={
+          tabela.getIsAllPageRowsSelected() ||
+          (tabela.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(valor) => tabela.toggleAllPageRowsSelected(!!valor)}
         aria-label="Selecionar tudo"
       />
     ),
-    cell: ({ row }) => (
+    cell: ({ row: linha }) => (
       <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        checked={linha.getIsSelected()}
+        onCheckedChange={(valor) => linha.toggleSelected(!!valor)}
         aria-label="Selecionar linha"
       />
     ),
@@ -111,22 +114,19 @@ const columns = [
   {
     header: "Nome",
     accessorKey: "name",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    cell: ({ row: linha }) => <div className="font-medium">{linha.getValue("name")}</div>,
     size: 180,
-    filterFn: multiColumnFilterFn,
+    filterFn: filtrarNomeEmail,
     enableHiding: false,
   },
-  {
-    header: "Email",
-    accessorKey: "email",
-    size: 220,
-  },
+  { header: "Email", accessorKey: "email", size: 220 },
   {
     header: "Localização",
     accessorKey: "location",
-    cell: ({ row }) => (
+    cell: ({ row: linha }) => (
       <div>
-        <span className="text-lg leading-none">{row.original.flag}</span> {row.getValue("location")}
+        <span className="text-lg leading-none">{linha.original.flag}</span>{" "}
+        {linha.getValue("location")}
       </div>
     ),
     size: 180,
@@ -134,35 +134,40 @@ const columns = [
   {
     header: "Status",
     accessorKey: "status",
-    cell: ({ row }) => (
-      <Badge className={cn(row.getValue("status") === "Inactive" && "bg-muted-foreground/60 text-primary-foreground")}>
-        {row.getValue("status")}
+    cell: ({ row: linha }) => (
+      <Badge
+        className={cn(
+          linha.getValue("status") === "Inactive" &&
+            "bg-muted-foreground/60 text-primary-foreground",
+        )}
+      >
+        {linha.getValue("status")}
       </Badge>
     ),
     size: 100,
-    filterFn: statusFilterFn,
+    filterFn: filtrarStatus,
   },
   {
     header: "Saldo",
     accessorKey: "balance",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("balance"));
-      return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "USD" }).format(amount);
+    cell: ({ row: linha }) => {
+      const quantidade = parseFloat(linha.getValue("balance"));
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "USD",
+      }).format(quantidade);
     },
     size: 120,
   },
   {
     id: "actions",
     header: () => <span className="sr-only">Ações</span>,
-    cell: ({ row }) => <RowActions row={row} />,
+    cell: ({ row: linha }) => <RowActions row={linha} />,
     size: 60,
     enableHiding: false,
   },
 ];
-
-// Colunas exportadas pro CSV/Excel — de propósito sem "select" nem "actions",
-// que não são dados de verdade.
-const EXPORT_COLUMNS = [
+const COLUNAS_EXPORTACAO = [
   { key: "name", label: "Nome" },
   { key: "email", label: "Email" },
   { key: "location", label: "Localização" },
@@ -170,148 +175,143 @@ const EXPORT_COLUMNS = [
   { key: "balance", label: "Saldo" },
 ];
 
-function rowsToExportData(rows) {
-  return rows.map((row) => {
-    const item = row.original;
+function prepararDadosExportacao(linhas) {
+  return linhas.map((linha) => {
+    const item = linha.original;
     const record = {};
-    EXPORT_COLUMNS.forEach(({ key, label }) => {
-      record[label] = item[key];
+    COLUNAS_EXPORTACAO.forEach(({ key: chave, label: rotulo }) => {
+      record[rotulo] = item[chave];
     });
     return record;
   });
 }
 
-function downloadBlob(blob, filename) {
+function baixarConteudo(blob, nomeArquivo) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename;
+  link.download = nomeArquivo;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 
-function exportToCSV(rows) {
-  const data = rowsToExportData(rows);
-  if (data.length === 0) return;
-
-  const headers = Object.keys(data[0]);
-  const escapeCell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-
+function exportarCsv(linhas) {
+  const dados = prepararDadosExportacao(linhas);
+  if (dados.length === 0) return;
+  const cabecalhos = Object.keys(dados[0]);
+  const escaparCelula = (valor) => `"${String(valor ?? "").replace(/"/g, '""')}"`;
   const lines = [
-    headers.map(escapeCell).join(","),
-    ...data.map((record) => headers.map((h) => escapeCell(record[h])).join(",")),
+    cabecalhos.map(escaparCelula).join(","),
+    ...dados.map((record) => cabecalhos.map((h) => escaparCelula(record[h])).join(",")),
   ];
 
   // \ufeff no início ajuda o Excel a abrir acentos (UTF-8 BOM) corretamente.
-  const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-  downloadBlob(blob, `usuarios-${Date.now()}.csv`);
+  const blob = new Blob(["\ufeff" + lines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
+  baixarConteudo(blob, `usuarios-${Date.now()}.csv`);
 }
 
-function exportToExcel(rows) {
-  const data = rowsToExportData(rows);
-  if (data.length === 0) return;
-
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Usuários");
-  XLSX.writeFile(workbook, `usuarios-${Date.now()}.xlsx`);
+function exportarExcel(linhas) {
+  const dados = prepararDadosExportacao(linhas);
+  if (dados.length === 0) return;
+  const aba = XLSX.utils.json_to_sheet(dados);
+  const planilha = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(planilha, aba, "Usuários");
+  XLSX.writeFile(planilha, `usuarios-${Date.now()}.xlsx`);
 }
 
 export default function UsersDataTable() {
   const id = useId();
-  const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const inputRef = useRef(null);
-
-  const [sorting, setSorting] = useState([{ id: "name", desc: false }]);
-  const [data, setData] = useState([]);
+  const [filtrosColunas, setFiltrosColunas] = useState([]);
+  const [visibilidadeColunas, setVisibilidadeColunas] = useState({});
+  const [paginacao, setPaginacao] = useState({ pageIndex: 0, pageSize: 10 });
+  const campoBuscaRef = useRef(null);
+  const [ordenacao, setOrdenacao] = useState([{ id: "name", desc: false }]);
+  const [dados, setDados] = useState([]);
 
   // Dado de demonstração — troque essa URL pela sua rota de API real
   // (ex: /api/alunos) quando for ligar a tabela aos seus dados de verdade.
   useEffect(() => {
-    async function fetchPosts() {
-      const res = await fetch("https://res.cloudinary.com/dlzlfasou/raw/upload/users-01_fertyx.json");
-      const data = await res.json();
-      setData(data);
+    async function carregarDadosDemonstracao() {
+      const resposta = await fetch(
+        "https://res.cloudinary.com/dlzlfasou/raw/upload/users-01_fertyx.json",
+      );
+      const data = await resposta.json();
+      setDados(data);
     }
-    fetchPosts();
+    carregarDadosDemonstracao();
   }, []);
-
-  const handleDeleteRows = () => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    const updatedData = data.filter((item) => !selectedRows.some((row) => row.original.id === item.id));
-    setData(updatedData);
-    table.resetRowSelection();
+  const excluirLinhasSelecionadas = () => {
+    const linhasSelecionadas = tabela.getSelectedRowModel().rows;
+    const dadosAtualizados = dados.filter(
+      (item) => !linhasSelecionadas.some((linha) => linha.original.id === item.id),
+    );
+    setDados(dadosAtualizados);
+    tabela.resetRowSelection();
   };
-
-  const table = useReactTable({
-    data,
-    columns,
+  const tabela = useReactTable({
+    data: dados,
+    columns: colunas,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: setOrdenacao,
     enableSortingRemoval: false,
     getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
+    onPaginationChange: setPaginacao,
+    onColumnFiltersChange: setFiltrosColunas,
+    onColumnVisibilityChange: setVisibilidadeColunas,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    state: { sorting, pagination, columnFilters, columnVisibility },
+    state: {
+      sorting: ordenacao,
+      pagination: paginacao,
+      columnFilters: filtrosColunas,
+      columnVisibility: visibilidadeColunas,
+    },
   });
-
-  const uniqueStatusValues = useMemo(() => {
-    const statusColumn = table.getColumn("status");
-    if (!statusColumn) return [];
-    return Array.from(statusColumn.getFacetedUniqueValues().keys()).sort();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
-
-  const statusCounts = useMemo(() => {
-    const statusColumn = table.getColumn("status");
-    if (!statusColumn) return new Map();
-    return statusColumn.getFacetedUniqueValues();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
-
-  const selectedStatuses = useMemo(() => {
-    const filterValue = table.getColumn("status")?.getFilterValue();
-    return filterValue ?? [];
-  }, [table.getColumn("status")?.getFilterValue()]);
-
-  const handleStatusChange = (checked, value) => {
-    const filterValue = table.getColumn("status")?.getFilterValue();
-    const newFilterValue = filterValue ? [...filterValue] : [];
+  const colunaStatus = tabela.getColumn("status");
+  const contagensStatus = colunaStatus?.getFacetedUniqueValues() ?? new Map();
+  const statusDisponiveis = Array.from(contagensStatus.keys()).sort();
+  const statusSelecionados = colunaStatus?.getFilterValue() ?? [];
+  const alterarFiltroStatus = (checked, valor) => {
+    const valorFiltro = tabela.getColumn("status")?.getFilterValue();
+    const novoFiltro = valorFiltro ? [...valorFiltro] : [];
     if (checked) {
-      newFilterValue.push(value);
+      novoFiltro.push(valor);
     } else {
-      const index = newFilterValue.indexOf(value);
-      if (index > -1) newFilterValue.splice(index, 1);
+      const indice = novoFiltro.indexOf(valor);
+      if (indice > -1) novoFiltro.splice(indice, 1);
     }
-    table.getColumn("status")?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
+    tabela
+      .getColumn("status")
+      ?.setFilterValue(novoFiltro.length ? novoFiltro : undefined);
   };
 
   // Exporta a seleção atual; se nada estiver selecionado, exporta tudo que
   // está passando pelos filtros (busca + status) — não só a página visível.
-  const getExportRows = () => {
-    const selected = table.getSelectedRowModel().rows;
-    return selected.length > 0 ? selected : table.getFilteredRowModel().rows;
+  const obterLinhasExportacao = () => {
+    const selecionado = tabela.getSelectedRowModel().rows;
+    return selecionado.length > 0 ? selecionado : tabela.getFilteredRowModel().rows;
   };
-
   return (
     <div className="space-y-4 max-w-[1000px]">
-      {/* Filtros */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Filtro por nome ou email */}
           <div className="relative">
             <Input
               id={`${id}-input`}
-              ref={inputRef}
-              className={cn("peer min-w-60 ps-9", Boolean(table.getColumn("name")?.getFilterValue()) && "pe-9")}
-              value={table.getColumn("name")?.getFilterValue() ?? ""}
-              onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
+              ref={campoBuscaRef}
+              className={cn(
+                "peer min-w-60 ps-9",
+                Boolean(tabela.getColumn("name")?.getFilterValue()) && "pe-9",
+              )}
+              value={tabela.getColumn("name")?.getFilterValue() ?? ""}
+              onChange={(evento) =>
+                tabela.getColumn("name")?.setFilterValue(evento.target.value)
+              }
               placeholder="Filtrar por nome ou email..."
               type="text"
               aria-label="Filtrar por nome ou email"
@@ -319,13 +319,13 @@ export default function UsersDataTable() {
             <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
               <ListFilter size={16} strokeWidth={2} aria-hidden="true" />
             </div>
-            {Boolean(table.getColumn("name")?.getFilterValue()) && (
+            {Boolean(tabela.getColumn("name")?.getFilterValue()) && (
               <button
                 className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Limpar filtro"
                 onClick={() => {
-                  table.getColumn("name")?.setFilterValue("");
-                  inputRef.current?.focus();
+                  tabela.getColumn("name")?.setFilterValue("");
+                  campoBuscaRef.current?.focus();
                 }}
               >
                 <CircleX size={16} strokeWidth={2} aria-hidden="true" />
@@ -333,15 +333,19 @@ export default function UsersDataTable() {
             )}
           </div>
 
-          {/* Filtro por status */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
-                <Filter className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                <Filter
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Status
-                {selectedStatuses.length > 0 && (
+                {statusSelecionados.length > 0 && (
                   <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                    {selectedStatuses.length}
+                    {statusSelecionados.length}
                   </span>
                 )}
               </Button>
@@ -350,15 +354,21 @@ export default function UsersDataTable() {
               <div className="space-y-3">
                 <div className="text-xs font-medium text-muted-foreground">Filtros</div>
                 <div className="space-y-3">
-                  {uniqueStatusValues.map((value, i) => (
-                    <div key={value} className="flex items-center gap-2">
+                  {statusDisponiveis.map((valor, indice) => (
+                    <div key={valor} className="flex items-center gap-2">
                       <Checkbox
-                        id={`${id}-${i}`}
-                        checked={selectedStatuses.includes(value)}
-                        onCheckedChange={(checked) => handleStatusChange(checked, value)}
+                        id={`${id}-${indice}`}
+                        checked={statusSelecionados.includes(valor)}
+                        onCheckedChange={(checked) => alterarFiltroStatus(checked, valor)}
                       />
-                      <Label htmlFor={`${id}-${i}`} className="flex grow justify-between gap-2 font-normal">
-                        {value} <span className="ms-2 text-xs text-muted-foreground">{statusCounts.get(value)}</span>
+                      <Label
+                        htmlFor={`${id}-${indice}`}
+                        className="flex grow justify-between gap-2 font-normal"
+                      >
+                        {valor}{" "}
+                        <span className="ms-2 text-xs text-muted-foreground">
+                          {contagensStatus.get(valor)}
+                        </span>
                       </Label>
                     </div>
                   ))}
@@ -367,28 +377,32 @@ export default function UsersDataTable() {
             </PopoverContent>
           </Popover>
 
-          {/* Alternar visibilidade das colunas */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
-                <Columns3 className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                <Columns3
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Colunas
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Mostrar/ocultar colunas</DropdownMenuLabel>
-              {table
+              {tabela
                 .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
+                .filter((coluna) => coluna.getCanHide())
+                .map((coluna) => (
                   <DropdownMenuCheckboxItem
-                    key={column.id}
+                    key={coluna.id}
                     className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                    onSelect={(event) => event.preventDefault()}
+                    checked={coluna.getIsVisible()}
+                    onCheckedChange={(valor) => coluna.toggleVisibility(!!valor)}
+                    onSelect={(evento) => evento.preventDefault()}
                   >
-                    {column.id}
+                    {coluna.id}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
@@ -396,60 +410,86 @@ export default function UsersDataTable() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Excluir selecionados */}
-          {table.getSelectedRowModel().rows.length > 0 && (
+          {tabela.getSelectedRowModel().rows.length > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button className="ml-auto" variant="outline">
-                  <Trash className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                  <Trash
+                    className="-ms-1 me-2 opacity-60"
+                    size={16}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                   Excluir
                   <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                    {table.getSelectedRowModel().rows.length}
+                    {tabela.getSelectedRowModel().rows.length}
                   </span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border" aria-hidden="true">
+                  <div
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border"
+                    aria-hidden="true"
+                  >
                     <CircleAlert className="opacity-80" size={16} strokeWidth={2} />
                   </div>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Essa ação não pode ser desfeita. Isso vai excluir permanentemente{" "}
-                      {table.getSelectedRowModel().rows.length}{" "}
-                      {table.getSelectedRowModel().rows.length === 1 ? "linha selecionada" : "linhas selecionadas"}.
+                      {tabela.getSelectedRowModel().rows.length}{" "}
+                      {tabela.getSelectedRowModel().rows.length === 1
+                        ? "linha selecionada"
+                        : "linhas selecionadas"}
+                      .
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                 </div>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteRows}>Excluir</AlertDialogAction>
+                  <AlertDialogAction onClick={excluirLinhasSelecionadas}>
+                    Excluir
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
 
-          {/* Exportar — substitui o antigo botão "Add user" */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="ml-auto" variant="outline">
-                <Download className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+                <Download
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Exportar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
-                {table.getSelectedRowModel().rows.length > 0
-                  ? `Exportar ${table.getSelectedRowModel().rows.length} selecionado(s)`
+                {tabela.getSelectedRowModel().rows.length > 0
+                  ? `Exportar ${tabela.getSelectedRowModel().rows.length} selecionado(s)`
                   : "Exportar tudo (com filtros aplicados)"}
               </DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => exportToCSV(getExportRows())}>
-                <FileText className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+              <DropdownMenuItem onSelect={() => exportarCsv(obterLinhasExportacao())}>
+                <FileText
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Exportar como CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => exportToExcel(getExportRows())}>
-                <FileSpreadsheet className="-ms-1 me-2 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+              <DropdownMenuItem onSelect={() => exportarExcel(obterLinhasExportacao())}>
+                <FileSpreadsheet
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Exportar como Excel (.xlsx)
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -457,34 +497,60 @@ export default function UsersDataTable() {
         </div>
       </div>
 
-      {/* Tabela */}
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         <Table className="table-fixed">
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="h-11">
-                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
+            {tabela.getHeaderGroups().map((grupoCabecalhos) => (
+              <TableRow key={grupoCabecalhos.id} className="hover:bg-transparent">
+                {grupoCabecalhos.headers.map((cabecalho) => (
+                  <TableHead
+                    key={cabecalho.id}
+                    style={{ width: `${cabecalho.getSize()}px` }}
+                    className="h-11"
+                  >
+                    {cabecalho.isPlaceholder ? null : cabecalho.column.getCanSort() ? (
                       <div
                         className="flex h-full cursor-pointer select-none items-center justify-between gap-2"
-                        onClick={header.column.getToggleSortingHandler()}
-                        onKeyDown={(e) => {
-                          if (header.column.getCanSort() && (e.key === "Enter" || e.key === " ")) {
-                            e.preventDefault();
-                            header.column.getToggleSortingHandler()?.(e);
+                        onClick={cabecalho.column.getToggleSortingHandler()}
+                        onKeyDown={(evento) => {
+                          if (
+                            cabecalho.column.getCanSort() &&
+                            (evento.key === "Enter" || evento.key === " ")
+                          ) {
+                            evento.preventDefault();
+                            cabecalho.column.getToggleSortingHandler()?.(evento);
                           }
                         }}
-                        tabIndex={header.column.getCanSort() ? 0 : undefined}
+                        tabIndex={cabecalho.column.getCanSort() ? 0 : undefined}
                       >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {flexRender(
+                          cabecalho.column.columnDef.header,
+                          cabecalho.getContext(),
+                        )}
                         {{
-                          asc: <ChevronUp className="shrink-0 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />,
-                          desc: <ChevronDown className="shrink-0 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />,
-                        }[header.column.getIsSorted()] ?? null}
+                          asc: (
+                            <ChevronUp
+                              className="shrink-0 opacity-60"
+                              size={16}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                            />
+                          ),
+                          desc: (
+                            <ChevronDown
+                              className="shrink-0 opacity-60"
+                              size={16}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                            />
+                          ),
+                        }[cabecalho.column.getIsSorted()] ?? null}
                       </div>
                     ) : (
-                      flexRender(header.column.columnDef.header, header.getContext())
+                      flexRender(
+                        cabecalho.column.columnDef.header,
+                        cabecalho.getContext(),
+                      )
                     )}
                   </TableHead>
                 ))}
@@ -492,19 +558,19 @@ export default function UsersDataTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="last:py-0">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            {tabela.getRowModel().rows?.length ? (
+              tabela.getRowModel().rows.map((linha) => (
+                <TableRow key={linha.id} data-state={linha.getIsSelected() && "selected"}>
+                  {linha.getVisibleCells().map((celula) => (
+                    <TableCell key={celula.id} className="last:py-0">
+                      {flexRender(celula.column.columnDef.cell, celula.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={colunas.length} className="h-24 text-center">
                   Nenhum resultado.
                 </TableCell>
               </TableRow>
@@ -513,23 +579,22 @@ export default function UsersDataTable() {
         </Table>
       </div>
 
-      {/* Paginação */}
       <div className="flex items-center justify-between gap-8">
         <div className="flex items-center gap-3">
           <Label htmlFor={id} className="max-sm:sr-only">
             Linhas por página
           </Label>
           <Select
-            value={table.getState().pagination.pageSize.toString()}
-            onValueChange={(value) => table.setPageSize(Number(value))}
+            value={tabela.getState().pagination.pageSize.toString()}
+            onValueChange={(valor) => tabela.setPageSize(Number(valor))}
           >
             <SelectTrigger id={id} className="w-fit whitespace-nowrap">
               <SelectValue placeholder="Selecione o tamanho da página" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]>span]:end-2 [&_*[role=option]>span]:start-auto [&_*[role=option]]:pe-8 [&_*[role=option]]:ps-2">
-              {[5, 10, 25, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={pageSize.toString()}>
-                  {pageSize}
+              {[5, 10, 25, 50].map((tamanhoPagina) => (
+                <SelectItem key={tamanhoPagina} value={tamanhoPagina.toString()}>
+                  {tamanhoPagina}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -537,19 +602,26 @@ export default function UsersDataTable() {
         </div>
 
         <div className="flex grow justify-end whitespace-nowrap text-sm text-muted-foreground">
-          <p className="whitespace-nowrap text-sm text-muted-foreground" aria-live="polite">
+          <p
+            className="whitespace-nowrap text-sm text-muted-foreground"
+            aria-live="polite"
+          >
             <span className="text-foreground">
-              {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
+              {tabela.getState().pagination.pageIndex *
+                tabela.getState().pagination.pageSize +
+                1}
+              -
               {Math.min(
                 Math.max(
-                  table.getState().pagination.pageIndex * table.getState().pagination.pageSize +
-                    table.getState().pagination.pageSize,
+                  tabela.getState().pagination.pageIndex *
+                    tabela.getState().pagination.pageSize +
+                    tabela.getState().pagination.pageSize,
                   0,
                 ),
-                table.getRowCount(),
+                tabela.getRowCount(),
               )}
             </span>{" "}
-            de <span className="text-foreground">{table.getRowCount().toString()}</span>
+            de <span className="text-foreground">{tabela.getRowCount().toString()}</span>
           </p>
         </div>
 
@@ -561,8 +633,8 @@ export default function UsersDataTable() {
                   size="icon"
                   variant="outline"
                   className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.firstPage()}
-                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => tabela.firstPage()}
+                  disabled={!tabela.getCanPreviousPage()}
                   aria-label="Ir para a primeira página"
                 >
                   <ChevronFirst size={16} strokeWidth={2} aria-hidden="true" />
@@ -573,8 +645,8 @@ export default function UsersDataTable() {
                   size="icon"
                   variant="outline"
                   className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => tabela.previousPage()}
+                  disabled={!tabela.getCanPreviousPage()}
                   aria-label="Ir para a página anterior"
                 >
                   <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
@@ -585,8 +657,8 @@ export default function UsersDataTable() {
                   size="icon"
                   variant="outline"
                   className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
+                  onClick={() => tabela.nextPage()}
+                  disabled={!tabela.getCanNextPage()}
                   aria-label="Ir para a próxima página"
                 >
                   <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
@@ -597,8 +669,8 @@ export default function UsersDataTable() {
                   size="icon"
                   variant="outline"
                   className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.lastPage()}
-                  disabled={!table.getCanNextPage()}
+                  onClick={() => tabela.lastPage()}
+                  disabled={!tabela.getCanNextPage()}
                   aria-label="Ir para a última página"
                 >
                   <ChevronLast size={16} strokeWidth={2} aria-hidden="true" />
@@ -612,12 +684,17 @@ export default function UsersDataTable() {
   );
 }
 
-function RowActions({ row }) {
+function RowActions({ row: linha }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex justify-end">
-          <Button size="icon" variant="ghost" className="shadow-none" aria-label="Editar item">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="shadow-none"
+            aria-label="Editar item"
+          >
             <Ellipsis size={16} strokeWidth={2} aria-hidden="true" />
           </Button>
         </div>
@@ -626,7 +703,9 @@ function RowActions({ row }) {
         <DropdownMenuItem>Editar</DropdownMenuItem>
         <DropdownMenuItem>Duplicar</DropdownMenuItem>
         <DropdownMenuItem>Arquivar</DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive focus:text-destructive">Excluir</DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive focus:text-destructive">
+          Excluir
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

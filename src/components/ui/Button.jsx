@@ -1,35 +1,25 @@
-/**
- * Botão padrão do projeto.
- * `color`: "blue" (admin) | "amber" (empresa).
- */
-const COLOR_STYLES = {
-  blue:
-    "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-200",
-
-  orange:
-    "bg-orange-600 text-white hover:bg-orange-700 focus-visible:ring-orange-200",
-
+const ESTILOS_CORES = {
+  blue: "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-200",
+  orange: "bg-orange-600 text-white hover:bg-orange-700 focus-visible:ring-orange-200",
   // Compatibilidade temporária.
-  amber:
-    "bg-amber-400 text-slate-900 hover:bg-amber-500 focus-visible:ring-amber-200",
+  amber: "bg-amber-400 text-slate-900 hover:bg-amber-500 focus-visible:ring-amber-200",
 };
 
 export default function Button({
   children,
-  isLoading,
+  isLoading: carregando,
   disabled = false,
-  color = ["blue", "orange"],
+  color: cor = ["blue", "orange"],
   icon,
   className = "",
   ...rest
 }) {
-  const colorStyle = COLOR_STYLES[color] || COLOR_STYLES.blue;
-
+  const estiloCor = ESTILOS_CORES[cor] || ESTILOS_CORES.blue;
   return (
     <button
       {...rest}
-      disabled={isLoading || disabled}
-      aria-busy={isLoading}
+      disabled={carregando || disabled}
+      aria-busy={carregando}
       className={`
         flex w-full items-center justify-center gap-2
         rounded-xl px-4 py-3
@@ -37,11 +27,11 @@ export default function Button({
         outline-none transition-colors
         focus-visible:ring-4
         disabled:cursor-not-allowed disabled:opacity-60
-        ${colorStyle}
+        ${estiloCor}
         ${className}
       `}
     >
-      {isLoading ? (
+      {carregando ? (
         <Spinner />
       ) : (
         <>

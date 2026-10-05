@@ -1,32 +1,20 @@
 import { NextResponse } from "next/server";
-import { lerCursosDaPlanilha } from "@/lib/googleSheets";
+import { lerCursosParaSolicitacao } from "@/lib/listas/cursos";
 
 export const runtime = "nodejs";
+
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const nomes = await lerCursosDaPlanilha();
-
-    const cursos = nomes.map((curso) => ({
-      value: curso,
-      label: curso,
-    }));
-
+    const nomes = await lerCursosParaSolicitacao();
+    const cursos = nomes.map((curso) => ({ value: curso, label: curso }));
     return NextResponse.json({ cursos });
-  } catch (error) {
-    console.error(
-      "Erro ao carregar cursos da planilha:",
-      error.message
-    );
-
+  } catch (erroCapturado) {
+    console.error("Erro ao carregar cursos da planilha:", erroCapturado.message);
     return NextResponse.json(
-      {
-        message: "Não foi possível carregar os cursos.",
-      },
-      {
-        status: 500,
-      }
+      { message: "Não foi possível carregar os cursos." },
+      { status: 500 },
     );
   }
 }

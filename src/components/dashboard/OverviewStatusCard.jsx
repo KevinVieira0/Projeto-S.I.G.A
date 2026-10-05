@@ -9,35 +9,39 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 import { buscarResumoDashboard } from "@/lib/api/dashboardService";
-import DashboardCard, { DashboardCardHeader, DashboardCardFooter, dashboardStyles } from "./DashboardCard";
+import DashboardCard, {
+  DashboardCardHeader,
+  DashboardCardFooter,
+  dashboardStyles,
+} from "./DashboardCard";
 
 const PERIODOS = [7, 30, 90];
 const RAIO = 58;
 const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
-
 const CONFIGURACAO = {
   alunos: {
     titulo: "Situação dos alunos",
     unidade: "alunos",
     link: "/admin/alunos",
     categorias: {
+      disponiveis: {
+        cor: "#db7b2b",
+        dotClass: "bg-orange-500",
+        barClass: "bg-orange-500",
+      },
+      "em-processo": { cor: "#3678c7", dotClass: "bg-blue-500", barClass: "bg-blue-500" },
+      contratados: {
+        cor: "#7c3aed",
+        dotClass: "bg-violet-600",
+        barClass: "bg-violet-600",
+      },
       indicados: {
         cor: "#16a36a",
         dotClass: "bg-emerald-600",
         barClass: "bg-emerald-600",
-      },
-      "em-analise": {
-        cor: "#3678c7",
-        dotClass: "bg-blue-500",
-        barClass: "bg-blue-500",
-      },
-      "nao-indicados": {
-        cor: "#db7b2b",
-        dotClass: "bg-orange-500",
-        barClass: "bg-orange-500",
       },
     },
   },
@@ -46,80 +50,54 @@ const CONFIGURACAO = {
     unidade: "empresas",
     link: "/admin/empresas",
     categorias: {
-      autorizadas: {
-        cor: "#16a36a",
-        dotClass: "bg-emerald-600",
-        barClass: "bg-emerald-600",
-      },
-      aguardando: {
-        cor: "#3678c7",
-        dotClass: "bg-blue-500",
-        barClass: "bg-blue-500",
-      },
-      inativas: {
-        cor: "#db7b2b",
-        dotClass: "bg-orange-500",
-        barClass: "bg-orange-500",
-      },
+      ativas: { cor: "#16a36a", dotClass: "bg-emerald-600", barClass: "bg-emerald-600" },
+      inativas: { cor: "#db7b2b", dotClass: "bg-orange-500", barClass: "bg-orange-500" },
     },
   },
 };
 
-export default function OverviewStatusCard({ showViewToggle = true }) {
-  const [visao, setVisao] = useState("alunos");
+export default function OverviewStatusCard({
+  showViewToggle: mostrarAlternancia = true,
+  initialView: visaoInicial = "alunos",
+}) {
+  const id = useId();
+  const [visao, setVisao] = useState(visaoInicial);
   const [periodo, setPeriodo] = useState("todos");
   const [resumo, setResumo] = useState(null);
   const [erro, setErro] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [carregando, setCarregando] = useState(true);
   const [animar, setAnimar] = useState(false);
   const [categoriaDestacada, setCategoriaDestacada] = useState(null);
   const [versao, setVersao] = useState(0);
-
-  const carregarResumo = useCallback((signal) => {
-    setIsLoading(true);
-    setErro("");
-    setResumo(null);
-
-    buscarResumoDashboard(periodo, { signal })
-      .then((dados) => {
-        if (!signal.aborted) setResumo(dados);
-      })
-      .catch((error) => {
-        if (signal.aborted || error.code === "ERR_CANCELED") return;
-
-        setErro(
-          error.response?.data?.mensagem ||
-            error.message ||
-            "Não foi possível carregar o panorama."
-        );
-      })
-      .finally(() => {
-        if (!signal.aborted) setIsLoading(false);
-      });
-  }, [periodo]);
-
+  const carregarResumo = useCallback(
+    (signal) => {
+      setCarregando(true);
+      setErro("");
+      setResumo(null);
+      buscarResumoDashboard(periodo, { signal })
+        .then((dados) => {
+          if (!signal.aborted) setResumo(dados);
+        })
+        .catch((erroCapturado) => {
+          if (signal.aborted || erroCapturado.code === "ERR_CANCELED") return;
+          setErro(
+            erroCapturado.response?.data?.mensagem ||
+              erroCapturado.message ||
+              "Não foi possível carregar o panorama.",
+          );
+        })
+        .finally(() => {
+          if (!signal.aborted) setCarregando(false);
+        });
+    },
+    [periodo],
+  );
   useEffect(() => {
-    const controller = new AbortController();
-    carregarResumo(controller.signal);
-
-    return () => controller.abort();
+    const controlador = new AbortController();
+    carregarResumo(controlador.signal);
+    return () => controlador.abort();
   }, [carregarResumo, versao]);
-
-  useEffect(() => {
-    const atualizarAposSincronizacao = () => {
-      setVersao((valorAtual) => valorAtual + 1);
-    };
-
-    window.addEventListener("alunos:sincronizados", atualizarAposSincronizacao);
-
-    return () => {
-      window.removeEventListener(
-        "alunos:sincronizados",
-        atualizarAposSincronizacao
-      );
-    };
-  }, []);
-
+  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1));
   const dadosAtivos = resumo?.[visao];
   const configuracao = CONFIGURACAO[visao];
   const identidadeDosDados = useMemo(
@@ -127,68 +105,65 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
       dadosAtivos?.categorias
         ?.map((categoria) => `${categoria.id}:${categoria.valor}`)
         .join("|") || "",
-    [dadosAtivos]
+    [dadosAtivos],
   );
-
   useEffect(() => {
     setCategoriaDestacada(null);
     setAnimar(false);
-
-    const frame = requestAnimationFrame(() => {
+    const quadroAnimacao = requestAnimationFrame(() => {
       setAnimar(true);
     });
-
-    return () => cancelAnimationFrame(frame);
+    return () => cancelAnimationFrame(quadroAnimacao);
   }, [visao, periodo, identidadeDosDados]);
-
   const valorCentral = categoriaDestacada?.valor ?? dadosAtivos?.total ?? 0;
   const rotuloCentral = categoriaDestacada
-    ? `${categoriaDestacada.label} · ${calcularPercentual(
-        categoriaDestacada.valor,
-        dadosAtivos?.total
-      )}%`
+    ? `${categoriaDestacada.label} · ${calcularPercentual(categoriaDestacada.valor, dadosAtivos?.total)}%`
     : configuracao.unidade;
   const valorAnimado = useAnimatedNumber(valorCentral);
-
   function selecionarVisao(novaVisao) {
     if (novaVisao === visao) return;
-
     setAnimar(false);
     setCategoriaDestacada(null);
     setVisao(novaVisao);
   }
-
-  function selecionarPeriodo(event) {
+  function selecionarPeriodo(evento) {
     setAnimar(false);
-    setPeriodo(event.target.value === "todos" ? "todos" : Number(event.target.value));
+    setPeriodo(evento.target.value === "todos" ? "todos" : Number(evento.target.value));
   }
-
   return (
-    <DashboardCard className="overflow-hidden" aria-labelledby="panorama-titulo" lift>
-      <DashboardCardHeader headingId="panorama-titulo" eyebrow="Visão geral" title="Panorama do período">
+    <DashboardCard className="overflow-hidden" aria-labelledby={`${id}-titulo`} lift>
+      <DashboardCardHeader
+        headingId={`${id}-titulo`}
+        eyebrow="Visão geral"
+        title="Panorama do período"
+      >
         <div className="flex flex-wrap items-center gap-2">
-          {showViewToggle && <div
-            className="flex rounded-lg bg-gray-100 p-1"
-            role="tablist"
-            aria-label="Tipo de informação"
-          >
-            <TabButton
-              id="panorama-alunos-tab"
-              active={visao === "alunos"}
-              icon={GraduationCap}
-              onClick={() => selecionarVisao("alunos")}
+          {mostrarAlternancia && (
+            <div
+              className="flex rounded-lg bg-gray-100 p-1"
+              role="tablist"
+              aria-label="Tipo de informação"
             >
-              Alunos
-            </TabButton>
-            <TabButton
-              id="panorama-empresas-tab"
-              active={visao === "empresas"}
-              icon={Building2}
-              onClick={() => selecionarVisao("empresas")}
-            >
-              Empresas
-            </TabButton>
-          </div>}
+              <TabButton
+                id={`${id}-alunos-tab`}
+                controls={`${id}-conteudo`}
+                active={visao === "alunos"}
+                icon={GraduationCap}
+                onClick={() => selecionarVisao("alunos")}
+              >
+                Alunos
+              </TabButton>
+              <TabButton
+                id={`${id}-empresas-tab`}
+                controls={`${id}-conteudo`}
+                active={visao === "empresas"}
+                icon={Building2}
+                onClick={() => selecionarVisao("empresas")}
+              >
+                Empresas
+              </TabButton>
+            </div>
+          )}
 
           <label className="relative">
             <span className="sr-only">Selecionar período</span>
@@ -210,16 +185,14 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
       </DashboardCardHeader>
 
       <div
-        id="panorama-conteudo"
-        role={showViewToggle ? "tabpanel" : "region"}
-        aria-labelledby={showViewToggle ? `panorama-${visao}-tab` : undefined}
-        aria-label={showViewToggle ? undefined : configuracao.titulo}
-        className={`transition duration-200 ${
-          isLoading && resumo ? "opacity-50" : "opacity-100"
-        }`}
+        id={`${id}-conteudo`}
+        role={mostrarAlternancia ? "tabpanel" : "region"}
+        aria-labelledby={mostrarAlternancia ? `${id}-${visao}-tab` : undefined}
+        aria-label={mostrarAlternancia ? undefined : configuracao.titulo}
+        className={`transition duration-200 ${carregando && resumo ? "opacity-50" : "opacity-100"}`}
         aria-live="polite"
       >
-        {isLoading && !resumo ? (
+        {carregando && !resumo ? (
           <LoadingState />
         ) : erro ? (
           <ErrorState
@@ -234,9 +207,7 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
                 viewBox="0 0 160 160"
                 className="relative h-full w-full -rotate-90 overflow-visible"
                 role="img"
-                aria-label={`${configuracao.titulo}. Total de ${
-                  dadosAtivos?.total || 0
-                } ${configuracao.unidade}.`}
+                aria-label={`${configuracao.titulo}. Total de ${dadosAtivos?.total || 0} ${configuracao.unidade}.`}
               >
                 <circle
                   cx="80"
@@ -271,7 +242,9 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
                   {configuracao.titulo}
                 </h3>
                 <span className="text-[11px] text-gray-500">
-                  {periodo === "todos" ? "todos os cadastros" : `atualizados em ${periodo} dias`}
+                  {periodo === "todos"
+                    ? "todos os cadastros"
+                    : `atualizados em ${periodo} dias`}
                 </span>
               </div>
 
@@ -318,20 +291,23 @@ export default function OverviewStatusCard({ showViewToggle = true }) {
   );
 }
 
-function TabButton({ id, active, children, icon: Icon, onClick }) {
+function TabButton({
+  id,
+  controls: controles,
+  active: ativo,
+  children,
+  icon: Icon,
+  onClick,
+}) {
   return (
     <button
       id={id}
       type="button"
       role="tab"
-      aria-controls="panorama-conteudo"
-      aria-selected={active}
+      aria-controls={controles}
+      aria-selected={ativo}
       onClick={onClick}
-      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
-        active
-          ? "bg-white text-[#0a3d7c] shadow-sm"
-          : "text-gray-500 hover:-translate-y-px hover:text-gray-800"
-      }`}
+      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${ativo ? "bg-white text-[#0a3d7c] shadow-sm" : "text-gray-500 hover:-translate-y-px hover:text-gray-800"}`}
     >
       <Icon className="h-3.5 w-3.5" />
       {children}
@@ -339,15 +315,8 @@ function TabButton({ id, active, children, icon: Icon, onClick }) {
   );
 }
 
-function ChartSegments({
-  categorias,
-  total,
-  configuracao,
-  animar,
-  onHighlight,
-}) {
+function ChartSegments({ categorias, total, configuracao, animar, onHighlight }) {
   let deslocamento = 0;
-
   return categorias.map((categoria) => {
     const proporcao = total > 0 ? categoria.valor / total : 0;
     const comprimento = proporcao * CIRCUNFERENCIA;
@@ -358,11 +327,8 @@ function ChartSegments({
       : `0 ${CIRCUNFERENCIA}`;
     const dashoffset = -deslocamento;
     const visual = configuracao.categorias[categoria.id];
-
     deslocamento += comprimento;
-
     if (proporcao === 0) return null;
-
     return (
       <circle
         key={categoria.id}
@@ -385,7 +351,6 @@ function ChartSegments({
 
 function LegendItem({ categoria, total, visual, animar, onHighlight }) {
   const percentual = calcularPercentual(categoria.valor, total);
-
   return (
     <button
       type="button"
@@ -417,7 +382,6 @@ function ResumoRodape({ visao, dados, periodo }) {
   if (!dados) {
     return <p className="min-w-0 flex-1 text-xs text-gray-500">Sem dados.</p>;
   }
-
   if (visao === "alunos") {
     return (
       <p className="min-w-0 flex-1 truncate text-xs text-gray-500">
@@ -429,7 +393,6 @@ function ResumoRodape({ visao, dados, periodo }) {
       </p>
     );
   }
-
   return (
     <p className="min-w-0 flex-1 truncate text-xs text-gray-500">
       <strong className="font-semibold text-gray-800">
@@ -489,12 +452,10 @@ function calcularPercentual(valor, total) {
 function useAnimatedNumber(target) {
   const [valor, setValor] = useState(target);
   const valorAnterior = useRef(target);
-
   useEffect(() => {
     const inicio = valorAnterior.current;
     const diferenca = target - inicio;
     valorAnterior.current = target;
-
     if (
       diferenca === 0 ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -502,26 +463,19 @@ function useAnimatedNumber(target) {
       setValor(target);
       return undefined;
     }
-
     const duracao = 420;
     const inicioDaAnimacao = performance.now();
-    let frame;
-
+    let quadroAnimacao;
     function atualizar(agora) {
       const progresso = Math.min(1, (agora - inicioDaAnimacao) / duracao);
       const suavizado = 1 - Math.pow(1 - progresso, 3);
-
       setValor(Math.round(inicio + diferenca * suavizado));
-
       if (progresso < 1) {
-        frame = requestAnimationFrame(atualizar);
+        quadroAnimacao = requestAnimationFrame(atualizar);
       }
     }
-
-    frame = requestAnimationFrame(atualizar);
-
-    return () => cancelAnimationFrame(frame);
+    quadroAnimacao = requestAnimationFrame(atualizar);
+    return () => cancelAnimationFrame(quadroAnimacao);
   }, [target]);
-
   return valor;
 }

@@ -6,44 +6,36 @@ import { isValidCnpjFormat, onlyDigits } from "@/lib/validations/cnpjUtils";
 
 const DEBOUNCE_MS = 500;
 
-export function useCnpjValidation(cnpjValue) {
+export function useCnpjValidation(valorCnpj) {
   const [status, setStatus] = useState("idle");
-  const timeoutRef = useRef(null);
-
+  const temporizadorRef = useRef(null);
   useEffect(() => {
-    let active = true;
-    clearTimeout(timeoutRef.current);
-
-    const digits = onlyDigits(cnpjValue);
-
-    if (digits.length < 14 || !isValidCnpjFormat(cnpjValue)) {
+    let ativo = true;
+    clearTimeout(temporizadorRef.current);
+    const digitos = onlyDigits(valorCnpj);
+    if (digitos.length < 14 || !isValidCnpjFormat(valorCnpj)) {
       setStatus("idle");
       return () => {
-        active = false;
+        ativo = false;
       };
     }
-
-    timeoutRef.current = setTimeout(async () => {
+    temporizadorRef.current = setTimeout(async () => {
       setStatus("checking");
-
       try {
-        const resultado = await validarCnpjBeneficiaria(cnpjValue);
-
-        if (active) {
+        const resultado = await validarCnpjBeneficiaria(valorCnpj);
+        if (ativo) {
           setStatus(resultado.beneficiaria ? "valid" : "invalid");
         }
       } catch {
-        if (active) {
+        if (ativo) {
           setStatus("error");
         }
       }
     }, DEBOUNCE_MS);
-
     return () => {
-      active = false;
-      clearTimeout(timeoutRef.current);
+      ativo = false;
+      clearTimeout(temporizadorRef.current);
     };
-  }, [cnpjValue]);
-
+  }, [valorCnpj]);
   return { status };
 }

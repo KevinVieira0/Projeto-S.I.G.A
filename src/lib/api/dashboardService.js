@@ -1,19 +1,16 @@
 import { apiClient } from "./axiosClient";
 
-export async function buscarAlunosPorCurso(options = {}) {
-  const { data } = await apiClient.get("/admin/dashboard/alunos-por-curso", {
-    signal: options.signal,
+export async function buscarAlunosPorCurso(opcoes = {}) {
+  const { data: dados } = await apiClient.get("/admin/dashboard/alunos-por-curso", {
+    signal: opcoes.signal,
   });
-  return data;
+  return dados;
 }
 
-export async function buscarResumoDashboard(periodo, options = {}) {
-  const { data } = await apiClient.get("/admin/dashboard/resumo", {
-    params: {
-      periodo,
-    },
-    signal: options.signal,
+export async function buscarResumoDashboard(periodo, opcoes = {}) {
+  const { data: dados } = await apiClient.get("/admin/dashboard/resumo", {
+    params: { periodo },
+    signal: opcoes.signal,
   });
-
-  return data;
+  return dados;
 }

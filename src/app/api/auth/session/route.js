@@ -3,12 +3,18 @@ import { authorize } from "@/lib/auth/authorize";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request) {
+export async function GET(requisicao) {
   try {
-    const { session, error } = await authorize(request);
-    if (error) return error;
-    return NextResponse.json({ session }, { headers: { "Cache-Control": "no-store" } });
+    const { session: sessao, error: erroCapturado } = await authorize(requisicao);
+    if (erroCapturado) return erroCapturado;
+    return NextResponse.json(
+      { session: sessao },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch {
-    return NextResponse.json({ mensagem: "Não foi possível verificar a sessão." }, { status: 503 });
+    return NextResponse.json(
+      { mensagem: "Não foi possível verificar a sessão." },
+      { status: 503 },
+    );
   }
 }

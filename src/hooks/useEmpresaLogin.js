@@ -11,52 +11,38 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 
 export function useEmpresaLogin() {
-  const [apiError, setApiError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [erroApi, setErroApi] = useState(null);
+  const [carregando, setCarregando] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
-
-  const form = useForm({
+  const formulario = useForm({
     resolver: zodResolver(empresaLoginSchema),
-    defaultValues: {
-      cnpj: "",
-      senha: "",
-    },
+    defaultValues: { cnpj: "", senha: "" },
   });
-
-  const cnpjValue = form.watch("cnpj");
-  const { status } = useCnpjValidation(cnpjValue);
-
-  const onSubmit = form.handleSubmit(async (values) => {
-    setApiError(null);
-
+  const valorCnpj = formulario.watch("cnpj");
+  const { status } = useCnpjValidation(valorCnpj);
+  const enviarFormulario = formulario.handleSubmit(async (valores) => {
+    setErroApi(null);
     if (status !== "valid") {
-      setApiError(
-        "Confirme um CNPJ de empresa beneficiária válido antes de continuar."
-      );
+      setErroApi("Confirme um CNPJ de empresa beneficiária válido antes de continuar.");
       return;
     }
-
-    setIsLoading(true);
-
+    setCarregando(true);
     try {
-      const data = await loginEmpresa(values);
-      login("empresa", data.usuario);
-      router.push(ROUTES.EMPRESA_SOLICITACAO)
-    } catch (error) {
-      setApiError(
-        error.response?.data?.mensagem || "CNPJ ou senha inválidos."
-      );
+      const dados = await loginEmpresa(valores);
+      login("empresa", dados.usuario);
+      router.push(ROUTES.EMPRESA_SOLICITACAO);
+    } catch (erroCapturado) {
+      setErroApi(erroCapturado.response?.data?.mensagem || "CNPJ ou senha inválidos.");
     } finally {
-      setIsLoading(false);
+      setCarregando(false);
     }
   });
-
   return {
-    ...form,
-    onSubmit,
-    apiError,
-    isLoading,
+    ...formulario,
+    onSubmit: enviarFormulario,
+    apiError: erroApi,
+    isLoading: carregando,
     cnpjStatus: status,
   };
 }

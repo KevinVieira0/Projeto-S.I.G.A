@@ -2,7 +2,6 @@
 
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
 
 const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
@@ -16,7 +15,13 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
   >
     <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
       {props.checked === "indeterminate" ? (
-        <svg width="9" height="9" viewBox="0 0 9 9" fill="currentcolor" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          width="9"
+          height="9"
+          viewBox="0 0 9 9"
+          fill="currentcolor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -24,7 +29,13 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
           />
         </svg>
       ) : (
-        <svg width="9" height="9" viewBox="0 0 9 9" fill="currentcolor" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          width="9"
+          height="9"
+          viewBox="0 0 9 9"
+          fill="currentcolor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -36,5 +47,4 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
   </CheckboxPrimitive.Root>
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
-
 export { Checkbox };
