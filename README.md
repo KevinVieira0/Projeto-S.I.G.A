@@ -17,7 +17,7 @@ Aplicação acadêmica em Next.js para autenticação de administradores e empre
 - Login de administrador por e-mail e senha.
 - Login e validação de empresa por CNPJ e senha.
 - Dashboard administrativo em `/admin/dashboard`.
-- Sincronização de alunos do Google Sheets para o PostgreSQL.
+- Processamento automático de alunos e empresas recebidos pelos formulários.
 - Criação/atualização de alunos pelo CPF, sem duplicação.
 - Associação de alunos empregados às empresas cadastradas.
 - Tabela de alunos com busca, filtro, ordenação, paginação e seleção de colunas.
@@ -25,13 +25,19 @@ Aplicação acadêmica em Next.js para autenticação de administradores e empre
 - Formulário de solicitação conectado à API e ao PostgreSQL, com validação compartilhada.
 - Sessão assinada em cookie HttpOnly, verificação de perfil no servidor e logout.
 
-Veja [CONTINUIDADE_SOLICITACOES.md](CONTINUIDADE_SOLICITACOES.md) para o resumo desta entrega, configuração e limites dos testes.
-
 ## Fluxo de dados dos alunos
 
 ```text
-Google Forms → Google Sheets → API Next.js → Prisma → PostgreSQL → Dashboard
+Google Forms → Recebimentos no Google Sheets → API Next.js → PostgreSQL
+                                                           ↓
+                                   Visão Geral e abas de consulta da planilha
 ```
+
+O PostgreSQL é a fonte oficial. A sincronização cadastra os cursos e as turmas válidos do catálogo mesmo sem alunos, processa os recebimentos e espelha Alunos, Empresas, Matriculas e Historico. Os IDs CUR/TUR da planilha são preservados para manter as respostas dos formulários compatíveis.
+
+CPF novo cria aluno; CPF existente atualiza os dados pessoais e acadêmicos, preservando status e vínculos administrativos. Empresas seguem a mesma lógica pelo CNPJ, preservando situação cadastral e acesso. Dados inválidos são bloqueados automaticamente e precisam de correção e novo envio. Não há aprovação manual de cadastros. Um cadastro de empresa não cria senha nem concede login.
+
+A sincronização ocorre a cada cinco minutos enquanto o portal administrativo está aberto e visível. Edições internas de alunos também atualizam o espelho. Se o Google estiver indisponível, o cadastro permanece salvo no banco e a próxima sincronização tenta atualizar a planilha novamente. Não edite os espelhos para alterar cadastros; use o sistema. Cursos e Turmas continuam sendo o catálogo de entrada.
 
 ## Configuração
 
@@ -58,7 +64,7 @@ npx prisma validate
 npx prisma generate
 ```
 
-Não há novas migrations nesta entrega. Em um banco novo, aplique as migrations existentes com `npx prisma migrate deploy` e execute `npx prisma db seed` somente quando precisar criar/atualizar os usuários iniciais. Em um banco existente, verifique primeiro `npx prisma migrate status`; o seed pode alterar senhas e não deve ser repetido apenas para iniciar o projeto.
+Em um banco existente, faça uma cópia de segurança e confira `npx prisma migrate status` antes de aplicar `npx prisma migrate deploy`. A migration `20261006140000_processamento_automatico` converte os estados antigos dos recebimentos e retira a relação com o revisor, preservando a auditoria. Execute `npx prisma db seed` somente quando precisar criar/atualizar os usuários iniciais; o seed pode alterar senhas.
 
 4. Inicie a aplicação:
 
@@ -80,9 +86,11 @@ Consulte `.env.example`. As principais são:
 - `ADMIN_INITIAL_NAME`, `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`: administrador criado pelo seed.
 - `EMPRESA_TEST_PASSWORD`: senha das empresas de teste criadas pelo seed.
 - `GOOGLE_APPLICATION_CREDENTIALS`: caminho do JSON da conta de serviço.
-- `GOOGLE_SHEETS_ID`: ID da planilha.
-- `GOOGLE_SHEETS_ALUNOS_RANGE`: intervalo da aba de alunos, por exemplo `Alunos!A:Q`.
-- `GOOGLE_SHEETS_LISTAS_RANGE`: intervalo da lista de cursos, por padrão `Listas!A:Z`.
+- `GOOGLE_SHEETS_ACADEMICO_ID`: ID da nova planilha, com cabeçalhos na linha 4.
+- `GOOGLE_SHEETS_RECEBIMENTOS_AUTO`: habilita o processamento dos formulários pelo portal.
+- `GOOGLE_SHEETS_ESPELHO_AUTO`: habilita o espelho do banco; requer acesso de Editor da conta de serviço à nova planilha.
+
+`GOOGLE_SHEETS_ID`, `GOOGLE_SHEETS_ALUNOS_RANGE` e `GOOGLE_SHEETS_LISTAS_RANGE` pertencem à integração antiga. A nova base não depende delas.
 
 Nunca versione o `.env` nem o JSON da conta de serviço.
 
@@ -117,11 +125,13 @@ src/
 ```bash
 npx prisma validate
 npx prisma generate
-npm test
+npm run test:cadastros
 npm run lint
 npm run build
 ```
 
-A rota de teste da planilha e a sincronização estão limitadas ao ambiente de desenvolvimento e exigem sessão de administrador. Essa limitação foi preservada.
+Os testes dos formulários rodam sem banco. Para executar também a integração, defina `TEST_DATABASE_URL` e `DATABASE_URL` com a mesma conexão ao banco local isolado `siga_test`, já migrado. Sem essa configuração, a integração é ignorada. Esses testes criam e removem seus próprios dados fictícios; nunca use o banco principal.
+
+O comando `npm run db:recebimentos` executa uma sincronização completa fora do navegador. Use-o com o `.env` do ambiente desejado. Os testes disponíveis estão em `tests/`; `npm test` executa a mesma suíte de `npm run test:cadastros`.
 
 Em produção, o cookie usa `Secure` e exige HTTPS. O logout remove o cookie do navegador; a sessão expira em oito horas e também é invalidada por troca de senha ou bloqueio do usuário no banco. Rate limiting, auditoria e revogação individual de tokens ainda precisam de uma etapa dedicada antes da publicação.

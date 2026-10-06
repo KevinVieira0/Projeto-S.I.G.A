@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 
 export const dynamic = "force-dynamic";
 const json = (valor, status = 200) =>
-  NextResponse.json(valor, { status, headers: { "Cache-Control": "no-store" } });
+  NextResponse.json(valor, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
 
 export async function GET(requisicao) {
   const { error: erroCapturado } = await authorize(requisicao, "admin");
@@ -18,17 +21,27 @@ export async function GET(requisicao) {
   const tipo = parametrosBusca.get("tipo");
   if (!["ALUNO", "EMPRESA"].includes(tipo))
     return json({ mensagem: "Tipo inválido." }, 400);
-  const pagina = Math.max(1, Math.min(10000, Number(parametrosBusca.get("pagina")) || 1));
-  if (!Number.isInteger(pagina)) return json({ mensagem: "Página inválida." }, 400);
+  const pagina = Math.max(
+    1,
+    Math.min(10000, Number(parametrosBusca.get("pagina")) || 1),
+  );
+  if (!Number.isInteger(pagina))
+    return json({ mensagem: "Página inválida." }, 400);
   try {
-    const where = { tipo, estado: "PENDENTE" };
+    const where = { tipo, estado: { in: ["INVALIDO", "PENDENTE"] } };
     const [linhas, total] = await Promise.all([
       prisma.recebimentoCadastro.findMany({
         where,
         orderBy: [{ recebidoEm: "desc" }, { id: "asc" }],
         skip: (pagina - 1) * 25,
         take: 25,
-        select: { id: true, dados: true, erros: true, recebidoEm: true },
+        select: {
+          id: true,
+          dados: true,
+          erros: true,
+          estado: true,
+          recebidoEm: true,
+        },
       }),
       prisma.recebimentoCadastro.count({ where }),
     ]);
@@ -40,12 +53,16 @@ export async function GET(requisicao) {
         nome: recebimento.dados.nome,
         documento: "•••" + recebimento.dados.documento.slice(-4),
         erros: recebimento.erros,
+        estado: recebimento.estado,
         recebidoEm: recebimento.recebidoEm,
       })),
     });
   } catch {
     return json(
-      { mensagem: "Não foi possível carregar recebimentos. Confira as migrations." },
+      {
+        mensagem:
+          "Não foi possível carregar recebimentos. Confira as migrations.",
+      },
       500,
     );
   }

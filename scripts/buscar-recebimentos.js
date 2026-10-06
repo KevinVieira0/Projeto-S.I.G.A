@@ -5,12 +5,12 @@ import { sincronizarRecebimentos } from "../src/lib/importacao/sincronizarRecebi
 async function executarScript() {
   if (process.argv.length > 2)
     throw new Error(
-      "Este comando recebe propostas; não aceita aprovação por argumentos.",
+      "Este comando processa os cadastros automaticamente; não aceita argumentos.",
     );
   const registro = await sincronizarRecebimentos(prisma);
   console.log(JSON.stringify(registro));
   const pendentes = await prisma.recebimentoCadastro.findMany({
-    where: { estado: "PENDENTE" },
+    where: { estado: { in: ["PENDENTE", "INVALIDO"] } },
     select: { tipo: true, erros: true },
   });
   console.log(

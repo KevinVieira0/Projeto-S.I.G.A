@@ -17,7 +17,6 @@ model Administrador {
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
 
   eventosAcompanhamento HistoricoAcompanhamento[]
-  recebimentosRevisados RecebimentoCadastro[]
   alteracoesAlunos AuditoriaAluno[]
 
   @@map("administradores")
@@ -217,7 +216,7 @@ model PendenciaMigracao {
   @@map("pendencias_migracao")
 }
 
-// Empresas exigem revisão. Alunos válidos são processados automaticamente por CPF.
+// Registro técnico de processamento e idempotência dos formulários.
 model RecebimentoCadastro {
   id             String   @id @default(uuid())
   fonte          String   @db.VarChar(100)
@@ -229,11 +228,9 @@ model RecebimentoCadastro {
   estado         String   @default("PENDENTE") @db.VarChar(20)
   recebidoEm     DateTime @map("recebido_em")
   criadoEm       DateTime @default(now()) @map("criado_em")
-  revisadoEm     DateTime? @map("revisado_em")
-  responsavelId  String?  @map("responsavel_id")
+  processadoEm   DateTime? @map("processado_em")
   entidadeId     String?  @map("entidade_id")
   auditoria      Json?
-  responsavel Administrador? @relation(fields: [responsavelId], references: [id], onDelete: Restrict, map: "recebimentos_responsavel_fkey")
 
   @@unique([fonte, tipo, envioId])
   @@index([tipo, estado, recebidoEm])

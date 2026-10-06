@@ -31,7 +31,10 @@ export default function CompaniesTable() {
           signal: controlador.signal,
         });
         if (!controlador.signal.aborted) {
-          const ultima = Math.max(1, Math.ceil(resposta.total / resposta.tamanhoPagina));
+          const ultima = Math.max(
+            1,
+            Math.ceil(resposta.total / resposta.tamanhoPagina),
+          );
           if (pagina > ultima) setPagina(ultima);
           else setDados(resposta);
         }
@@ -57,7 +60,7 @@ export default function CompaniesTable() {
         headingId={idTitulo}
         eyebrow="Beneficiárias"
         title="Empresas cadastradas"
-        description="Empresas beneficiárias conferidas pela coordenação e sua situação cadastral."
+        description="Empresas cadastradas e sua situação cadastral."
       />
       <div className="flex flex-wrap gap-3 px-5 py-4">
         <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-gray-500">
@@ -101,7 +104,10 @@ export default function CompaniesTable() {
             </button>
           </div>
         ) : carregando ? (
-          <p role="status" className="flex items-center gap-2 py-6 text-sm text-gray-500">
+          <p
+            role="status"
+            className="flex items-center gap-2 py-6 text-sm text-gray-500"
+          >
             <RefreshCw
               className="h-4 w-4 animate-spin motion-reduce:animate-none"
               aria-hidden="true"
@@ -149,7 +155,9 @@ export default function CompaniesTable() {
                       )}
                     </td>
                     <td className="px-3 py-3">{e.email || "—"}</td>
-                    <td className="whitespace-nowrap px-3 py-3">{e.telefone || "—"}</td>
+                    <td className="whitespace-nowrap px-3 py-3">
+                      {e.telefone || "—"}
+                    </td>
                     <td className="px-3 py-3">
                       {e.contribuinte === null
                         ? "Não informado"
@@ -169,7 +177,10 @@ export default function CompaniesTable() {
               </tbody>
             </table>
             {!dados?.itens.length && (
-              <p role="status" className="py-6 text-center text-sm text-gray-500">
+              <p
+                role="status"
+                className="py-6 text-center text-sm text-gray-500"
+              >
                 Nenhuma empresa encontrada.
               </p>
             )}

@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
 import { salvarAluno, excluirAluno, selectAluno } from "@/lib/alunos/gestao";
+import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
 
 export const runtime = "nodejs";
 
 export const dynamic = "force-dynamic";
 const json = (dados, status = 200) =>
-  NextResponse.json(dados, { status, headers: { "Cache-Control": "no-store" } });
+  NextResponse.json(dados, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
 
 export async function GET(requisicao, { params: parametros }) {
   const { error: erroCapturado } = await authorize(requisicao, "admin");
@@ -45,7 +49,10 @@ export async function GET(requisicao, { params: parametros }) {
 }
 
 async function alterar(requisicao, parametros, excluir) {
-  const { error: erroCapturado, session: sessao } = await authorize(requisicao, "admin");
+  const { error: erroCapturado, session: sessao } = await authorize(
+    requisicao,
+    "admin",
+  );
   if (erroCapturado) return erroCapturado;
   try {
     const corpo = await requisicao.json();
@@ -56,8 +63,14 @@ async function alterar(requisicao, parametros, excluir) {
       return json({ mensagem: "Dados de exclusão inválidos." }, 400);
     const saida = excluir
       ? await excluirAluno(prisma, sessao.dados.id, parametros.id, versao)
-      : await salvarAluno(prisma, sessao.dados.id, dados, parametros.id, versao);
-    return json(saida);
+      : await salvarAluno(
+          prisma,
+          sessao.dados.id,
+          dados,
+          parametros.id,
+          versao,
+        );
+    return json({ ...saida, espelho: await tentarEspelharBase(prisma) });
   } catch (e) {
     return json(
       {

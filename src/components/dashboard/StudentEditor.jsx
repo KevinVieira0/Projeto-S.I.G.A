@@ -62,9 +62,13 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
         const [respostaCatalogo, respostaAluno] = await Promise.all([
           excluir
             ? Promise.resolve({ data: { turmas: [], empresas: [] } })
-            : apiClient.get("/admin/alunos/catalogo", { signal: controlador.signal }),
+            : apiClient.get("/admin/alunos/catalogo", {
+                signal: controlador.signal,
+              }),
           editar
-            ? apiClient.get("/admin/alunos/" + alunoId, { signal: controlador.signal })
+            ? apiClient.get("/admin/alunos/" + alunoId, {
+                signal: controlador.signal,
+              })
             : Promise.resolve(null),
         ]);
         if (controlador.signal.aborted) return;
@@ -94,35 +98,44 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
     setFormulario((anterior) => ({
       ...anterior,
       [chave]: valor,
-      ...(chave === "status" && valor === "DISPONIVEL" ? { empresaId: null } : {}),
+      ...(chave === "status" && valor === "DISPONIVEL"
+        ? { empresaId: null }
+        : {}),
     }));
-  const turma = catalogo.turmas.find((oferta) => oferta.id === formulario.turmaId);
+  const turma = catalogo.turmas.find(
+    (oferta) => oferta.id === formulario.turmaId,
+  );
   async function salvar(evento) {
     evento.preventDefault();
     if (carregando || salvando) return;
     setErro("");
     setSalvando(true);
     try {
+      let resposta;
       if (excluir)
-        await apiClient.delete("/admin/alunos/" + alunoId, { data: { versao } });
+        resposta = await apiClient.delete("/admin/alunos/" + alunoId, {
+          data: { versao },
+        });
       else if (editar)
-        await apiClient.patch("/admin/alunos/" + alunoId, {
+        resposta = await apiClient.patch("/admin/alunos/" + alunoId, {
           ...formulario,
           termo: Number(formulario.termo),
           versao,
         });
       else
-        await apiClient.post("/admin/alunos", {
+        resposta = await apiClient.post("/admin/alunos", {
           ...formulario,
           termo: Number(formulario.termo),
         });
       window.dispatchEvent(new Event("alunos:sincronizados"));
       onSaved(
-        excluir
-          ? "Aluno excluído das listagens."
-          : editar
-            ? "Aluno atualizado."
-            : "Aluno cadastrado.",
+        resposta.data.espelho?.falha
+          ? resposta.data.espelho.mensagem
+          : excluir
+            ? "Aluno excluído das listagens."
+            : editar
+              ? "Aluno atualizado."
+              : "Aluno cadastrado.",
       );
     } catch (erroCapturado) {
       setErro(
@@ -156,7 +169,10 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
     >
       <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>
-          <h2 id="student-editor-title" className="text-lg font-semibold text-gray-900">
+          <h2
+            id="student-editor-title"
+            className="text-lg font-semibold text-gray-900"
+          >
             {excluir ? "Excluir aluno" : editar ? "Editar aluno" : "Novo aluno"}
           </h2>
           <p className="mt-1 text-xs text-gray-500">
@@ -176,18 +192,25 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
         </button>
       </div>
       <form onSubmit={salvar}>
-        <fieldset disabled={carregando || salvando} className="space-y-5 px-6 py-5">
+        <fieldset
+          disabled={carregando || salvando}
+          className="space-y-5 px-6 py-5"
+        >
           {carregando ? (
-            <p role="status" className="flex items-center gap-2 text-sm text-gray-500">
+            <p
+              role="status"
+              className="flex items-center gap-2 text-sm text-gray-500"
+            >
               <Loader2 className="h-4 w-4 animate-spin" />
               Carregando cadastro…
             </p>
           ) : excluir ? (
             <p className="text-sm leading-6 text-gray-600">
-              Excluir <strong className="text-gray-900">{formulario.nome}</strong>? O
-              aluno sairá das tabelas, dos gráficos e das buscas. As matrículas e o
-              histórico continuarão guardados, e novos envios deste CPF não reativarão o
-              cadastro automaticamente.
+              Excluir{" "}
+              <strong className="text-gray-900">{formulario.nome}</strong>? O
+              aluno sairá das tabelas, dos gráficos e das buscas. As matrículas
+              e o histórico continuarão guardados, e novos envios deste CPF não
+              reativarão o cadastro automaticamente.
             </p>
           ) : (
             <>
@@ -211,27 +234,38 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     value={formulario.genero}
                     onChange={(evento) => mudar("genero", evento.target.value)}
                   >
-                    {["", "Masculino", "Feminino", "Outro", "Prefiro não informar"].map(
-                      (valor) => (
-                        <option key={valor} value={valor}>
-                          {valor || "Não informado"}
-                        </option>
-                      ),
-                    )}
+                    {[
+                      "",
+                      "Masculino",
+                      "Feminino",
+                      "Outro",
+                      "Prefiro não informar",
+                    ].map((valor) => (
+                      <option key={valor} value={valor}>
+                        {valor || "Não informado"}
+                      </option>
+                    ))}
                   </select>
                 </label>
-                {campo("email", "E-mail", "email", { required: true, maxLength: 255 })}
+                {campo("email", "E-mail", "email", {
+                  required: true,
+                  maxLength: 255,
+                })}
                 {campo("celular", "Celular com DDD", "tel", {
                   required: true,
                   maxLength: 20,
                 })}
-                {campo("telefone", "Telefone (opcional)", "tel", { maxLength: 30 })}
+                {campo("telefone", "Telefone (opcional)", "tel", {
+                  maxLength: 30,
+                })}
                 {campo("cep", "CEP (opcional)", "text", {
                   maxLength: 10,
                   inputMode: "numeric",
                 })}
               </div>
-              {campo("endereco", "Endereço (opcional)", "text", { maxLength: 300 })}
+              {campo("endereco", "Endereço (opcional)", "text", {
+                maxLength: 300,
+              })}
               <div className="border-t border-gray-100 pt-4">
                 <h3 className="mb-3 text-sm font-semibold text-gray-900">
                   Dados acadêmicos
@@ -250,8 +284,8 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     <option value="">Selecione uma oferta</option>
                     {catalogo.turmas.map((oferta) => (
                       <option key={oferta.id} value={oferta.id}>
-                        {oferta.curso.nome} · {oferta.curso.tipoCurso} · {oferta.codigo} ·{" "}
-                        {oferta.turno}
+                        {oferta.curso.nome} · {oferta.curso.tipoCurso} ·{" "}
+                        {oferta.codigo} · {oferta.turno}
                       </option>
                     ))}
                   </select>
@@ -279,7 +313,9 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     <select
                       className={classeCampo}
                       value={formulario.status}
-                      onChange={(evento) => mudar("status", evento.target.value)}
+                      onChange={(evento) =>
+                        mudar("status", evento.target.value)
+                      }
                     >
                       <option value="DISPONIVEL">Disponível</option>
                       <option value="INDICADO">Indicado</option>
@@ -306,7 +342,8 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                       {catalogo.empresas
                         .filter(
                           (empresa) =>
-                            empresa.ativa || empresa.id === formulario.empresaId,
+                            empresa.ativa ||
+                            empresa.id === formulario.empresaId,
                         )
                         .map((empresa) => (
                           <option key={empresa.id} value={empresa.id}>
@@ -318,8 +355,9 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                   </label>
                 </div>
                 <p className="mt-3 text-xs leading-5 text-gray-500">
-                  Indicado: encaminhado à empresa. Em processo: aguardando aceitação.
-                  Empregado: contratação confirmada. Disponível: sem vínculo.
+                  Indicado: encaminhado à empresa. Em processo: aguardando
+                  aceitação. Empregado: contratação confirmada. Disponível: sem
+                  vínculo.
                 </p>
               </div>
             </>

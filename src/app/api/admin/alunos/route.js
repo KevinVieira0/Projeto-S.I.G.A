@@ -2,6 +2,7 @@ import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { salvarAluno } from "@/lib/alunos/gestao";
+import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,9 @@ export async function GET(requisicao) {
     const alunos = await prisma.aluno.findMany({
       where: { arquivadoEm: null },
       orderBy: { nome: "asc" },
-      include: { empresa: { select: { nomeFantasia: true, razaoSocial: true } } },
+      include: {
+        empresa: { select: { nomeFantasia: true, razaoSocial: true } },
+      },
     });
     return NextResponse.json(
       {
@@ -32,7 +35,8 @@ export async function GET(requisicao) {
           periodo: aluno.periodo,
           termo: aluno.termo,
           empregado: aluno.empregado,
-          empresa: aluno.empresa?.nomeFantasia || aluno.empresa?.razaoSocial || null,
+          empresa:
+            aluno.empresa?.nomeFantasia || aluno.empresa?.razaoSocial || null,
           statusIndicacao: aluno.statusIndicacao,
           dataCadastro: aluno.dataCadastro,
           ultimaAtualizacao: aluno.ultimaAtualizacao,
@@ -50,11 +54,21 @@ export async function GET(requisicao) {
 }
 
 export async function POST(requisicao) {
-  const { error: erroCapturado, session: sessao } = await authorize(requisicao, "admin");
+  const { error: erroCapturado, session: sessao } = await authorize(
+    requisicao,
+    "admin",
+  );
   if (erroCapturado) return erroCapturado;
   try {
-    const saida = await salvarAluno(prisma, sessao.dados.id, await requisicao.json());
-    return NextResponse.json(saida, { status: 201 });
+    const saida = await salvarAluno(
+      prisma,
+      sessao.dados.id,
+      await requisicao.json(),
+    );
+    return NextResponse.json(
+      { ...saida, espelho: await tentarEspelharBase(prisma) },
+      { status: 201 },
+    );
   } catch (e) {
     return NextResponse.json(
       {

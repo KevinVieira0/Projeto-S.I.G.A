@@ -31,11 +31,15 @@ function documento(base, tipo) {
           ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
           : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const registro =
-      s.split("").reduce((a, dados, indice) => a + Number(dados) * pesos[indice], 0) % 11;
+      s
+        .split("")
+        .reduce((a, dados, indice) => a + Number(dados) * pesos[indice], 0) %
+      11;
     return String(registro < 2 ? 0 : 11 - registro);
   };
   const saida = base + digito(base) + digito(base + digito(base));
-  if (!documentoValido(saida, tipo)) throw new Error("Documento fictício inválido.");
+  if (!documentoValido(saida, tipo))
+    throw new Error("Documento fictício inválido.");
   return saida;
 }
 
@@ -47,11 +51,12 @@ export async function montarDemonstracao(transacao, catalogo) {
     data: {
       dados: { removidoParaDemonstracao: true },
       erros: [],
-      estado: "REJEITADO",
+      estado: "IGNORADO",
       entidadeId: null,
-      responsavelId: null,
-      auditoria: { motivo: "Base substituída por demonstração a pedido do usuário" },
-      revisadoEm: new Date(),
+      auditoria: {
+        motivo: "Base substituída por demonstração a pedido do usuário",
+      },
+      processadoEm: new Date(),
     },
   });
   await transacao.pendenciaMigracao.deleteMany();
@@ -133,16 +138,25 @@ export async function montarDemonstracao(transacao, catalogo) {
     const ofertas = candidatas.filter(
       (t) => t.curso.nome === nomesCurso[indice % nomesCurso.length],
     );
-    const turma = ofertas[Math.floor(indice / nomesCurso.length) % ofertas.length];
-    const status = ["DISPONIVEL", "INDICADO", "EM_PROCESSO", "CONTRATADO", "DISPONIVEL"][
-      indice % 5
-    ];
+    const turma =
+      ofertas[Math.floor(indice / nomesCurso.length) % ofertas.length];
+    const status = [
+      "DISPONIVEL",
+      "INDICADO",
+      "EM_PROCESSO",
+      "CONTRATADO",
+      "DISPONIVEL",
+    ][indice % 5];
     const empresaId =
-      status && status !== "DISPONIVEL" ? empresas[Math.floor(indice / 5) % 4].id : null;
+      status && status !== "DISPONIVEL"
+        ? empresas[Math.floor(indice / 5) % 4].id
+        : null;
     const nascimento = new Date(`${2006 + (indice % 4)}-03-15T00:00:00Z`);
     const agora = new Date();
     const dataCadastro = new Date(agora);
-    dataCadastro.setUTCDate(dataCadastro.getUTCDate() - [0, 3, 12, 45, 100][indice % 5]);
+    dataCadastro.setUTCDate(
+      dataCadastro.getUTCDate() - [0, 3, 12, 45, 100][indice % 5],
+    );
     const a = await transacao.aluno.create({
       data: {
         nome: `Aluno Demonstração ${String(indice + 1).padStart(2, "0")}`,
