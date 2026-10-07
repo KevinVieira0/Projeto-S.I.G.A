@@ -31,7 +31,7 @@ export function useEmpresaLogin() {
     try {
       const dados = await loginEmpresa(valores);
       login("empresa", dados.usuario);
-      router.push(ROUTES.EMPRESA_SOLICITACAO);
+      router.replace(ROUTES.EMPRESA_HOMEPAGE)
     } catch (erroCapturado) {
       setErroApi(erroCapturado.response?.data?.mensagem || "CNPJ ou senha inválidos.");
     } finally {
