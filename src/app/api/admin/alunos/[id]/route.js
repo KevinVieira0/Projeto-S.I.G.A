@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
-import { salvarAluno, excluirAluno, selectAluno } from "@/lib/alunos/gestao";
+import { salvarAluno, excluirAluno } from "@/lib/alunos/gestao";
+import { obterDetalhesAluno } from "@/lib/alunos/detalhes";
 import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
 
 export const runtime = "nodejs";
@@ -17,34 +18,16 @@ export async function GET(requisicao, { params: parametros }) {
   const { error: erroCapturado } = await authorize(requisicao, "admin");
   if (erroCapturado) return erroCapturado;
   try {
-    const aluno = await prisma.aluno.findUnique({
-      where: { id: parametros.id },
-      select: {
-        ...selectAluno,
-        empresa: { select: { razaoSocial: true, nomeFantasia: true } },
-        matriculas: {
-          include: { turma: { include: { curso: true } } },
-          orderBy: { atualizadoEm: "desc" },
-        },
+    return json({ aluno: await obterDetalhesAluno(prisma, parametros.id) });
+  } catch (erro) {
+    return json(
+      {
+        mensagem: erro.status
+          ? erro.message
+          : "Não foi possível carregar o aluno.",
       },
-    });
-    if (!aluno || aluno.arquivadoEm)
-      return json({ mensagem: "Aluno não encontrado." }, 404);
-    const atual = aluno.matriculas.find(
-      (m) =>
-        m.turma.codigo === aluno.turma &&
-        m.turma.curso.nome === aluno.curso &&
-        m.turma.turno === aluno.periodo,
+      erro.status || 500,
     );
-    return json({
-      aluno: {
-        ...aluno,
-        turmaId: atual?.turmaId || null,
-        versao: aluno.ultimaAtualizacao.toISOString(),
-      },
-    });
-  } catch {
-    return json({ mensagem: "Não foi possível carregar o aluno." }, 500);
   }
 }
 

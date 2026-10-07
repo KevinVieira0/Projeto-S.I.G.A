@@ -26,6 +26,7 @@ import DashboardCard, {
   dashboardStyles,
 } from "./DashboardCard";
 import StudentEditor from "./StudentEditor";
+import StudentDetails from "./StudentDetails";
 
 const TAMANHOS_PAGINA = [5, 10, 25, 50];
 const COLUNAS = [
@@ -63,13 +64,15 @@ const COLUNAS_EXPORTACAO = [
 
 export default function StudentsTable({ gestao = false }) {
   const [editor, setEditor] = useState(null);
+  const [alunoDetalhado, setAlunoDetalhado] = useState(null);
   const [mensagem, setMensagem] = useState("");
   const [alunos, setAlunos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
   const [statusSelecionados, setStatusSelecionados] = useState([]);
-  const [visibilidadeColunas, setVisibilidadeColunas] = useState(VISIBILIDADE_INICIAL);
+  const [visibilidadeColunas, setVisibilidadeColunas] =
+    useState(VISIBILIDADE_INICIAL);
   const [ordenacao, setOrdenacao] = useState({ key: "nome", direction: "asc" });
   const [indicePagina, setIndicePagina] = useState(0);
   const [tamanhoPagina, setTamanhoPagina] = useState(10);
@@ -110,7 +113,9 @@ export default function StudentsTable({ gestao = false }) {
         !termoBusca ||
         [aluno.nome, aluno.email, aluno.curso, aluno.turma, aluno.cpf]
           .filter(Boolean)
-          .some((valor) => String(valor).toLocaleLowerCase("pt-BR").includes(termoBusca));
+          .some((valor) =>
+            String(valor).toLocaleLowerCase("pt-BR").includes(termoBusca),
+          );
       const combinaStatus =
         statusSelecionados.length === 0 ||
         statusSelecionados.includes(aluno.statusIndicacao || "Sem status");
@@ -128,7 +133,10 @@ export default function StudentsTable({ gestao = false }) {
       return ordenacao.direction === "asc" ? resultado : -resultado;
     });
   }, [alunosFiltrados, ordenacao]);
-  const totalPaginas = Math.max(1, Math.ceil(alunosOrdenados.length / tamanhoPagina));
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(alunosOrdenados.length / tamanhoPagina),
+  );
   const indicePaginaValido = Math.min(indicePagina, totalPaginas - 1);
   const primeiraLinha = indicePaginaValido * tamanhoPagina;
   const alunosDaPagina = alunosOrdenados.slice(
@@ -138,11 +146,14 @@ export default function StudentsTable({ gestao = false }) {
   useEffect(() => {
     setIndicePagina(0);
   }, [busca, statusSelecionados, tamanhoPagina]);
-  const colunasVisiveis = COLUNAS.filter((coluna) => visibilidadeColunas[coluna.key]);
+  const colunasVisiveis = COLUNAS.filter(
+    (coluna) => visibilidadeColunas[coluna.key],
+  );
   function alternarOrdenacao(chave) {
     setOrdenacao((atual) => ({
       key: chave,
-      direction: atual.key === chave && atual.direction === "asc" ? "desc" : "asc",
+      direction:
+        atual.key === chave && atual.direction === "asc" ? "desc" : "asc",
     }));
   }
   function alternarStatus(status) {
@@ -160,26 +171,41 @@ export default function StudentsTable({ gestao = false }) {
     const nomeBase = `alunos-siga-${new Date().toISOString().slice(0, 10)}`;
     if (formato === "csv") {
       const csv = criarCsv(dados);
-      baixarArquivo(`${nomeBase}.csv`, `\uFEFF${csv}`, "text/csv;charset=utf-8;");
+      baixarArquivo(
+        `${nomeBase}.csv`,
+        `\uFEFF${csv}`,
+        "text/csv;charset=utf-8;",
+      );
       return;
     }
     if (formato === "xls") {
       const xls = criarExcelXml(dados);
-      baixarArquivo(`${nomeBase}.xls`, xls, "application/vnd.ms-excel;charset=utf-8;");
+      baixarArquivo(
+        `${nomeBase}.xls`,
+        xls,
+        "application/vnd.ms-excel;charset=utf-8;",
+      );
       return;
     }
     const json = JSON.stringify(dados, null, 2);
     baixarArquivo(`${nomeBase}.json`, json, "application/json;charset=utf-8;");
   }
   const inicioPagina = alunosOrdenados.length === 0 ? 0 : primeiraLinha + 1;
-  const fimPagina = Math.min(primeiraLinha + tamanhoPagina, alunosOrdenados.length);
+  const fimPagina = Math.min(
+    primeiraLinha + tamanhoPagina,
+    alunosOrdenados.length,
+  );
   return (
     <DashboardCard aria-labelledby="alunos-tabela-titulo">
       <DashboardCardHeader
         headingId="alunos-tabela-titulo"
         eyebrow="Cadastros"
         title="Alunos cadastrados"
-        description="Consulte, filtre, organize e exporte os registros sincronizados."
+        description={
+          gestao
+            ? "Clique em um aluno para ver os detalhes, vínculos e histórico de acompanhamento."
+            : "Consulte, filtre, organize e exporte os registros sincronizados."
+        }
       />
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -239,7 +265,9 @@ export default function StudentsTable({ gestao = false }) {
                         />
                         {status === "Contratado" ? "Empregado" : status}
                       </span>
-                      <span className="text-xs text-gray-400">{quantidade}</span>
+                      <span className="text-xs text-gray-400">
+                        {quantidade}
+                      </span>
                     </label>
                   ))
                 )}
@@ -300,9 +328,18 @@ export default function StudentsTable({ gestao = false }) {
               <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                 Formato do arquivo
               </p>
-              <ExportOption label="CSV (.csv)" onClick={() => exportar("csv")} />
-              <ExportOption label="Excel (.xls)" onClick={() => exportar("xls")} />
-              <ExportOption label="JSON (.json)" onClick={() => exportar("json")} />
+              <ExportOption
+                label="CSV (.csv)"
+                onClick={() => exportar("csv")}
+              />
+              <ExportOption
+                label="Excel (.xls)"
+                onClick={() => exportar("xls")}
+              />
+              <ExportOption
+                label="JSON (.json)"
+                onClick={() => exportar("json")}
+              />
               <p className="mt-2 border-t border-gray-100 px-2 pt-2 text-[11px] leading-4 text-gray-400">
                 Exporta todos os registros que correspondem aos filtros atuais.
               </p>
@@ -377,13 +414,49 @@ export default function StudentsTable({ gestao = false }) {
                   </tr>
                 ) : alunosDaPagina.length > 0 ? (
                   alunosDaPagina.map((aluno) => (
-                    <tr key={aluno.id} className="transition hover:bg-gray-50/80">
+                    <tr
+                      key={aluno.id}
+                      className={`transition-colors motion-reduce:transition-none ${alunoDetalhado === aluno.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"} ${gestao ? "cursor-pointer" : ""}`}
+                      onClick={
+                        gestao
+                          ? (evento) => {
+                              if (
+                                evento.target.closest(
+                                  "button, a, input, select",
+                                )
+                              )
+                                return;
+                              evento.currentTarget
+                                .querySelector("button[data-detalhes]")
+                                ?.focus();
+                              setAlunoDetalhado(aluno.id);
+                            }
+                          : undefined
+                      }
+                    >
                       {colunasVisiveis.map((coluna) => (
                         <td
                           key={`${aluno.id}-${coluna.key}`}
                           className="whitespace-nowrap px-4 py-3 text-gray-600"
                         >
-                          <CellContent columnKey={coluna.key} aluno={aluno} />
+                          {gestao && coluna.key === "nome" ? (
+                            <button
+                              type="button"
+                              data-detalhes
+                              data-aluno-id={aluno.id}
+                              aria-haspopup="dialog"
+                              aria-label={`Ver detalhes de ${aluno.nome}`}
+                              onClick={(evento) => {
+                                evento.currentTarget.focus();
+                                setAlunoDetalhado(aluno.id);
+                              }}
+                              className="rounded text-left font-medium text-gray-900 hover:text-[#0a3d7c] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                            >
+                              {aluno.nome}
+                            </button>
+                          ) : (
+                            <CellContent columnKey={coluna.key} aluno={aluno} />
+                          )}
                         </td>
                       ))}
                       {gestao && (
@@ -451,7 +524,10 @@ export default function StudentsTable({ gestao = false }) {
           <span className="font-medium text-gray-800">
             {inicioPagina}-{fimPagina}
           </span>{" "}
-          de <span className="font-medium text-gray-800">{alunosOrdenados.length}</span>
+          de{" "}
+          <span className="font-medium text-gray-800">
+            {alunosOrdenados.length}
+          </span>
         </div>
 
         <div className="flex items-center gap-1">
@@ -487,6 +563,18 @@ export default function StudentsTable({ gestao = false }) {
           </PaginationButton>
         </div>
       </DashboardCardFooter>
+      {alunoDetalhado && (
+        <StudentDetails
+          key={alunoDetalhado}
+          alunoId={alunoDetalhado}
+          onClose={() => setAlunoDetalhado(null)}
+          onEdit={() => {
+            setMensagem("");
+            setEditor({ modo: "editar", alunoId: alunoDetalhado });
+            setAlunoDetalhado(null);
+          }}
+        />
+      )}
       {editor && (
         <StudentEditor
           {...editor}
@@ -582,7 +670,9 @@ function normalizarAlunoParaExportacao(aluno) {
     empregado: aluno.empregado ? "Sim" : "Não",
     empresa: aluno.empresa || "",
     statusIndicacao:
-      aluno.statusIndicacao === "Contratado" ? "Empregado" : aluno.statusIndicacao || "",
+      aluno.statusIndicacao === "Contratado"
+        ? "Empregado"
+        : aluno.statusIndicacao || "",
     dataCadastro: formatarData(aluno.dataCadastro),
     ultimaAtualizacao: formatarData(aluno.ultimaAtualizacao),
   };
@@ -590,11 +680,13 @@ function normalizarAlunoParaExportacao(aluno) {
 
 function criarCsv(dados) {
   const separador = ";";
-  const cabecalho = COLUNAS_EXPORTACAO.map(([rotulo]) => formatarCelulaCsv(rotulo)).join(
-    separador,
-  );
+  const cabecalho = COLUNAS_EXPORTACAO.map(([rotulo]) =>
+    formatarCelulaCsv(rotulo),
+  ).join(separador);
   const linhas = dados.map((item) =>
-    COLUNAS_EXPORTACAO.map(([, chave]) => formatarCelulaCsv(item[chave])).join(separador),
+    COLUNAS_EXPORTACAO.map(([, chave]) => formatarCelulaCsv(item[chave])).join(
+      separador,
+    ),
   );
   return [cabecalho, ...linhas].join("\r\n");
 }

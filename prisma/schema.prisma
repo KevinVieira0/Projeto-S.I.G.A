@@ -159,6 +159,8 @@ model Matricula {
   status                StatusAcompanhamento @default(DISPONIVEL)
   classificacaoPendente Boolean                   @default(false) @map("classificacao_pendente")
   empresaAtualId        String?                   @map("empresa_atual_id")
+  contratoConfirmado    Boolean                   @default(false) @map("contrato_confirmado")
+  contratoAtualizadoEm  DateTime?                 @map("contrato_atualizado_em")
   chaveLegado           String?                   @unique @map("chave_legado")
   hashLegado            String?                   @map("hash_legado") @db.VarChar(64)
   dadosLegado           Json?                     @map("dados_legado")

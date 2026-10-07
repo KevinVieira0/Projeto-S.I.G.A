@@ -9,8 +9,8 @@
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{js,jsx}\" \"scripts/**/*.js\" \"tests/**/*.js\" && prettier --parser babel --write \"scripts/**/*.gs\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"scripts/**/*.js\" \"tests/**/*.js\" && prettier --parser babel --check \"scripts/**/*.gs\"",
-    "test": "npm run test:cadastros",
-    "test:cadastros": "tsx --tsconfig jsconfig.json --test tests/formulariosAutomaticos.test.js tests/cadastrosAutomaticos.integration.test.js",
+    "test": "npm run test:detalhes",
+    "test:detalhes": "tsx --tsconfig jsconfig.json --test tests/detalhesAluno.integration.test.js",
     "db:recebimentos": "tsx --tsconfig jsconfig.json scripts/buscar-recebimentos.js",
     "db:demonstracao:previa": "tsx --tsconfig jsconfig.json scripts/preparar-demonstracao.js",
     "db:previa-academica": "tsx --tsconfig jsconfig.json scripts/previa-base-academica.js"
