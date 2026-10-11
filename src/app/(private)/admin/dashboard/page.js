@@ -1,7 +1,7 @@
 import OverviewStatusCard from "@/components/dashboard/OverviewStatusCard";
 import StudentsTable from "@/components/dashboard/StudentsTable";
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
-import StudentsByCourseCard from "@/components/dashboard/StudentsByCourseCard";
+import StudentsByCourseCard from "@/components/alunos/StudentsByCourseCard";
 import CompaniesTable from "@/components/dashboard/CompaniesTable";
 
 export const metadata = { title: "Visão Geral | Projeto S.I.G.A" };

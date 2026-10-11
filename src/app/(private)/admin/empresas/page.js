@@ -1,5 +1,5 @@
 import CompaniesTable from "@/components/dashboard/CompaniesTable";
-import StudentIntakeStatus from "@/components/dashboard/StudentIntakeStatus";
+import StudentIntakeStatus from "@/components/alunos/StudentIntakeStatus";
 
 export const metadata = { title: "Empresas | Projeto S.I.G.A" };
 

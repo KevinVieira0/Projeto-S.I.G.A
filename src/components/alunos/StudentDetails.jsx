@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
-import { dashboardStyles } from "./DashboardCard";
+import { dashboardStyles } from "../dashboard/DashboardCard";
 
 const rotulosStatus = {
   DISPONIVEL: "Disponível",

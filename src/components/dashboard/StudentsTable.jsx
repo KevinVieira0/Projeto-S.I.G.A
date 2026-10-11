@@ -25,8 +25,8 @@ import DashboardCard, {
   DashboardCardFooter,
   dashboardStyles,
 } from "./DashboardCard";
-import StudentEditor from "./StudentEditor";
-import StudentDetails from "./StudentDetails";
+import StudentEditor from "../alunos/StudentEditor";
+import StudentDetails from "../alunos/StudentDetails";
 
 const TAMANHOS_PAGINA = [5, 10, 25, 50];
 const COLUNAS = [
