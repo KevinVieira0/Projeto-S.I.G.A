@@ -27,6 +27,8 @@ O PostgreSQL é a fonte oficial dos dados. O Google Forms recebe os cadastros e 
 - Cadastro e atualização automática de empresas pelo CNPJ.
 - Cursos, turmas, matrículas e histórico de acompanhamento.
 - Busca, filtros, ordenação e exportação dos alunos.
+- Card de detalhes do aluno com matrículas, empresa, solicitações vinculadas e histórico.
+- Confirmação de contrato enviado e assinado (Sim/Não) para alunos empregados.
 - Solicitações enviadas por empresas autenticadas.
 - Sincronização automática a cada cinco minutos enquanto o painel administrativo estiver aberto e visível.
 - Sincronização manual pelo sistema ou pelo terminal.
@@ -382,7 +384,9 @@ git status --short
 git check-ignore -v .env
 ```
 
-A cópia analisada possui comandos de teste no `package.json`, mas não contém a pasta `tests`. Só execute `npm.cmd test` depois que essa pasta estiver presente na branch.
+`npm.cmd test` executa os testes de detalhes e contratos. Eles precisam de um banco isolado chamado `siga_test` em `localhost` ou `127.0.0.1`, com as migrations aplicadas. Configure `TEST_DATABASE_URL`, `DATABASE_URL` e `DIRECT_URL` com a mesma conexão de teste somente no terminal dessa execução; mantenha o `.env` da aplicação apontando para a base habitual. Sem essa configuração, a suíte informa que os testes foram ignorados. Os registros fictícios criados pela suíte são removidos ao terminar.
+
+Na tela Alunos, clique no nome ou em uma célula da linha para abrir os detalhes. A confirmação de contrato é salva no PostgreSQL por matrícula e empresa; não há envio de arquivos. Ao mudar a empresa ou retirar o status de empregado, a confirmação é limpa. As solicitações exibidas dependem de vínculos explícitos registrados em `HistoricoAcompanhamento.solicitacaoId`, sem inferir indicações por curso ou empresa. O card mostra até 50 solicitações e 100 eventos recentes, informando o total quando houver mais.
 
 ## 11. Comandos do dia a dia
 

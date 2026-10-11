@@ -1,5 +1,5 @@
 import StudentsTable from "@/components/dashboard/StudentsTable";
-import StudentIntakeStatus from "@/components/dashboard/StudentIntakeStatus";
+import StudentIntakeStatus from "@/components/alunos/StudentIntakeStatus";
 
 export const metadata = { title: "Alunos | Projeto S.I.G.A" };
 

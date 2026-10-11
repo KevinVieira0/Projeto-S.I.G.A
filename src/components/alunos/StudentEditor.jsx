@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
-import { dashboardStyles } from "./DashboardCard";
+import { dashboardStyles } from "../dashboard/DashboardCard";
 
 const inicial = {
   nome: "",
@@ -354,11 +354,32 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     </select>
                   </label>
                 </div>
-                <p className="mt-3 text-xs leading-5 text-gray-500">
-                  Indicado: encaminhado à empresa. Em processo: aguardando
-                  aceitação. Empregado: contratação confirmada. Disponível: sem
-                  vínculo.
-                </p>
+                  <div className="flex flex-row flex-wrap gap-3 pt-3 justify-center items-center">
+                    
+                    <div className="flex items-center justify-center bg-green-200 rounded-lg px-3 py-1.5">
+                      <p className="text-xs leading-tight text-green-600 text-center m-0">
+                        Indicado: encaminhado à empresa.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center bg-blue-200 rounded-lg px-3 py-1.5">
+                      <p className="text-xs leading-tight text-blue-600 text-center m-0">
+                        Em processo: aguardando aceitação.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center bg-purple-200 rounded-lg px-3 py-1.5">
+                      <p className="text-xs leading-tight text-purple-600 text-center m-0">
+                        Empregado: contratação confirmada.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center bg-red-200 rounded-lg px-3 py-1.5">
+                      <p className="text-xs leading-tight text-red-600 text-center m-0">
+                        Disponível: sem vínculo.
+                      </p>
+                    </div>
+                  </div>
               </div>
             </>
           )}

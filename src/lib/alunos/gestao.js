@@ -16,7 +16,8 @@ export class ErroGestaoAluno extends Error {
     this.status = status;
   }
 }
-const textoOpcional = (maximo) => z.string().trim().max(maximo).optional().default("");
+const textoOpcional = (maximo) =>
+  z.string().trim().max(maximo).optional().default("");
 const documento = (tipo, maximo) =>
   z
     .string()
@@ -51,7 +52,10 @@ export const alunoSchema = z
       .default(""),
     telefone: textoOpcional(30)
       .transform((valor) => valor.replace(/\D/g, ""))
-      .refine((valor) => !valor || /^\d{10,13}$/.test(valor), "Telefone inválido."),
+      .refine(
+        (valor) => !valor || /^\d{10,13}$/.test(valor),
+        "Telefone inválido.",
+      ),
     endereco: textoOpcional(300),
     cep: textoOpcional(10)
       .transform((valor) => valor.replace(/\D/g, ""))
@@ -150,8 +154,16 @@ async function conferirEmpresa(transacao, empresaId, anterior) {
   }
 }
 
-async function atualizarMatricula(transacao, alunoId, turmaId, dados, administradorId) {
-  const existentes = await transacao.matricula.findMany({ where: { alunoId, turmaId } });
+async function atualizarMatricula(
+  transacao,
+  alunoId,
+  turmaId,
+  dados,
+  administradorId,
+) {
+  const existentes = await transacao.matricula.findMany({
+    where: { alunoId, turmaId },
+  });
   if (existentes.length > 1) {
     throw new ErroGestaoAluno(
       "Há matrículas duplicadas nesta turma. Concilie antes de editar.",
@@ -166,12 +178,21 @@ async function atualizarMatricula(transacao, alunoId, turmaId, dados, administra
     classificacaoPendente: false,
     empresaAtualId: dados.empresaId,
   };
+  if (
+    dados.status !== "CONTRATADO" ||
+    anterior?.empresaAtualId !== dados.empresaId
+  ) {
+    dadosMatricula.contratoConfirmado = false;
+    dadosMatricula.contratoAtualizadoEm = null;
+  }
   const matricula = anterior
     ? await transacao.matricula.update({
         where: { id: anterior.id },
         data: dadosMatricula,
       })
-    : await transacao.matricula.create({ data: { ...dadosMatricula, alunoId, turmaId } });
+    : await transacao.matricula.create({
+        data: { ...dadosMatricula, alunoId, turmaId },
+      });
 
   const mudouSituacao =
     !anterior ||
@@ -200,14 +221,18 @@ export async function salvarAluno(
   versao = null,
 ) {
   const validacao = alunoSchema.safeParse(entrada);
-  if (!validacao.success) throw new ErroGestaoAluno(validacao.error.issues[0].message);
+  if (!validacao.success)
+    throw new ErroGestaoAluno(validacao.error.issues[0].message);
   const dados = validacao.data;
   try {
     return await prisma.$transaction(
       async (transacao) => {
         await iniciarOperacao(transacao, administradorId);
         const anterior = id
-          ? await transacao.aluno.findUnique({ where: { id }, select: selectAluno })
+          ? await transacao.aluno.findUnique({
+              where: { id },
+              select: selectAluno,
+            })
           : null;
         if (id) conferirVersao(anterior, versao);
         const duplicado = await transacao.aluno.findUnique({
@@ -245,11 +270,23 @@ export async function salvarAluno(
           empregado: dados.status === "CONTRATADO",
         };
         const aluno = id
-          ? await transacao.aluno.update({ where: { id }, data: dadosPersistencia })
+          ? await transacao.aluno.update({
+              where: { id },
+              data: dadosPersistencia,
+            })
           : await transacao.aluno.create({
-              data: { ...dadosPersistencia, origemCadastro: "CADASTRO_INTERNO" },
+              data: {
+                ...dadosPersistencia,
+                origemCadastro: "CADASTRO_INTERNO",
+              },
             });
-        await atualizarMatricula(transacao, aluno.id, turma.id, dados, administradorId);
+        await atualizarMatricula(
+          transacao,
+          aluno.id,
+          turma.id,
+          dados,
+          administradorId,
+        );
         const depois = await transacao.aluno.findUnique({
           where: { id: aluno.id },
           select: selectAluno,
