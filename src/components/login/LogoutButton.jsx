@@ -28,7 +28,7 @@ export default function LogoutButton() {
         type="button"
         onClick={sair}
         disabled={carregando}
-        className="rounded px-2 py-1 text-sm font-semibold text-blue-900 hover:underline focus-visible:outline focus-visible:outline-2 disabled:opacity-50"
+       className="inline-flex items-center justify-center rounded-md bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-blue-800 active:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {carregando ? "Saindo..." : "Sair"}
       </button>

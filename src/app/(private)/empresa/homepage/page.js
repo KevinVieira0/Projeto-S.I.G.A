@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "@/components/login/LogoutButton";
 import { ROUTES } from "@/constants/routes";
@@ -42,9 +42,8 @@ const ESTILO_STATUS = {
 function Status({ valor }) {
   return (
     <span
-      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-        ESTILO_STATUS[valor] || "bg-slate-100 text-slate-700"
-      }`}
+      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${ESTILO_STATUS[valor] || "bg-slate-100 text-slate-700"
+        }`}
     >
       {valor}
     </span>
@@ -74,6 +73,34 @@ function CampoLeitura({ rotulo, valor, largo = false }) {
 /* ---------- Conteúdo de cada aba ---------- */
 
 function AbaAprendizes() {
+
+  const [aprendizes, setAprendizes] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    async function buscarAprendizes() {
+      try {
+        const resposta = await fetch("/api/empresas/aprendizes");
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(
+            dados.mensagem || "Não foi possível carregar os aprendizes."
+          );
+        }
+
+        setAprendizes(dados.aprendizes);
+      } catch (erro) {
+        setErro(erro.message || "Erro ao carregar os aprendizes.");
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    buscarAprendizes();
+  }, []);
+
   return (
     <section aria-labelledby="titulo-aprendizes">
       <h2 id="titulo-aprendizes" className="text-2xl font-black text-slate-900">
@@ -96,18 +123,40 @@ function AbaAprendizes() {
             </tr>
           </thead>
           <tbody className="divide-y divide-orange-100">
-            {APRENDIZES.map((a) => (
-              <tr key={a.nome} className="odd:bg-white even:bg-orange-50/40">
-                <td className="px-5 py-4 font-semibold text-slate-900">{a.nome}</td>
-                <td className="px-5 py-4 text-slate-700">{a.curso}</td>
-                <td className="px-5 py-4 text-slate-700">{a.pratica}</td>
-                <td className="px-5 py-4 text-slate-700">{a.inicio}</td>
-                <td className="px-5 py-4 text-slate-700">{a.fim}</td>
-                <td className="px-5 py-4">
-                  <Status valor={a.status} />
+            {carregando ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-slate-500">
+                  Carregando aprendizes...
                 </td>
               </tr>
-            ))}
+            ) : erro ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-red-600">
+                  {erro}
+                </td>
+              </tr>
+            ) : aprendizes.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-slate-500">
+                  Nenhum aprendiz contratado encontrado.
+                </td>
+              </tr>
+            ) : (
+              aprendizes.map((a) => (
+                <tr key={a.id} className="odd:bg-white even:bg-orange-50/40">
+                  <td className="px-5 py-4 font-semibold text-slate-900">
+                    {a.nome}
+                  </td>
+                  <td className="px-5 py-4 text-slate-700">{a.curso}</td>
+                  <td className="px-5 py-4 text-slate-700">—</td>
+                  <td className="px-5 py-4 text-slate-700">—</td>
+                  <td className="px-5 py-4 text-slate-700">—</td>
+                  <td className="px-5 py-4">
+                    <Status valor={a.status} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -135,22 +184,6 @@ function AbaNovaSolicitacao() {
           Preencher solicitação
         </Link>
       </div>
-
-      <dl className="mt-6 grid grid-cols-1 gap-x-5 gap-y-5 rounded-2xl border border-orange-200 bg-white p-6 sm:grid-cols-2">
-        <CampoLeitura rotulo="Idade mínima" valor="16 anos" />
-        <CampoLeitura rotulo="Idade máxima" valor="24 anos" />
-        <CampoLeitura rotulo="Sexo" valor="Indiferente" />
-        <CampoLeitura rotulo="Prática" valor="Presencial" />
-        <CampoLeitura rotulo="Curso" valor="Eletromecânica" />
-        <CampoLeitura rotulo="Quantidade (até 5)" valor="3 aprendizes" />
-        <CampoLeitura rotulo="Início previsto" valor="01/11/2026" />
-        <CampoLeitura rotulo="Término previsto" valor="01/11/2028" />
-        <CampoLeitura
-          rotulo="Observações"
-          valor="Disponibilidade para o turno da manhã."
-          largo
-        />
-      </dl>
     </section>
   );
 }
@@ -226,55 +259,76 @@ function AbaSolicitacoes() {
 
 /* ---------- Página ---------- */
 
+
 export default function DashboardEmpresa() {
   const [aba, setAba] = useState("alunos");
+  const [nomeEmpresa, setNomeEmpresa] = useState("");
+
+  useEffect(() => {
+    async function buscarEmpresa() {
+      try {
+        const resposta = await fetch("/api/empresas/me");
+
+        if (!resposta.ok) {
+          throw new Error("Não foi possível buscar a empresa.");
+        }
+
+        const dados = await resposta.json();
+        setNomeEmpresa(dados.nome);
+      } catch (erro) {
+        console.error("Erro ao carregar a empresa:", erro);
+      }
+    }
+
+    buscarEmpresa();
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-orange-50">
       {/* Faixa laranja: identificação + abas encaixadas no conteúdo */}
+
       <header className="bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600">
-        <div className="mx-auto max-w-6xl px-6 pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="mt-1 text-3xl font-black text-white sm:text-4xl">
-                Olá, Metalúrgica Horizonte
-              </h1>
-            </div>
-            <LogoutButton />
-          </div>
+        <div className="mx-auto max-w-6xl px-6 pt-6 h-28">
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="mt-1 shrink-0 text-3xl font-black text-white sm:text-4xl">
+              Olá, {nomeEmpresa || "..."}
+            </h1>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Resumo valor={APRENDIZES.length} rotulo="aprendizes contratados" />
-            <Resumo
-              valor={SOLICITACOES.filter((s) => s.status !== "Atendida").length}
-              rotulo="solicitações abertas"
-            />
-          </div>
+            <div
+              role="tablist"
+              aria-label="Seções do painel"
+              className="order-last flex w-full justify-center gap-1 overflow-x-auto self-end sm:order-none sm:w-auto sm:flex-1"
+            >
+              {ABAS.map((item) => {
+                const ativa = aba === item.id;
 
-          <div role="tablist" aria-label="Seções do painel" className="mt-8 flex gap-1 overflow-x-auto">
-            {ABAS.map((item) => {
-              const ativa = aba === item.id;
-              return (
-                <button
-                  key={item.id}
-                  role="tab"
-                  id={`aba-${item.id}`}
-                  aria-selected={ativa}
-                  aria-controls={`painel-${item.id}`}
-                  onClick={() => setAba(item.id)}
-                  className={`shrink-0 rounded-t-2xl px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70 ${
-                    ativa
-                      ? "bg-orange-50 text-orange-700"
+                return (
+                  <button
+                    key={item.id}
+                    role="tab"
+                    id={`aba-${item.id}`}
+                    aria-selected={ativa}
+                    aria-controls={`painel-${item.id}`}
+                    onClick={() => setAba(item.id)}
+                    className={`shrink-0 rounded-2xl px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70 ${ativa
+                      ? "bg-orange-50 text-orange-700 shadow-sm"
                       : "text-white hover:bg-white/15"
-                  }`}
-                >
-                  {item.rotulo}
-                </button>
-              );
-            })}
+                      }`}
+                  >
+                    {item.rotulo}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="ml-auto shrink-0 self-center">
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div
