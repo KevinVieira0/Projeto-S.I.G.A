@@ -23,7 +23,18 @@ const documento = (tipo, maximo) =>
     .string()
     .transform((valor) => valor.replace(/\D/g, ""))
     .refine(
-      (valor) => valor.length === maximo && documentoValido(valor, tipo),
+      (valor) => {
+        // Somente o cadastro interno em desenvolvimento pode aceitar CPF fictício.
+        // Sem a variável, ou em produção, os dígitos verificadores são obrigatórios.
+        const permitirCpfFicticio =
+          tipo === "CPF" &&
+          process.env.NODE_ENV === "development" &&
+          process.env.VALIDAR_CPF === "false";
+        return (
+          valor.length === maximo &&
+          (permitirCpfFicticio || documentoValido(valor, tipo))
+        );
+      },
       "CPF inválido.",
     );
 

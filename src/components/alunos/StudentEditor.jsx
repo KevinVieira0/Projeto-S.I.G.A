@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
+import { gerarDadosAlunoTeste } from "@/lib/alunos/dadosPessoais";
 import { dashboardStyles } from "../dashboard/DashboardCard";
+
+// NEXT_PUBLIC_ permite usar a opção no navegador. Reinicie o dev após alterá-la.
+const modoTeste =
+  process.env.NODE_ENV === "development" &&
+  process.env.NEXT_PUBLIC_MODO_TESTE === "true";
 
 const inicial = {
   nome: "",
@@ -214,6 +220,27 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
             </p>
           ) : (
             <>
+              {modoTeste && !editar && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                  <button
+                    type="button"
+                    className={dashboardStyles.secondaryAction}
+                    onClick={() => {
+                      setFormulario((anterior) => ({
+                        ...anterior,
+                        ...gerarDadosAlunoTeste(),
+                      }));
+                      setErro("");
+                    }}
+                  >
+                    Preencher dados de teste
+                  </button>
+                  <p className="mt-2 text-xs leading-5 text-gray-600">
+                    Preenche os dados pessoais com informações fictícias.
+                    Escolha curso e turma e revise antes de cadastrar.
+                  </p>
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 {campo("nome", "Nome completo", "text", {
                   required: true,
