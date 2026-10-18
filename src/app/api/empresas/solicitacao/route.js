@@ -66,3 +66,38 @@ export async function POST(requisicao) {
     );
   }
 }
+export async function GET(requisicao) {
+  try {
+    const { session: sessao, error: erroCapturado } = await authorize(
+      requisicao,
+      "empresa",
+    );
+    if (erroCapturado) return erroCapturado;
+
+    const solicitacoes = await prisma.solicitacao.findMany({
+      where: { idEmpresa: sessao.dados.id },
+      orderBy: { criadoEm: "desc" },
+      select: {
+        id: true,
+        cursos: true,
+        idadeMinima: true,
+        idadeMaxima: true,
+        pratica: true,
+        periodoPratica: true,
+        inicio: true,
+        fim: true,
+        quantidadeVagas: true,
+        ativa: true,
+        criadoEm: true,
+      },
+    });
+
+    return NextResponse.json({ solicitacoes });
+  } catch (erro) {
+    console.error("Falha ao listar solicitações.", erro);
+    return NextResponse.json(
+      { message: "Não foi possível carregar as solicitações." },
+      { status: 500 },
+    );
+  }
+}

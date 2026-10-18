@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 
-export default function LogoutButton() {
+const CORES = {
+  azul: "bg-blue-700 hover:bg-blue-800 active:bg-blue-900",
+  laranja: "bg-orange-800 hover:bg-orange-900 active:bg-orange-950",
+};
+
+export default function LogoutButton({ variante = "azul" }) {
   const { logout } = useAuth();
   const router = useRouter();
   const [carregando, setCarregando] = useState(false);
@@ -28,7 +33,7 @@ export default function LogoutButton() {
         type="button"
         onClick={sair}
         disabled={carregando}
-       className="inline-flex items-center justify-center rounded-md bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-blue-800 active:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
+        className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50 ${CORES[variante]}`}
       >
         {carregando ? "Saindo..." : "Sair"}
       </button>

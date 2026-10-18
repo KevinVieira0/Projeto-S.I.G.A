@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { listSolicitacoes } from "@/lib/api/solicitacaoService";
 import LogoutButton from "@/components/login/LogoutButton";
 import FormularioSolicitacao from "@/components/empresa/FormularioSolicitacao";
 
@@ -12,31 +13,15 @@ const ABAS = [
   { id: "solicitacoes", rotulo: "Minhas solicitações" },
 ];
 
-const APRENDIZES = [
-  { nome: "Lucas Ferreira", curso: "Mecânica de Usinagem", inicio: "03/02/2026", fim: "03/02/2028", pratica: "Presencial", status: "Ativo" },
-  { nome: "Mariana Souza", curso: "Eletromecânica", inicio: "03/02/2026", fim: "03/02/2028", pratica: "Presencial", status: "Ativo" },
-  { nome: "Pedro Henrique Lima", curso: "Automação Industrial", inicio: "15/05/2026", fim: "15/05/2028", pratica: "Remota", status: "Ativo" },
-  { nome: "Beatriz Almeida", curso: "Logística", inicio: "10/08/2026", fim: "10/08/2028", pratica: "Presencial", status: "Ativo" },
-  { nome: "Rafael Costa", curso: "Mecânica de Usinagem", inicio: "01/03/2025", fim: "01/03/2027", pratica: "Presencial", status: "Ativo" },
-  { nome: "Camila Rocha", curso: "Eletromecânica", inicio: "20/01/2025", fim: "20/10/2026", pratica: "Presencial", status: "Encerra em breve" },
-];
-
-const SOLICITACOES = [
-  { codigo: "SOL-0042", curso: "Eletromecânica", quantidade: 3, encaminhados: 1, faixa: "16 a 21 anos", pratica: "Presencial", periodo: "01/11/2026 a 01/11/2028", criada: "28/09/2026", status: "Em andamento" },
-  { codigo: "SOL-0045", curso: "Automação Industrial", quantidade: 2, encaminhados: 0, faixa: "17 a 24 anos", pratica: "Remota", periodo: "02/01/2027 a 02/01/2029", criada: "03/10/2026", status: "Em análise" },
-  { codigo: "SOL-0031", curso: "Logística", quantidade: 1, encaminhados: 1, faixa: "16 a 22 anos", pratica: "Presencial", periodo: "10/08/2026 a 10/08/2028", criada: "02/07/2026", status: "Atendida" },
-  { codigo: "SOL-0024", curso: "Mecânica de Usinagem", quantidade: 4, encaminhados: 4, faixa: "16 a 20 anos", pratica: "Presencial", periodo: "03/02/2026 a 03/02/2028", criada: "10/12/2025", status: "Atendida" },
-];
-
 const ESTILO_STATUS = {
   "Em análise": "bg-amber-100 text-amber-800",
   "Em andamento": "bg-orange-100 text-orange-800",
   Atendida: "bg-emerald-100 text-emerald-800",
   Ativo: "bg-emerald-100 text-emerald-800",
   "Encerra em breve": "bg-amber-100 text-amber-800",
+  Ativa: "bg-emerald-100 text-emerald-800",
+  Encerrada: "bg-slate-100 text-slate-700",
 };
-
-/* ---------- Componentes auxiliares ---------- */
 
 function Status({ valor }) {
   return (
@@ -179,7 +164,24 @@ function AbaNovaSolicitacao() {
   );
 }
 
+function formatarData(iso) {
+  return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+}
+
+const NOME_PERIODO = { manha: "Manhã", tarde: "Tarde" };
+
 function AbaSolicitacoes() {
+  const [solicitacoes, setSolicitacoes] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    listSolicitacoes()
+      .then(setSolicitacoes)
+      .catch(() => setErro("Não foi possível carregar as solicitações."))
+      .finally(() => setCarregando(false));
+  }, []);
+
   return (
     <section aria-labelledby="titulo-solicitacoes">
       <h2 id="titulo-solicitacoes" className="text-2xl font-black text-slate-900">
@@ -189,60 +191,57 @@ function AbaSolicitacoes() {
         Acompanhe os pedidos já enviados e em que etapa cada um está.
       </p>
 
+      {carregando && <p className="mt-6 text-slate-500">Carregando...</p>}
+      {erro && (
+        <p role="alert" className="mt-6 text-red-600">
+          {erro}
+        </p>
+      )}
+      {!carregando && !erro && solicitacoes.length === 0 && (
+        <p className="mt-6 text-slate-500">Você ainda não enviou nenhuma solicitação.</p>
+      )}
+
       <ul className="mt-6 space-y-4">
-        {SOLICITACOES.map((s) => {
-          const pct = Math.round((s.encaminhados / s.quantidade) * 100);
-          return (
-            <li
-              key={s.codigo}
-              className="rounded-2xl border border-orange-200 bg-white p-5"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">{s.curso}</h3>
-                  <p className="text-sm text-slate-500">
-                    {s.codigo}, enviada em {s.criada}
-                  </p>
-                </div>
-                <Status valor={s.status} />
+        {solicitacoes.map((s) => (
+          <li key={s.id} className="rounded-2xl border border-orange-200 bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{s.cursos}</h3>
+                <p className="text-sm text-slate-500">
+                  SOL-{s.id.slice(0, 6).toUpperCase()}, enviada em {formatarData(s.criadoEm)}
+                </p>
               </div>
+              <Status valor={s.ativa ? "Ativa" : "Encerrada"} />
+            </div>
 
-              <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-                <div>
-                  <dt className="text-slate-500">Faixa etária</dt>
-                  <dd className="font-semibold text-slate-800">{s.faixa}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">Prática</dt>
-                  <dd className="font-semibold text-slate-800">{s.pratica}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="text-slate-500">Período</dt>
-                  <dd className="font-semibold text-slate-800">{s.periodo}</dd>
-                </div>
-              </dl>
-
-              <div className="mt-4">
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-slate-600">Aprendizes encaminhados</span>
-                  <span className="font-semibold text-slate-800">
-                    {s.encaminhados} de {s.quantidade}
-                  </span>
-                </div>
-                <div
-                  className="h-2 overflow-hidden rounded-full bg-orange-100"
-                  role="progressbar"
-                  aria-valuenow={pct}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`${s.encaminhados} de ${s.quantidade} aprendizes encaminhados`}
-                >
-                  <div className="h-full rounded-full bg-orange-500" style={{ width: `${pct}%` }} />
-                </div>
+            <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+              <div>
+                <dt className="text-slate-500">Faixa etária</dt>
+                <dd className="font-semibold text-slate-800">
+                  {s.idadeMinima} a {s.idadeMaxima} anos
+                </dd>
               </div>
-            </li>
-          );
-        })}
+              <div>
+                <dt className="text-slate-500">Prática</dt>
+                <dd className="font-semibold text-slate-800">
+                  {s.pratica === "com"
+                    ? `Com prática${s.periodoPratica ? ` (${NOME_PERIODO[s.periodoPratica]})` : ""}`
+                    : "Sem prática"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Vagas</dt>
+                <dd className="font-semibold text-slate-800">{s.quantidadeVagas}</dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Período</dt>
+                <dd className="font-semibold text-slate-800">
+                  {formatarData(s.inicio)} a {formatarData(s.fim)}
+                </dd>
+              </div>
+            </dl>
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -279,10 +278,10 @@ export default function DashboardEmpresa() {
     <div className="min-h-screen bg-orange-50">
       {/* Faixa laranja: identificação + abas encaixadas no conteúdo */}
 
-      <header className="bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600">
+      <header className="border-b-4 border-[#ef5e31] bg-[#f9a870]">
         <div className="mx-auto max-w-6xl px-6 pt-6 h-28">
           <div className="flex flex-wrap items-center gap-4">
-            <h1 className="mt-1 shrink-0 text-3xl font-black text-white sm:text-4xl">
+            <h1 className="mt-1 shrink-0 text-2xl font-extrabold text-[#0f172a] sm:text-3xl">
               Olá, {nomeEmpresa || "..."}
             </h1>
 
@@ -302,9 +301,9 @@ export default function DashboardEmpresa() {
                     aria-selected={ativa}
                     aria-controls={`painel-${item.id}`}
                     onClick={() => setAba(item.id)}
-                    className={`shrink-0 rounded-2xl px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70 ${ativa
-                      ? "bg-orange-50 text-orange-700 shadow-sm"
-                      : "text-white hover:bg-white/15"
+                    className={`shrink-0 rounded-2xl px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-800 ${ativa
+                      ? "bg-orange-50 text-orange-800 shadow-sm"
+                      : "text-orange-950 hover:bg-white/40"
                       }`}
                   >
                     {item.rotulo}
@@ -314,7 +313,7 @@ export default function DashboardEmpresa() {
             </div>
 
             <div className="ml-auto shrink-0 self-center">
-              <LogoutButton />
+              <LogoutButton variante="laranja" />
             </div>
           </div>
         </div>
