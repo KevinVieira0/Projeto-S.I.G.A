@@ -55,7 +55,7 @@ export async function GET(requisicao) {
       prisma.solicitacao.count({ where: filtroSolicitacoes }),
       prisma.solicitacao.aggregate({
         where: filtroSolicitacoes,
-        _sum: { quantidadeAlunos: true },
+        _sum: { quantidadeVagas: true },
       }),
     ]);
     const statusAlunos = consolidarStatusAlunos(alunosPorStatus);
@@ -81,7 +81,7 @@ export async function GET(requisicao) {
           ],
           resumo: {
             solicitacoes: quantidadeSolicitacoes,
-            vagas: somaVagas._sum.quantidadeAlunos || 0,
+            vagas: somaVagas._sum.quantidadeVagas || 0,
           },
         },
       },

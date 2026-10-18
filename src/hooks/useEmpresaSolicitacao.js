@@ -10,10 +10,11 @@ const FORMULARIO_INICIAL = {
   idadeMaxima: "16",
   sexo: "",
   pratica: "",
+  periodoPratica: "",
   cursos: "",
   inicio: "",
   fim: "",
-  quantidadeAlunos: "1",
+  quantidadeVagas: "1",
   observacoes: "",
 };
 
@@ -34,10 +35,14 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
   const enviandoRef = useRef(false);
   function alterarCampo(evento) {
     const { name: nomeCampo, value: valor, type: tipo } = evento.target;
-    setFormulario((anterior) => ({
-      ...anterior,
-      [nomeCampo]: tipo === "number" && valor !== "" ? Number(valor) : valor,
-    }));
+    setFormulario((anterior) => {
+      const proximo = {
+        ...anterior,
+        [nomeCampo]: tipo === "number" && valor !== "" ? Number(valor) : valor,
+      };
+      if (nomeCampo === "pratica" && valor !== "com") proximo.periodoPratica = "";
+      return proximo;
+    });
     setMensagemSucesso(false);
     setErroApi("");
     setErros((anterior) => {
@@ -76,10 +81,21 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
       cursos.map((curso) => curso.value),
     ).safeParse(formulario);
     if (!resultado.success) {
-      const errosCampos = resultado.error.flatten().fieldErrors;
-      setErros(primeirasMensagens(errosCampos));
-      const primeiroCampo = Object.keys(errosCampos)[0];
-      evento.currentTarget.elements.namedItem(primeiroCampo)?.focus();
+      const { fieldErrors, formErrors } = resultado.error.flatten();
+      console.warn("Validação falhou:", { fieldErrors, formErrors });
+
+      setErros(primeirasMensagens(fieldErrors));
+
+      if (formErrors.length > 0) {
+        setErroApi(formErrors[0]);
+      } else if (Object.keys(fieldErrors).length === 0) {
+        setErroApi("Não foi possível validar o formulário. Revise os campos.");
+      }
+
+      const primeiroCampo = Object.keys(fieldErrors)[0];
+      if (primeiroCampo) {
+        evento.currentTarget.elements.namedItem(primeiroCampo)?.focus();
+      }
       return;
     }
     setErros({});
@@ -94,7 +110,7 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
       const dados = erroCapturado.response?.data;
       setErroApi(
         dados?.message ||
-          "Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.",
+        "Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.",
       );
       const errosCampos = dados?.errors?.fieldErrors || {};
       setErros(primeirasMensagens(errosCampos));

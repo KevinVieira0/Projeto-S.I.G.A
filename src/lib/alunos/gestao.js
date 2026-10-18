@@ -47,7 +47,7 @@ export const alunoSchema = z
       .transform((valor) => valor.replace(/\D/g, ""))
       .refine((valor) => /^\d{10,13}$/.test(valor), "Celular inválido."),
     genero: z
-      .enum(["", "Masculino", "Feminino", "Outro", "Prefiro não informar"])
+      .enum(["", "Masculino", "Feminino"])
       .default(""),
     telefone: textoOpcional(30)
       .transform((valor) => valor.replace(/\D/g, ""))

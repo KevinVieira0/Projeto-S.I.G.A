@@ -92,10 +92,11 @@ model Solicitacao {
   idadeMaxima      Int
   sexo             String
   pratica          String // descrição da prática exigida
+  periodoPratica   String?
   cursos           String // lista de cursos (armazenado como text[] no Postgres)
   inicio           DateTime
   fim              DateTime
-  quantidadeAlunos Int
+  quantidadeVagas  Int      @map("quantidadeAlunos")
   observacoes      String?  @db.Text
   ativa            Boolean  @default(true)
   criadoEm         DateTime @default(now())

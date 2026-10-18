@@ -11,6 +11,11 @@ export const PRATICAS = [
   { value: "sem", label: "Sem prática" },
 ];
 
+export const PERIODOS_PRATICA = [
+  { value: "manha", label: "Manhã" },
+  { value: "tarde", label: "Tarde" },
+];
+
 // Datas civis YYYY-MM-DD no calendário do SENAI (America/Sao_Paulo).
 // Persistência em meia-noite UTC evita depender do fuso do servidor.
 
@@ -72,6 +77,7 @@ export function createSolicitacaoSchema(cursosDisponiveis, hoje = todayInSaoPaul
           (valor) => PRATICAS.some((item) => item.value === valor),
           "Selecione uma opção de prática válida.",
         ),
+      periodoPratica: z.string().optional(),
       cursos: z.string().trim().min(1, "Selecione um curso."),
       inicio: z
         .string()
@@ -85,7 +91,7 @@ export function createSolicitacaoSchema(cursosDisponiveis, hoje = todayInSaoPaul
           (valor) => Boolean(parseCivilDate(valor)),
           "Informe uma data de fim válida.",
         ),
-      quantidadeAlunos: numeroInteiro(
+      quantidadeVagas: numeroInteiro(
         1,
         5,
         "A quantidade deve ser um número inteiro entre 1 e 5.",
@@ -109,6 +115,12 @@ export function createSolicitacaoSchema(cursosDisponiveis, hoje = todayInSaoPaul
           "idadeMaxima",
           "A idade máxima não pode ser menor que a idade mínima.",
         );
+        if (
+          dados.pratica === "com" &&
+          !PERIODOS_PRATICA.some((item) => item.value === dados.periodoPratica)
+        ) {
+          adicionarErro("periodoPratica", "Selecione o período da prática.");
+        }
       }
       if (cursosDisponiveis && !cursosDisponiveis.includes(dados.cursos))
         adicionarErro("cursos", "O curso selecionado não está mais disponível.");

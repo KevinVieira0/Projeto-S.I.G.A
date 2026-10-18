@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import LogoutButton from "@/components/login/LogoutButton";
-import { ROUTES } from "@/constants/routes";
+import FormularioSolicitacao from "@/components/empresa/FormularioSolicitacao";
 
 /* ---------- Dados de exemplo (somente visualização) ---------- */
 
@@ -69,8 +68,6 @@ function CampoLeitura({ rotulo, valor, largo = false }) {
     </div>
   );
 }
-
-/* ---------- Conteúdo de cada aba ---------- */
 
 function AbaAprendizes() {
 
@@ -164,25 +161,19 @@ function AbaAprendizes() {
   );
 }
 
+
+
 function AbaNovaSolicitacao() {
   return (
     <section aria-labelledby="titulo-nova">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 id="titulo-nova" className="text-2xl font-black text-slate-900">
-            Nova solicitação
-          </h2>
-          <p className="mt-1 max-w-xl text-slate-600">
-            Informe o perfil do aprendiz que você procura. Abaixo está um exemplo
-            dos dados pedidos no formulário.
-          </p>
-        </div>
-        <Link
-          href={ROUTES.EMPRESA_SOLICITACAO}
-          className="rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-orange-300"
-        >
-          Preencher solicitação
-        </Link>
+      <h2 id="titulo-nova" className="text-2xl font-black text-slate-900">
+        Nova solicitação
+      </h2>
+      <p className="mt-1 text-slate-600">
+        Informe o perfil do aprendiz que você procura.
+      </p>
+      <div className="mt-6">
+        <FormularioSolicitacao />
       </div>
     </section>
   );

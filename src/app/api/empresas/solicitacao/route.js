@@ -47,6 +47,7 @@ export async function POST(requisicao) {
     const solicitacao = await prisma.solicitacao.create({
       data: {
         ...valores,
+        periodoPratica: valores.pratica === "com" ? valores.periodoPratica : null,
         inicio: parseCivilDate(inicio),
         fim: parseCivilDate(fim),
         empresa: { connect: { id: sessao.dados.id } },
@@ -57,8 +58,8 @@ export async function POST(requisicao) {
       { message: "Solicitação criada com sucesso.", solicitacao },
       { status: 201 },
     );
-  } catch {
-    console.error("Falha ao persistir solicitação.");
+  } catch (erro) {
+    console.error("Falha ao persistir solicitação.", erro);
     return NextResponse.json(
       { message: "Não foi possível gravar a solicitação. Tente novamente." },
       { status: 500 },
