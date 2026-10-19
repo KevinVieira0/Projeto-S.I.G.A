@@ -1,86 +1,80 @@
-import React from 'react';
-import { 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle, 
-  Building2, 
-  Calendar, 
-  ChevronRight 
-} from 'lucide-react';
-
-const STATUS_CONFIG = {
-  PENDENTE: {
-    label: 'Pendente',
-    bg: 'bg-amber-50 border-amber-200',
-    text: 'text-amber-700',
-    icon: <Clock className="w-3.5 h-3.5 text-amber-600" />,
-  },
-  EM_ANALISE: {
-    label: 'Em Análise',
-    bg: 'bg-blue-50 border-blue-200',
-    text: 'text-blue-700',
-    icon: <AlertCircle className="w-3.5 h-3.5 text-blue-600" />,
-  },
-  APROVADO: {
-    label: 'Aprovado',
-    bg: 'bg-emerald-50 border-emerald-200',
-    text: 'text-emerald-700',
-    icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
-  },
-  RECUSADO: {
-    label: 'Recusado',
-    bg: 'bg-rose-50 border-rose-200',
-    text: 'text-rose-700',
-    icon: <XCircle className="w-3.5 h-3.5 text-rose-600" />,
-  },
-};
+import React from "react";
+import { Building2, Calendar, ChevronRight, Users } from "lucide-react";
+import { dashboardStyles } from "./DashboardCard";
+import {
+  formatarDataCivil,
+  formatarDataCriacao,
+  obterSituacao,
+  situacaoSolicitacao,
+} from "@/lib/dashboard/solicitacoesResumo";
 
 export function SolicitacaoCard({ solicitacao, onSelect }) {
-  const statusInfo = STATUS_CONFIG[solicitacao.status] || STATUS_CONFIG.PENDENTE;
-
-  const dataFormatada = solicitacao.criadoEm 
-    ? new Date(solicitacao.criadoEm).toLocaleDateString('pt-BR')
-    : 'Data N/A';
+  const situacao = obterSituacao(situacaoSolicitacao(solicitacao));
+  const empresa = solicitacao.empresa?.razaoSocial || "Empresa não informada";
 
   return (
-    <div 
-      onClick={() => onSelect?.(solicitacao.id)}
-      className="group relative bg-white rounded-xl border border-gray-200 px-3.5 py-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
-    >
-      <div className="flex items-center justify-between mb-2.5">
-        <span className="text-[11px] font-mono font-semibold text-gray-500 uppercase tracking-wider">
-          #{solicitacao.protocolo || solicitacao.id?.substring(0, 8)}
+    <article className="flex min-w-0 flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-blue-200 motion-reduce:transition-none">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+          #{String(solicitacao.id).slice(0, 8)}
         </span>
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${statusInfo.bg} ${statusInfo.text}`}>
-          {statusInfo.icon}
-          {statusInfo.label}
+        <span
+          className={`rounded-full border px-2 py-0.5 text-xs font-medium ${situacao.seloClasse}`}
+        >
+          {situacao.label}
         </span>
       </div>
-
-      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-        {solicitacao.titulo || 'Solicitação de Estágio/Vaga'}
+      <h3 className="break-words text-sm font-semibold text-gray-900">
+        {solicitacao.cursos || "Curso não informado"}
       </h3>
-      <p className="text-xs text-gray-500 mt-0.5 mb-3 line-clamp-1">
-        {solicitacao.cursos || 'Todos os Cursos'}
+      <p className="mt-2 flex items-start gap-1.5 text-xs text-gray-600">
+        <Building2
+          className="h-4 w-4 shrink-0 text-gray-400"
+          aria-hidden="true"
+        />
+        <span className="break-words">{empresa}</span>
       </p>
-
-      <div className="flex items-center justify-between text-xs text-gray-600 border-t border-gray-100 pt-2.5 mt-2">
-        <div className="flex items-center gap-1.5">
-          <Building2 className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-          <span className="font-medium truncate max-w-[130px]">
-            {solicitacao.empresa?.razaoSocial || solicitacao.nomeEmpresa || 'Empresa parceira'}
+      <p className="mt-2 text-xs font-medium text-blue-700">
+        {solicitacao.totalIndicados || 0}{" "}
+        {solicitacao.totalIndicados === 1
+          ? "aluno indicado"
+          : "alunos indicados"}
+      </p>
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-600">
+        <Users className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+        {solicitacao.quantidadeAlunos}{" "}
+        {solicitacao.quantidadeAlunos === 1
+          ? "vaga solicitada"
+          : "vagas solicitadas"}
+      </p>
+      <p className="mt-2 flex items-start gap-1.5 text-xs text-gray-600">
+        <Calendar
+          className="h-4 w-4 shrink-0 text-gray-400"
+          aria-hidden="true"
+        />
+        <span>
+          {formatarDataCivil(solicitacao.inicio)} a{" "}
+          {formatarDataCivil(solicitacao.fim)}
+        </span>
+      </p>
+      <div className="mt-auto pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+          <span className="text-xs text-gray-500">
+            Recebida em {formatarDataCriacao(solicitacao.criadoEm)}
           </span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-500">
-          <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-          <span>{dataFormatada}</span>
+          {onSelect && (
+            <button
+              type="button"
+              onClick={() => onSelect(solicitacao.id)}
+              aria-label={`Ver detalhes da solicitação de ${empresa}, ${solicitacao.cursos || "curso não informado"}, ${String(solicitacao.id).slice(0, 8)}`}
+              className={dashboardStyles.secondaryAction}
+            >
+              Ver detalhes{" "}
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
-
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-      </div>
-    </div>
+    </article>
   );
 }

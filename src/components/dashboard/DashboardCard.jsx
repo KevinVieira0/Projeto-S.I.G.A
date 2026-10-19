@@ -1,9 +1,12 @@
+import React from "react";
+
 export const dashboardStyles = {
   surface:
     "group relative flex min-w-0 flex-col rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm duration-300 hover:shadow-xl hover:shadow-blue-950/10 motion-reduce:transition-none",
   header:
     "flex min-h-[85px] flex-col gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between",
-  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]",
+  eyebrow:
+    "text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]",
   title: "mt-1 text-lg font-semibold text-gray-900",
   description: "mt-1 text-sm text-gray-500",
   body: "min-w-0 px-5 py-5",
@@ -13,7 +16,8 @@ export const dashboardStyles = {
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none",
   secondaryAction:
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
-  error: "rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700",
+  error:
+    "rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700",
 };
 
 export default function DashboardCard({
@@ -47,7 +51,9 @@ export function DashboardCardHeader({
         <h2 id={idTitulo} className={dashboardStyles.title}>
           {titulo}
         </h2>
-        {descricao && <p className={dashboardStyles.description}>{descricao}</p>}
+        {descricao && (
+          <p className={dashboardStyles.description}>{descricao}</p>
+        )}
       </div>
       {(Icon || children) && (
         <div className="flex shrink-0 flex-wrap items-center gap-3">

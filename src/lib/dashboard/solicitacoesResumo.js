@@ -1,45 +1,25 @@
-import {
-  PRATICAS,
-  SEXOS,
-  todayInSaoPaulo,
-} from "@/lib/validations/solicitacaoSchema";
+import { PRATICAS, SEXOS } from "@/lib/validations/solicitacaoSchema";
 
 const FUSO = "America/Sao_Paulo";
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 
-// Cada situação é derivada de `ativa`, `inicio` e `fim`; nada disso é gravado no banco.
+// A coordenação controla a finalização pelo campo `ativa`, independentemente do período.
 export const SITUACOES = [
   {
-    id: "em-andamento",
-    label: "Em andamento",
+    id: "ativa",
+    label: "Ativa",
     cor: "#16a36a",
     pontoClasse: "bg-emerald-600",
     seloClasse: "border-emerald-200 bg-emerald-50 text-emerald-700",
     bordaClasse: "border-t-emerald-600",
   },
   {
-    id: "aguardando",
-    label: "Aguardando início",
-    cor: "#3678c7",
-    pontoClasse: "bg-blue-500",
-    seloClasse: "border-blue-200 bg-blue-50 text-blue-700",
-    bordaClasse: "border-t-blue-500",
-  },
-  {
-    id: "encerrada",
-    label: "Encerrada",
+    id: "finalizada",
+    label: "Finalizada",
     cor: "#9ca3af",
     pontoClasse: "bg-gray-400",
     seloClasse: "border-gray-200 bg-gray-100 text-gray-600",
     bordaClasse: "border-t-gray-400",
-  },
-  {
-    id: "inativa",
-    label: "Inativa",
-    cor: "#db7b2b",
-    pontoClasse: "bg-orange-500",
-    seloClasse: "border-orange-200 bg-orange-50 text-orange-700",
-    bordaClasse: "border-t-orange-500",
   },
 ];
 
@@ -59,6 +39,7 @@ export function dataCivil(valor) {
 }
 
 function partesEmSaoPaulo(valor) {
+  if (valor == null || valor === "") return null;
   const data = valor instanceof Date ? valor : new Date(valor);
   if (Number.isNaN(data.getTime())) return null;
   const partes = new Intl.DateTimeFormat("en-US", {
@@ -67,23 +48,19 @@ function partesEmSaoPaulo(valor) {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(data);
-  const pegar = (tipo) => Number(partes.find((parte) => parte.type === tipo).value);
+  const pegar = (tipo) =>
+    Number(partes.find((parte) => parte.type === tipo).value);
   return { ano: pegar("year"), mes: pegar("month"), dia: pegar("day") };
 }
 
-export function situacaoSolicitacao(solicitacao, hoje = todayInSaoPaulo()) {
-  if (solicitacao.ativa === false) return "inativa";
-  const inicio = dataCivil(solicitacao.inicio);
-  const fim = dataCivil(solicitacao.fim);
-  if (fim && hoje > fim) return "encerrada";
-  if (inicio && hoje < inicio) return "aguardando";
-  return "em-andamento";
+export function situacaoSolicitacao(solicitacao) {
+  return solicitacao.ativa === false ? "finalizada" : "ativa";
 }
 
-export function contarPorSituacao(solicitacoes, hoje = todayInSaoPaulo()) {
+export function contarPorSituacao(solicitacoes) {
   const contagem = Object.fromEntries(SITUACOES.map(({ id }) => [id, 0]));
   for (const solicitacao of solicitacoes) {
-    contagem[situacaoSolicitacao(solicitacao, hoje)] += 1;
+    contagem[situacaoSolicitacao(solicitacao)] += 1;
   }
   return {
     total: solicitacoes.length,
@@ -97,7 +74,8 @@ export function contarPorSituacao(solicitacoes, hoje = todayInSaoPaulo()) {
 export function vagasPorCurso(solicitacoes, limite = 6) {
   const porCurso = new Map();
   for (const solicitacao of solicitacoes) {
-    const curso = String(solicitacao.cursos ?? "").trim() || "Curso não informado";
+    const curso =
+      String(solicitacao.cursos ?? "").trim() || "Curso não informado";
     const item = porCurso.get(curso) ?? { curso, vagas: 0, solicitacoes: 0 };
     item.vagas += Number(solicitacao.quantidadeAlunos) || 0;
     item.solicitacoes += 1;
@@ -121,7 +99,10 @@ function nomeDoMes(ano, mes, formato) {
 }
 
 // Agrupa pelo mês de criação (calendário de São Paulo), incluindo meses sem pedidos.
-export function solicitacoesPorMes(solicitacoes, { meses = 6, agora = new Date() } = {}) {
+export function solicitacoesPorMes(
+  solicitacoes,
+  { meses = 6, agora = new Date() } = {},
+) {
   const atual = partesEmSaoPaulo(agora);
   const chaveDe = (ano, mes) => `${ano}-${String(mes).padStart(2, "0")}`;
   const baldes = [];
@@ -167,8 +148,10 @@ export function formatarDuracao(inicio, fim) {
   const ate = dataCivil(fim);
   if (!de || !ate) return "";
   const dias =
-    Math.round((Date.parse(`${ate}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / MS_POR_DIA) +
-    1;
+    Math.round(
+      (Date.parse(`${ate}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) /
+        MS_POR_DIA,
+    ) + 1;
   if (dias < 1) return "";
   if (dias < 60) return `${dias} ${dias === 1 ? "dia" : "dias"}`;
   const meses = Math.round(dias / 30.4375);

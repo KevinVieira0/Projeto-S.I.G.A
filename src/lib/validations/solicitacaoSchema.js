@@ -7,15 +7,16 @@ export const SEXOS = [
 ];
 
 export const PRATICAS = [
-  { value: "com", label: "Com prática" },
-  { value: "sem", label: "Sem prática" },
+  { value: "com", label: "Com prática na empresa" },
+  { value: "sem", label: "Sem prática (somente bolsa)" },
 ];
 
 // Datas civis YYYY-MM-DD no calendário do SENAI (America/Sao_Paulo).
 // Persistência em meia-noite UTC evita depender do fuso do servidor.
 
 export function parseCivilDate(valor) {
-  if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return null;
+  if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor))
+    return null;
   const [ano, mes, dia] = valor.split("-").map(Number);
   if (ano < 1) return null;
   const dataCivil = new Date(`${valor}T00:00:00.000Z`);
@@ -39,7 +40,8 @@ export function todayInSaoPaulo(agora = new Date()) {
 }
 const numeroInteiro = (minimo, maximo, mensagem) =>
   z.preprocess(
-    (valor) => (typeof valor === "string" && valor.trim() !== "" ? Number(valor) : valor),
+    (valor) =>
+      typeof valor === "string" && valor.trim() !== "" ? Number(valor) : valor,
     z
       .number({ invalid_type_error: mensagem, required_error: mensagem })
       .int(mensagem)
@@ -47,7 +49,10 @@ const numeroInteiro = (minimo, maximo, mensagem) =>
       .max(maximo, mensagem),
   );
 
-export function createSolicitacaoSchema(cursosDisponiveis, hoje = todayInSaoPaulo()) {
+export function createSolicitacaoSchema(
+  cursosDisponiveis,
+  hoje = todayInSaoPaulo(),
+) {
   return z
     .object({
       idadeMinima: numeroInteiro(
@@ -111,17 +116,29 @@ export function createSolicitacaoSchema(cursosDisponiveis, hoje = todayInSaoPaul
         );
       }
       if (cursosDisponiveis && !cursosDisponiveis.includes(dados.cursos))
-        adicionarErro("cursos", "O curso selecionado não está mais disponível.");
+        adicionarErro(
+          "cursos",
+          "O curso selecionado não está mais disponível.",
+        );
       const inicio = parseCivilDate(dados.inicio);
       const fim = parseCivilDate(dados.fim);
       if (inicio && dados.inicio < hoje)
-        adicionarErro("inicio", "A data de início não pode ser uma data passada.");
+        adicionarErro(
+          "inicio",
+          "A data de início não pode ser uma data passada.",
+        );
       if (fim && dados.fim < hoje)
         adicionarErro("fim", "A data de fim não pode ser uma data passada.");
       if (inicio && fim) {
         if (dados.inicio > dados.fim) {
-          adicionarErro("inicio", "A data de início não pode ser depois da data de fim.");
-          adicionarErro("fim", "A data de fim não pode ser antes da data de início.");
+          adicionarErro(
+            "inicio",
+            "A data de início não pode ser depois da data de fim.",
+          );
+          adicionarErro(
+            "fim",
+            "A data de fim não pode ser antes da data de início.",
+          );
         }
         const limite = new Date(inicio);
         limite.setUTCFullYear(limite.getUTCFullYear() + 2);
