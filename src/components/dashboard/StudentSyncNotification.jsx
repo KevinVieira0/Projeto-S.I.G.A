@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronDown, Clock3, RefreshCw } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  RefreshCw,
+} from "lucide-react";
 import {
   INTERVALO_SINCRONIZACAO_MS,
   useSincronizacaoAlunos,
@@ -18,20 +24,21 @@ export default function StudentSyncNotification() {
     automatico: true,
     intervaloMs: INTERVALO_SINCRONIZACAO_MS,
   });
-  const resultado = resposta?.resultado;
   const possuiErros =
-    resultado?.erros?.length > 0 ||
     Boolean(resposta?.recebimentos?.erro) ||
     resposta?.recebimentos?.alterados > 0 ||
     resposta?.recebimentos?.alunos?.invalidos > 0 ||
-    resposta?.recebimentos?.alunos?.falhas > 0;
+    resposta?.recebimentos?.alunos?.falhas > 0 ||
+    resposta?.recebimentos?.empresas?.invalidos > 0 ||
+    resposta?.recebimentos?.empresas?.falhas > 0 ||
+    resposta?.recebimentos?.espelho?.falha;
   const minutos = Math.round(INTERVALO_SINCRONIZACAO_MS / 60_000);
   let titulo = "Sincronização automática ativa";
   let descricao = `Atualização a cada ${minutos} minutos`;
   let corBolinha = "bg-blue-500";
   let Icone = Clock3;
   if (carregando) {
-    titulo = "Sincronizando alunos";
+    titulo = "Sincronizando cadastros";
     descricao = "Buscando dados do Google Sheets";
     corBolinha = "bg-blue-500";
     Icone = RefreshCw;
@@ -46,7 +53,9 @@ export default function StudentSyncNotification() {
     corBolinha = "bg-amber-500";
     Icone = AlertCircle;
   } else if (resposta) {
-    titulo = resposta?.desativada ? "Integração desativada" : "Cadastros atualizados";
+    titulo = resposta?.desativada
+      ? "Integração desativada"
+      : "Cadastros atualizados";
     descricao = ultimaSincronizacao
       ? `Atualizado às ${formatarHorario(ultimaSincronizacao)}`
       : "Sincronização concluída";
@@ -86,7 +95,9 @@ export default function StudentSyncNotification() {
               />
             )}
 
-            <span className={`relative inline-flex h-3 w-3 rounded-full ${corBolinha}`} />
+            <span
+              className={`relative inline-flex h-3 w-3 rounded-full ${corBolinha}`}
+            />
           </span>
 
           <Icone
@@ -95,7 +106,9 @@ export default function StudentSyncNotification() {
           />
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-gray-900">{titulo}</p>
+            <p className="truncate text-sm font-semibold text-gray-900">
+              {titulo}
+            </p>
 
             <p className="truncate text-xs text-gray-500">{descricao}</p>
           </div>
@@ -111,7 +124,9 @@ export default function StudentSyncNotification() {
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-gray-500">Intervalo automático</p>
 
-              <p className="text-xs font-semibold text-blue-900">{minutos} minutos</p>
+              <p className="text-xs font-semibold text-blue-900">
+                {minutos} minutos
+              </p>
             </div>
 
             {ultimaSincronizacao && (
@@ -133,40 +148,18 @@ export default function StudentSyncNotification() {
             {resposta?.recebimentos && (
               <p className="mt-3 rounded-lg bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
                 {resposta.recebimentos.erro ||
-                  `${resposta.recebimentos.alunos?.criados || 0} alunos criados e ${resposta.recebimentos.alunos?.atualizados || 0} atualizados automaticamente. ${resposta.recebimentos.alunos?.invalidos || 0} envios de alunos inválidos e ${resposta.recebimentos.alunos?.falhas || 0} falhas de processamento. Empresas aguardam conferência. ${resposta.recebimentos.alterados} envios alterados na origem precisam de um novo envio.`}
+                  `${resposta.recebimentos.alunos?.criados || 0} alunos criados e ${resposta.recebimentos.alunos?.atualizados || 0} atualizados. ${resposta.recebimentos.empresas?.criados || 0} empresas criadas e ${resposta.recebimentos.empresas?.atualizados || 0} atualizadas. ${(resposta.recebimentos.alunos?.invalidos || 0) + (resposta.recebimentos.empresas?.invalidos || 0)} envios inválidos. ${(resposta.recebimentos.alunos?.falhas || 0) + (resposta.recebimentos.empresas?.falhas || 0)} falhas de processamento. ${resposta.recebimentos.alterados} respostas alteradas na origem precisam de um novo envio.`}
               </p>
             )}
 
-            {resultado && (
-              <>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Resultado label="Recebidos" valor={resultado.linhasRecebidas} />
-
-                  <Resultado label="Adicionados" valor={resultado.criados} />
-
-                  <Resultado label="Atualizados" valor={resultado.atualizados} />
-
-                  <Resultado label="Ignorados" valor={resultado.ignorados} />
-                </div>
-
-                {possuiErros && (
-                  <div className="mt-3 rounded-lg bg-amber-50 p-3">
-                    <p className="text-xs font-semibold text-amber-800">
-                      Pendências encontradas
-                    </p>
-
-                    <ul className="mt-2 space-y-1 text-xs text-amber-700">
-                      {resultado.erros?.map((item) => (
-                        <li key={`${item.linha}-${item.mensagem}`}>
-                          Linha {item.linha}: {item.mensagem}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
+            {resposta?.recebimentos?.espelho?.falha && (
+              <p
+                role="alert"
+                className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800"
+              >
+                {resposta.recebimentos.espelho.mensagem}
+              </p>
             )}
-
             {!resposta && !erro && (
               <p className="mt-3 text-xs leading-relaxed text-gray-500">
                 A primeira sincronização será executada automaticamente.
@@ -179,20 +172,11 @@ export default function StudentSyncNotification() {
   );
 }
 
-function Resultado({ label: rotulo, valor }) {
-  return (
-    <div className="rounded-lg bg-gray-50 px-3 py-2">
-      <p className="text-[11px] text-gray-500">{rotulo}</p>
-
-      <p className="mt-1 text-lg font-semibold text-gray-900">{valor ?? 0}</p>
-    </div>
-  );
-}
-
 function formatarHorario(dados) {
-  return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(
-    dados,
-  );
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(dados);
 }
 
 function formatarDataHora(dados) {

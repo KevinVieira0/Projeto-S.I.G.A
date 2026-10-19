@@ -1,17 +1,22 @@
 import { google } from "googleapis";
 import { LIMITE_LINHAS } from "./baseAcademica";
 
-const COLUNAS = { Cursos: "C", Turmas: "G", Alunos: "O", Empresas: "F", Matriculas: "J" };
+const COLUNAS = {
+  Cursos: "C",
+  Turmas: "G",
+  Alunos: "O",
+  Empresas: "F",
+  Matriculas: "J",
+};
 
 export class ErroFonteAcademica extends Error {}
 
 export async function lerBaseAcademicaDaPlanilha(colunas = COLUNAS) {
-  // ID separado: nunca trocar silenciosamente a planilha usada pelo sincronizador antigo.
   const idPlanilha = process.env.GOOGLE_SHEETS_ACADEMICO_ID;
   const arquivoCredenciais = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (!idPlanilha)
     throw new ErroFonteAcademica(
-      "Configure GOOGLE_SHEETS_ACADEMICO_ID com a nova planilha antes de executar a prévia.",
+      "Configure GOOGLE_SHEETS_ACADEMICO_ID com a planilha acadêmica.",
     );
   if (!arquivoCredenciais)
     throw new ErroFonteAcademica(
@@ -30,7 +35,10 @@ export async function lerBaseAcademicaDaPlanilha(colunas = COLUNAS) {
     fields: "sheets(properties(title,gridProperties(rowCount,columnCount)))",
   });
   const abas = new Map(
-    (metadados.data.sheets || []).map((s) => [s.properties.title, s.properties]),
+    (metadados.data.sheets || []).map((s) => [
+      s.properties.title,
+      s.properties,
+    ]),
   );
   const nomes = Object.keys(colunas);
   const intervalos = nomes.map((nome) => {
@@ -59,7 +67,10 @@ export async function lerBaseAcademicaDaPlanilha(colunas = COLUNAS) {
   if (resposta.data.valueRanges?.length !== nomes.length)
     throw new ErroFonteAcademica("Leitura incompleta das abas acadêmicas.");
   return Object.fromEntries(
-    nomes.map((nome, indice) => [nome, resposta.data.valueRanges[indice].values || []]),
+    nomes.map((nome, indice) => [
+      nome,
+      resposta.data.valueRanges[indice].values || [],
+    ]),
   );
 }
 

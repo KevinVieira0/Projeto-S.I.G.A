@@ -10,8 +10,8 @@ const SIGA_EMPRESAS_V2 = {
     "E-mail",
     "Telefone",
     "Contribuinte?",
-    "Conferência",
-    "Pendências",
+    "Processamento",
+    "Erros",
   ],
 };
 
@@ -38,10 +38,10 @@ function instalarFormularioEmpresasV2() {
     propriedades.setProperty("SIGA_V2_EMPRESA_FORM_ID", formulario.getId());
     formulario
       .setDescription(
-        "Informe os dados da empresa para cadastro ou atualização. A coordenação fará a conferência. Este cadastro não concede acesso ao sistema. Não informe senhas.",
+        "Informe os dados da empresa para cadastro ou atualização automática pelo CNPJ. Este cadastro não concede acesso ao sistema. Não informe senhas.",
       )
       .setConfirmationMessage(
-        "Recebemos os dados da empresa para conferência pela coordenação.",
+        "Recebemos os dados. Os cadastros válidos serão processados automaticamente na próxima sincronização.",
       )
       .setProgressBar(true)
       .setPublishingSummary(false)
@@ -49,7 +49,10 @@ function instalarFormularioEmpresasV2() {
       .setAllowResponseEdits(false);
     const ids = {};
     const texto = (chave, titulo, obrigatorio, validacao) => {
-      const item = formulario.addTextItem().setTitle(titulo).setRequired(obrigatorio);
+      const item = formulario
+        .addTextItem()
+        .setTitle(titulo)
+        .setRequired(obrigatorio);
       if (validacao) item.setValidation(validacao);
       ids[chave] = String(item.getId());
     };
@@ -65,8 +68,15 @@ function instalarFormularioEmpresasV2() {
     formulario.addSectionHeaderItem().setTitle("Identificação da empresa");
     texto("razaoSocial", "Razão social", true, maximo(255));
     texto("nomeFantasia", "Nome fantasia", false, maximo(255));
-    texto("cnpj", "CNPJ", true, regex("^[0-9]{14}$", "Use 14 números, sem pontuação."));
-    formulario.addPageBreakItem().setTitle("Contato e informações complementares");
+    texto(
+      "cnpj",
+      "CNPJ",
+      true,
+      regex("^[0-9]{14}$", "Use 14 números, sem pontuação."),
+    );
+    formulario
+      .addPageBreakItem()
+      .setTitle("Contato e informações complementares");
     texto(
       "email",
       "E-mail",
@@ -86,14 +96,22 @@ function instalarFormularioEmpresasV2() {
       .setRequired(true);
     ids.contribuinte = String(contribuinte.getId());
     propriedades.setProperty("SIGA_V2_EMPRESA_ITENS", JSON.stringify(ids));
-    formulario.setDestination(FormApp.DestinationType.SPREADSHEET, SIGA_V2.PLANILHA);
+    formulario.setDestination(
+      FormApp.DestinationType.SPREADSHEET,
+      SIGA_V2.PLANILHA,
+    );
     const acionador = ScriptApp.newTrigger("receberEmpresaV2")
       .forForm(formulario)
       .onFormSubmit()
       .create();
-    propriedades.setProperty("SIGA_V2_EMPRESA_TRIGGER_ID", acionador.getUniqueId());
+    propriedades.setProperty(
+      "SIGA_V2_EMPRESA_TRIGGER_ID",
+      acionador.getUniqueId(),
+    );
     propriedades.setProperty("SIGA_V2_EMPRESA_INSTALADO", "SIM");
-    console.log("Formulário de empresas (rascunho): " + formulario.getEditUrl());
+    console.log(
+      "Formulário de empresas (rascunho): " + formulario.getEditUrl(),
+    );
   } finally {
     bloqueio.releaseLock();
   }
@@ -112,7 +130,7 @@ function prepararEmpresasV2_(planilha) {
     aba
       .getRange("A2:J2")
       .merge()
-      .setValue("Dados para conferência. Não concedem acesso ao sistema.");
+      .setValue("Entrada automática por CNPJ. Não concede acesso ao sistema.");
     aba
       .getRange(4, 1, 1, 10)
       .setValues([SIGA_EMPRESAS_V2.CABECALHOS])
@@ -121,10 +139,19 @@ function prepararEmpresasV2_(planilha) {
       .setFontWeight("bold");
   }
   if (
-    JSON.stringify(aba.getRange(4, 1, 1, 10).getDisplayValues()[0]) !==
-    JSON.stringify(SIGA_EMPRESAS_V2.CABECALHOS)
+    JSON.stringify(
+      aba
+        .getRange(4, 1, 1, 10)
+        .getDisplayValues()[0]
+        .map(
+          (campo) =>
+            ({ Conferência: "Processamento", Pendências: "Erros" })[campo] ||
+            campo,
+        ),
+    ) !== JSON.stringify(SIGA_EMPRESAS_V2.CABECALHOS)
   )
     throw new Error("Cabeçalho de recebimentos de empresas incompatível.");
+  aba.getRange(4, 1, 1, 10).setValues([SIGA_EMPRESAS_V2.CABECALHOS]);
   aba.setFrozenRows(4);
   aba.setColumnWidths(1, 10, 180);
   aba.setColumnWidth(3, 300);
@@ -133,9 +160,14 @@ function prepararEmpresasV2_(planilha) {
 
 function validarEmpresaV2_(registro) {
   const dados = Object.fromEntries(
-    ["razaoSocial", "nomeFantasia", "cnpj", "email", "telefone", "contribuinte"].map(
-      (chave) => [chave, String(registro[chave] || "").trim()],
-    ),
+    [
+      "razaoSocial",
+      "nomeFantasia",
+      "cnpj",
+      "email",
+      "telefone",
+      "contribuinte",
+    ].map((chave) => [chave, String(registro[chave] || "").trim()]),
   );
   dados.erros = [];
   if (
@@ -146,9 +178,13 @@ function validarEmpresaV2_(registro) {
     dados.erros.push("NOME_INVALIDO");
   if (!/^\d{14}$/.test(dados.cnpj) || !documentoV2_(dados.cnpj, "CNPJ"))
     dados.erros.push("CNPJ_INVALIDO");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email) || dados.email.length > 255)
+  if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email) ||
+    dados.email.length > 255
+  )
     dados.erros.push("EMAIL_INVALIDO");
-  if (!/^\d{10,13}$/.test(dados.telefone)) dados.erros.push("TELEFONE_INVALIDO");
+  if (!/^\d{10,13}$/.test(dados.telefone))
+    dados.erros.push("TELEFONE_INVALIDO");
   if (!["Sim", "Não", "Não informado"].includes(dados.contribuinte))
     dados.erros.push("CONTRIBUINTE_INVALIDO");
   return dados;
@@ -160,7 +196,8 @@ function receberEmpresaV2(evento) {
     !evento ||
     !evento.response ||
     !evento.source ||
-    evento.source.getId() !== propriedades.getProperty("SIGA_V2_EMPRESA_FORM_ID")
+    evento.source.getId() !==
+      propriedades.getProperty("SIGA_V2_EMPRESA_FORM_ID")
   )
     throw new Error("Evento de empresa inválido.");
   const bloqueio = LockService.getScriptLock();
@@ -177,11 +214,16 @@ function receberEmpresaV2(evento) {
         .some((registro) => registro[0] === envio)
     )
       return;
-    const ids = JSON.parse(propriedades.getProperty("SIGA_V2_EMPRESA_ITENS") || "{}");
+    const ids = JSON.parse(
+      propriedades.getProperty("SIGA_V2_EMPRESA_ITENS") || "{}",
+    );
     const itens = new Map(
       evento.response
         .getItemResponses()
-        .map((registro) => [String(registro.getItem().getId()), registro.getResponse()]),
+        .map((registro) => [
+          String(registro.getItem().getId()),
+          registro.getResponse(),
+        ]),
     );
     const dados = validarEmpresaV2_(
       Object.fromEntries(
@@ -197,17 +239,71 @@ function receberEmpresaV2(evento) {
       dados.email,
       dados.telefone,
       dados.contribuinte,
-      dados.erros.length ? "Dados a corrigir" : "Aguardando revisão",
+      dados.erros.length
+        ? "Dados a corrigir"
+        : "Aguardando processamento automático",
       dados.erros.join("; "),
     ];
     const quantidade = Math.max(5, aba.getLastRow() + 1);
-    if (quantidade > aba.getMaxRows()) aba.insertRowsAfter(aba.getMaxRows(), 100);
+    if (quantidade > aba.getMaxRows())
+      aba.insertRowsAfter(aba.getMaxRows(), 100);
     aba
       .getRange(quantidade, 1, 1, 10)
       .setNumberFormat("@")
       .setValues([linha.map(textoSeguroV2_)]);
-    console.log("Recebimento de empresa registrado para conferência.");
+    console.log(
+      "Recebimento de empresa registrado para processamento automático.",
+    );
   } finally {
     bloqueio.releaseLock();
   }
+}
+
+function atualizarFluxoAutomaticoCadastrosV2() {
+  atualizarFluxoAutomaticoAlunosV2();
+  const propriedades = PropertiesService.getScriptProperties();
+  const idEmpresa = propriedades.getProperty("SIGA_V2_EMPRESA_FORM_ID");
+  if (!idEmpresa) throw new Error("Formulário de empresas não instalado.");
+  FormApp.openById(idEmpresa)
+    .setDescription(
+      "Informe os dados da empresa para cadastro ou atualização automática pelo CNPJ. Este cadastro não concede acesso ao sistema. Não informe senhas.",
+    )
+    .setConfirmationMessage(
+      "Recebemos os dados. Os cadastros válidos serão processados automaticamente na próxima sincronização.",
+    );
+  const planilha = abrirPlanilhaV2_();
+  prepararRecebimentosV2_(planilha);
+  prepararEmpresasV2_(planilha);
+  console.log(
+    "Fluxo automático atualizado. Formulários, perguntas, respostas e acionadores preservados.",
+  );
+}
+
+function atualizarCatalogoFormularioAlunosV2() {
+  const propriedades = PropertiesService.getScriptProperties();
+  const formulario = FormApp.openById(
+    propriedades.getProperty("SIGA_V2_FORM_ID"),
+  );
+  const ids = JSON.parse(propriedades.getProperty("SIGA_V2_ITENS") || "{}");
+  const ofertas = ofertasV2_(abrirPlanilhaV2_());
+  if (!ofertas.length || !ids.turma || !ids.termo)
+    throw new Error("Catálogo ou perguntas acadêmicas ausentes.");
+  formulario
+    .getItemById(Number(ids.turma))
+    .asListItem()
+    .setChoiceValues(ofertas.map((o) => o.rotulo));
+  formulario
+    .getItemById(Number(ids.termo))
+    .asListItem()
+    .setChoiceValues(
+      Array.from(
+        { length: Math.max(...ofertas.map((o) => o.termos)) },
+        (_, indice) => String(indice + 1),
+      ),
+    );
+  console.log(
+    "Catálogo atualizado no formulário: " +
+      ofertas.length +
+      " turmas. Perguntas e respostas preservadas.",
+  );
 }

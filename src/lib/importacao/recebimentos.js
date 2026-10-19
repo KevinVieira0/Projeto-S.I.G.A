@@ -27,8 +27,8 @@ export const CABECALHOS_RECEBIMENTOS = {
     "Situação profissional informada",
     "Empresa informada",
     "CNPJ informado",
-    "Conferência",
-    "Pendências",
+    "Processamento",
+    "Erros",
   ],
   EMPRESA: [
     "ID Envio",
@@ -39,8 +39,8 @@ export const CABECALHOS_RECEBIMENTOS = {
     "E-mail",
     "Telefone",
     "Contribuinte?",
-    "Conferência",
-    "Pendências",
+    "Processamento",
+    "Erros",
   ],
 };
 
@@ -55,8 +55,20 @@ export class ErroRecebimento extends Error {
 }
 
 export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
-  const nome = tipo === "ALUNO" ? "Recebimentos Alunos" : "Recebimentos Empresas";
-  const linhas = abas[nome];
+  const nome =
+    tipo === "ALUNO" ? "Recebimentos Alunos" : "Recebimentos Empresas";
+  const linhasOriginais = abas[nome];
+  // Aceita o cabeçalho anterior enquanto o Apps Script recebe a atualização.
+  const linhas = Array.isArray(linhasOriginais)
+    ? [
+        linhasOriginais[0]?.map(
+          (campo) =>
+            ({ Conferência: "Processamento", Pendências: "Erros" })[campo] ||
+            campo,
+        ),
+        ...linhasOriginais.slice(1),
+      ]
+    : linhasOriginais;
   const campos = CABECALHOS_RECEBIMENTOS[tipo];
   if (
     !campos ||
@@ -74,23 +86,22 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
     Turmas: abas.Turmas,
   });
   const cursos = new Map(
-    catalogo.registros.Cursos.filter((registro) => registro.valido).map((registro) => [
-      registro["ID Curso"],
-      registro,
-    ]),
+    catalogo.registros.Cursos.filter((registro) => registro.valido).map(
+      (registro) => [registro["ID Curso"], registro],
+    ),
   );
   const turmas = new Map(
-    catalogo.registros.Turmas.filter((registro) => registro.valido).map((registro) => [
-      registro["ID Turma"],
-      registro,
-    ]),
+    catalogo.registros.Turmas.filter((registro) => registro.valido).map(
+      (registro) => [registro["ID Turma"], registro],
+    ),
   );
   const vistos = new Set();
   return linhas
     .slice(1)
     .map((linha, indice) => ({ row: linha, linha: indice + 5 }))
     .filter(
-      ({ row: linha }) => Array.isArray(linha) && linha.some((valor) => limpar(valor)),
+      ({ row: linha }) =>
+        Array.isArray(linha) && linha.some((valor) => limpar(valor)),
     )
     .map(({ row, linha }) => {
       const camposInformados = Object.fromEntries(
@@ -104,11 +115,16 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
         );
       vistos.add(envioId);
       if (
-        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(recebidoEm) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(
+          recebidoEm,
+        ) ||
         Number.isNaN(Date.parse(recebidoEm)) ||
-        new Date(recebidoEm).toISOString().slice(0, 19) !== recebidoEm.slice(0, 19)
+        new Date(recebidoEm).toISOString().slice(0, 19) !==
+          recebidoEm.slice(0, 19)
       )
-        throw new ErroRecebimento(`Data de recebimento inválida na linha ${linha}.`);
+        throw new ErroRecebimento(
+          `Data de recebimento inválida na linha ${linha}.`,
+        );
       const erros = [];
       const texto = (campo, maximo, obrigatorio = false) => {
         const valor = camposInformados[campo];
@@ -128,12 +144,18 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
         ),
         email: texto("E-mail", 255, true),
       };
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) erros.push("E-mail inválido");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email))
+        erros.push("E-mail inválido");
       if (tipo === "EMPRESA") {
         dados.nomeFantasia = texto("Nome fantasia", 255);
         dados.telefone = texto("Telefone", 20, true);
-        if (!/^\d{10,13}$/.test(dados.telefone)) erros.push("Telefone inválido");
-        if (!["Sim", "Não", "Não informado"].includes(camposInformados["Contribuinte?"]))
+        if (!/^\d{10,13}$/.test(dados.telefone))
+          erros.push("Telefone inválido");
+        if (
+          !["Sim", "Não", "Não informado"].includes(
+            camposInformados["Contribuinte?"],
+          )
+        )
           erros.push("Contribuinte inválido");
         dados.contribuinte =
           camposInformados["Contribuinte?"] === "Sim"
@@ -143,7 +165,9 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
               : null;
       } else {
         try {
-          dados.nascimento = dataAcademica(camposInformados["Data de nascimento"]);
+          dados.nascimento = dataAcademica(
+            camposInformados["Data de nascimento"],
+          );
         } catch {
           dados.nascimento = null;
         }
@@ -167,20 +191,34 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
           erros.push("Contato inválido");
         if (dados.cep && !/^\d{8}$/.test(dados.cep)) erros.push("CEP inválido");
         if (
-          !["", "Masculino", "Feminino", "Outro", "Prefiro não informar"].includes(
-            dados.genero,
-          )
+          ![
+            "",
+            "Masculino",
+            "Feminino",
+            "Outro",
+            "Prefiro não informar",
+          ].includes(dados.genero)
         )
           erros.push("Gênero inválido");
-        if (!["", "Sim", "Não", "Prefiro não informar"].includes(dados.situacao))
+        if (
+          !["", "Sim", "Não", "Prefiro não informar"].includes(dados.situacao)
+        )
           erros.push("Situação profissional inválida");
-        if (dados.cnpjInformado && !documentoValido(dados.cnpjInformado, "CNPJ"))
+        if (
+          dados.cnpjInformado &&
+          !documentoValido(dados.cnpjInformado, "CNPJ")
+        )
           erros.push("CNPJ informado inválido");
-        if ((dados.empresaInformada || dados.cnpjInformado) && dados.situacao !== "Sim")
+        if (
+          (dados.empresaInformada || dados.cnpjInformado) &&
+          dados.situacao !== "Sim"
+        )
           erros.push("Empresa declarada incoerente");
         const t = turmas.get(camposInformados["ID Turma"]);
         const c = t && cursos.get(t["ID Curso"]);
-        dados.termo = Number.isSafeInteger(Number(camposInformados["Termo atual"]))
+        dados.termo = Number.isSafeInteger(
+          Number(camposInformados["Termo atual"]),
+        )
           ? Number(camposInformados["Termo atual"])
           : null;
         if (!t || !c || t["ID Curso"] !== camposInformados["ID Curso"])
@@ -217,8 +255,11 @@ export function prepararRecebimentos(abas, tipo, hoje = todayInSaoPaulo()) {
 }
 
 export async function importarRecebimentos(prisma, fonte, abas) {
-  if (!fonte || fonte.length > 100) throw new ErroRecebimento("Fonte inválida.");
-  const linhas = ["ALUNO", "EMPRESA"].flatMap((tipo) => prepararRecebimentos(abas, tipo));
+  if (!fonte || fonte.length > 100)
+    throw new ErroRecebimento("Fonte inválida.");
+  const linhas = ["ALUNO", "EMPRESA"].flatMap((tipo) =>
+    prepararRecebimentos(abas, tipo),
+  );
   return prisma.$transaction(
     async (transacao) => {
       await transacao.$executeRaw`SELECT pg_advisory_xact_lock(741004)`;
@@ -237,11 +278,18 @@ export async function importarRecebimentos(prisma, fonte, abas) {
       let repetidos = 0;
       let alterados = 0;
       for (const recebimento of linhas) {
-        const anterior = existentes.get(recebimento.tipo + ":" + recebimento.envioId);
+        const anterior = existentes.get(
+          recebimento.tipo + ":" + recebimento.envioId,
+        );
         if (anterior) {
           if (anterior.hash === recebimento.hash) repetidos++;
           else alterados++;
-        } else novos.push({ ...recebimento, fonte });
+        } else
+          novos.push({
+            ...recebimento,
+            fonte,
+            estado: recebimento.erros.length ? "INVALIDO" : "PENDENTE",
+          });
       }
       // Uma resposta já recebida é imutável; correções devem ter outro ID de envio.
       for (let indice = 0; indice < novos.length; indice += 200)
@@ -253,7 +301,8 @@ export async function importarRecebimentos(prisma, fonte, abas) {
         novos: novos.length,
         repetidos,
         alterados,
-        invalidos: linhas.filter((recebimento) => recebimento.erros.length).length,
+        invalidos: linhas.filter((recebimento) => recebimento.erros.length)
+          .length,
       };
     },
     { timeout: 60000, maxWait: 10000 },

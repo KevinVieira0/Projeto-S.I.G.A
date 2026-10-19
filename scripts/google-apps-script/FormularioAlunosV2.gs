@@ -21,8 +21,8 @@ const SIGA_V2 = {
     "Situação profissional informada",
     "Empresa informada",
     "CNPJ informado",
-    "Conferência",
-    "Pendências",
+    "Processamento",
+    "Erros",
   ],
 };
 
@@ -64,7 +64,10 @@ function instalarFormularioAlunosV2() {
       .setAllowResponseEdits(false);
     const ids = {};
     const texto = (chave, titulo, obrigatorio, ajuda, validacao) => {
-      const item = formulario.addTextItem().setTitle(titulo).setRequired(obrigatorio);
+      const item = formulario
+        .addTextItem()
+        .setTitle(titulo)
+        .setRequired(obrigatorio);
       if (ajuda) item.setHelpText(ajuda);
       if (validacao) item.setValidation(validacao);
       ids[chave] = String(item.getId());
@@ -90,7 +93,9 @@ function instalarFormularioAlunosV2() {
       "Nome completo",
       true,
       "Informe seu nome completo, sem abreviações.",
-      FormApp.createTextValidation().requireTextLengthLessThanOrEqualTo(150).build(),
+      FormApp.createTextValidation()
+        .requireTextLengthLessThanOrEqualTo(150)
+        .build(),
     );
     texto(
       "cpf",
@@ -138,7 +143,9 @@ function instalarFormularioAlunosV2() {
       "Endereço do aluno",
       false,
       "Opcional: logradouro, número e complemento.",
-      FormApp.createTextValidation().requireTextLengthLessThanOrEqualTo(300).build(),
+      FormApp.createTextValidation()
+        .requireTextLengthLessThanOrEqualTo(300)
+        .build(),
     );
     texto(
       "cep",
@@ -159,8 +166,9 @@ function instalarFormularioAlunosV2() {
     lista(
       "termo",
       "Termo atual",
-      Array.from({ length: Math.max(...ofertas.map((o) => o.termos)) }, (_, indice) =>
-        String(indice + 1),
+      Array.from(
+        { length: Math.max(...ofertas.map((o) => o.termos)) },
+        (_, indice) => String(indice + 1),
       ),
       true,
     ).setHelpText(
@@ -173,14 +181,16 @@ function instalarFormularioAlunosV2() {
       ["Sim", "Não", "Prefiro não informar"],
       false,
     ).setHelpText(
-      "Informação declarada por você para conferência. Não altera automaticamente seu acompanhamento no sistema.",
+      "Informação complementar. Status e vínculos profissionais são administrados no sistema.",
     );
     texto(
       "empresa",
       "Nome da empresa em que trabalha",
       false,
       "Preencha somente se estiver trabalhando. Não informe uma empresa apenas por ter sido indicado.",
-      FormApp.createTextValidation().requireTextLengthLessThanOrEqualTo(255).build(),
+      FormApp.createTextValidation()
+        .requireTextLengthLessThanOrEqualTo(255)
+        .build(),
     );
     texto(
       "cnpj",
@@ -190,7 +200,10 @@ function instalarFormularioAlunosV2() {
       padrao("^[0-9]{14}$", "Use 14 números, sem pontuação."),
     );
     propriedades.setProperty("SIGA_V2_ITENS", JSON.stringify(ids));
-    formulario.setDestination(FormApp.DestinationType.SPREADSHEET, SIGA_V2.PLANILHA);
+    formulario.setDestination(
+      FormApp.DestinationType.SPREADSHEET,
+      SIGA_V2.PLANILHA,
+    );
     const acionador = ScriptApp.newTrigger("receberAlunoV2")
       .forForm(formulario)
       .onFormSubmit()
@@ -236,9 +249,14 @@ function receberAlunoV2(evento) {
     const itens = new Map(
       evento.response
         .getItemResponses()
-        .map((registro) => [String(registro.getItem().getId()), registro.getResponse()]),
+        .map((registro) => [
+          String(registro.getItem().getId()),
+          registro.getResponse(),
+        ]),
     );
-    Object.keys(ids).forEach((chave) => (respostas[chave] = itens.get(ids[chave]) || ""));
+    Object.keys(ids).forEach(
+      (chave) => (respostas[chave] = itens.get(ids[chave]) || ""),
+    );
     const dados = validarRespostaV2_(respostas, ofertasV2_(planilha));
     const linha = [
       envio,
@@ -258,11 +276,14 @@ function receberAlunoV2(evento) {
       dados.situacao,
       dados.empresa,
       dados.cnpj,
-      dados.erros.length ? "Dados a corrigir" : "Aguardando processamento automático",
+      dados.erros.length
+        ? "Dados a corrigir"
+        : "Aguardando processamento automático",
       dados.erros.join("; "),
     ];
     const numeroLinha = Math.max(5, aba.getLastRow() + 1);
-    if (numeroLinha > aba.getMaxRows()) aba.insertRowsAfter(aba.getMaxRows(), 100);
+    if (numeroLinha > aba.getMaxRows())
+      aba.insertRowsAfter(aba.getMaxRows(), 100);
     // Texto explícito e neutralização de fórmulas fornecidas pelo respondente.
     aba
       .getRange(numeroLinha, 1, 1, linha.length)
@@ -307,7 +328,8 @@ function abrirPlanilhaV2_() {
     throw new Error("Configure exclusivamente a nova planilha.");
   const planilha = SpreadsheetApp.openById(SIGA_V2.PLANILHA);
   for (const nome of ["Cursos", "Turmas", "Alunos", "Matriculas", "Empresas"])
-    if (!planilha.getSheetByName(nome)) throw new Error("Estrutura V2 incompleta.");
+    if (!planilha.getSheetByName(nome))
+      throw new Error("Estrutura V2 incompleta.");
   return planilha;
 }
 
@@ -323,7 +345,10 @@ function registrosV2_(planilha, nome, campos) {
     .filter((linha) => linha[colunas[0]])
     .map((linha) =>
       Object.fromEntries(
-        campos.map((c, indice) => [c, String(linha[colunas[indice]] || "").trim()]),
+        campos.map((c, indice) => [
+          c,
+          String(linha[colunas[indice]] || "").trim(),
+        ]),
       ),
     );
 }
@@ -390,7 +415,7 @@ function prepararRecebimentosV2_(planilha) {
       .getRange("A2:S2")
       .merge()
       .setValue(
-        "Dados declarados, aguardando conferência. Não alteram automaticamente cadastros ou status.",
+        "Entrada automática por CPF. Respostas inválidas precisam de um novo envio; status profissional é gerido no sistema.",
       )
       .setWrap(true);
     aba
@@ -401,9 +426,18 @@ function prepararRecebimentosV2_(planilha) {
       .setFontWeight("bold")
       .setWrap(true);
   }
-  const atual = aba.getRange(4, 1, 1, SIGA_V2.CABECALHOS.length).getDisplayValues()[0];
+  const atual = aba
+    .getRange(4, 1, 1, SIGA_V2.CABECALHOS.length)
+    .getDisplayValues()[0]
+    .map(
+      (campo) =>
+        ({ Conferência: "Processamento", Pendências: "Erros" })[campo] || campo,
+    );
   if (JSON.stringify(atual) !== JSON.stringify(SIGA_V2.CABECALHOS))
     throw new Error("Cabeçalho de recebimentos divergente; não sobrescrito.");
+  aba
+    .getRange(4, 1, 1, SIGA_V2.CABECALHOS.length)
+    .setValues([SIGA_V2.CABECALHOS]);
   // Reaplica também após instalação interrompida. Títulos mesclados impedem congelar só duas colunas.
   aba.setFrozenRows(4);
   aba.setFrozenColumns(0);
@@ -493,7 +527,10 @@ function validarRespostaV2_(registro, ofertas) {
     (resultado.telefone && !/^\d{10,13}$/.test(resultado.telefone))
   )
     fail("CONTATO_INVALIDO");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resultado.email) || resultado.email.length > 255)
+  if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resultado.email) ||
+    resultado.email.length > 255
+  )
     fail("EMAIL_INVALIDO");
   if (
     resultado.endereco.length > 300 ||
@@ -513,7 +550,8 @@ function validarRespostaV2_(registro, ofertas) {
     Number(resultado.termo) > oferta.termos
   )
     fail("TERMO_INVALIDO");
-  if (resultado.cnpj && !documentoV2_(resultado.cnpj, "CNPJ")) fail("CNPJ_INVALIDO");
+  if (resultado.cnpj && !documentoV2_(resultado.cnpj, "CNPJ"))
+    fail("CNPJ_INVALIDO");
   if ((resultado.empresa || resultado.cnpj) && resultado.situacao !== "Sim")
     fail("VINCULO_DECLARADO_INCOERENTE");
   return resultado;

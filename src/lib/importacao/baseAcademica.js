@@ -86,7 +86,9 @@ export function dataAcademica(valor) {
     if (!Number.isInteger(valor) || valor < 1 || valor > 73415)
       throw new Error("Data serial inválida.");
     return dataAcademica(
-      new Date(Date.UTC(1899, 11, 30) + valor * 86400000).toISOString().slice(0, 10),
+      new Date(Date.UTC(1899, 11, 30) + valor * 86400000)
+        .toISOString()
+        .slice(0, 10),
     );
   }
   const text = limpar(valor);
@@ -114,6 +116,7 @@ const STATUS = {
   indicado: "INDICADO",
   "em processo": "EM_PROCESSO",
   contratado: "CONTRATADO",
+  empregado: "CONTRATADO",
 };
 const TURNOS = {
   manhã: "Manhã",
@@ -125,7 +128,9 @@ const TURNOS = {
   integral: "Integral",
 };
 const numeroInteiro = (valor) =>
-  /^\d+$/.test(limpar(valor)) && Number.isSafeInteger(Number(valor)) && Number(valor) > 0
+  /^\d+$/.test(limpar(valor)) &&
+  Number.isSafeInteger(Number(valor)) &&
+  Number(valor) > 0
     ? Number(valor)
     : null;
 
@@ -207,11 +212,13 @@ export function validarBaseAcademica(
         }
       };
       const documento = (campo, tipo) => {
-        if (!documentoValido(row[campo], tipo)) row.falhar(campo, "DOCUMENTO_INVALIDO");
+        if (!documentoValido(row[campo], tipo))
+          row.falhar(campo, "DOCUMENTO_INVALIDO");
         row[campo] = limpar(row[campo]).replace(/\D/g, "");
       };
       // Referências são estáveis; linha não é identificador. IDs de banco são conciliados depois.
-      for (const campo of campos.filter((c) => c.startsWith("ID "))) texto(campo, 100);
+      for (const campo of campos.filter((c) => c.startsWith("ID ")))
+        texto(campo, 100);
       if (aba === "Cursos") {
         texto("ID Curso", 100, true);
         texto("Nome do curso", 150, true);
@@ -280,7 +287,9 @@ export function validarBaseAcademica(
         if (!row.Status) row.falhar("Status", "STATUS_OBRIGATORIO_OU_INVALIDO");
         if (
           (row.Status === "DISPONIVEL" && row["ID Empresa atual"]) ||
-          (row.Status && row.Status !== "DISPONIVEL" && !row["ID Empresa atual"])
+          (row.Status &&
+            row.Status !== "DISPONIVEL" &&
+            !row["ID Empresa atual"])
         )
           row.falhar("ID Empresa atual", "EMPRESA_STATUS_INCOERENTE");
       }
@@ -348,13 +357,21 @@ export function validarBaseAcademica(
   for (const linha of registros.Matriculas) {
     referencia(linha, "ID Aluno", "Alunos");
     const turma = referencia(linha, "ID Turma", "Turmas");
-    if (linha["ID Empresa atual"]) referencia(linha, "ID Empresa atual", "Empresas");
-    if (turma?.valido && linha["Termo atual"] > turma["Quantidade total de termos"])
+    if (linha["ID Empresa atual"])
+      referencia(linha, "ID Empresa atual", "Empresas");
+    if (
+      turma?.valido &&
+      linha["Termo atual"] > turma["Quantidade total de termos"]
+    )
       linha.falhar("Termo atual", "TERMO_ACIMA_DURACAO");
   }
   for (const [aba, linhas] of Object.entries(registros)) {
-    contagens[aba].validas = linhas.filter((registro) => registro.valido).length;
-    contagens[aba].invalidas += linhas.filter((registro) => !registro.valido).length;
+    contagens[aba].validas = linhas.filter(
+      (registro) => registro.valido,
+    ).length;
+    contagens[aba].invalidas += linhas.filter(
+      (registro) => !registro.valido,
+    ).length;
     for (const linha of linhas) delete linha.falhar;
   }
   return {

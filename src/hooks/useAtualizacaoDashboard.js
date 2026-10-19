@@ -14,12 +14,14 @@ export function useAtualizacaoDashboard(atualizar) {
       if (document.visibilityState === "visible") aoAtualizar.current();
     };
     window.addEventListener("alunos:sincronizados", executar);
+    window.addEventListener("empresas:sincronizadas", executar);
     window.addEventListener("focus", executar);
     document.addEventListener("visibilitychange", executar);
     // Inclui aprovações feitas por outro administrador ou em outra aba.
     const intervalo = window.setInterval(executar, 60_000);
     return () => {
       window.removeEventListener("alunos:sincronizados", executar);
+      window.removeEventListener("empresas:sincronizadas", executar);
       window.removeEventListener("focus", executar);
       document.removeEventListener("visibilitychange", executar);
       window.clearInterval(intervalo);

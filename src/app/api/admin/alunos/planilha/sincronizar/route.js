@@ -12,7 +12,10 @@ export async function POST(requisicao) {
   if (erroCapturado) return erroCapturado;
   if (process.env.GOOGLE_SHEETS_RECEBIMENTOS_AUTO !== "true") {
     return NextResponse.json(
-      { mensagem: "Integração automática desativada neste ambiente.", desativada: true },
+      {
+        mensagem: "Integração automática desativada neste ambiente.",
+        desativada: true,
+      },
       { headers: { "Cache-Control": "no-store" } },
     );
   }
@@ -20,8 +23,11 @@ export async function POST(requisicao) {
     const recebimentos = await sincronizarRecebimentos(prisma);
     return NextResponse.json(
       {
-        mensagem:
-          "Alunos processados automaticamente; empresas recebidas para conferência.",
+        mensagem: recebimentos.espelho.falha
+          ? "Cadastros processados; espelhamento da planilha pendente."
+          : recebimentos.espelho.desativado
+            ? "Cadastros processados; espelhamento desativado neste ambiente."
+            : "Alunos e empresas processados automaticamente; planilha atualizada com os dados do sistema.",
         recebimentos,
       },
       { headers: { "Cache-Control": "no-store" } },

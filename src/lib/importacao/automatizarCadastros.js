@@ -1,12 +1,9 @@
-import { revisarRecebimento } from "./aprovarRecebimento";
+import { processarRecebimento } from "./processarRecebimento";
 
-// CPF é o identificador autorizado pelo cliente. Não há confirmação de identidade.
-
-export async function automatizarAlunos(prisma, fonte) {
-  const where = { fonte, tipo: "ALUNO", estado: "PENDENTE" };
-  const validos = { ...where, erros: { equals: [] } };
+export async function automatizarCadastros(prisma, fonte, tipo) {
+  const filtro = { fonte, tipo, estado: "PENDENTE" };
   const linhas = await prisma.recebimentoCadastro.findMany({
-    where: validos,
+    where: filtro,
     orderBy: [{ recebidoEm: "asc" }, { id: "asc" }],
     take: 500,
     select: { id: true },
@@ -16,20 +13,14 @@ export async function automatizarAlunos(prisma, fonte) {
     atualizados: 0,
     ignorados: 0,
     invalidos: await prisma.recebimentoCadastro.count({
-      where: { ...where, NOT: { erros: { equals: [] } } },
+      where: { fonte, tipo, estado: "INVALIDO" },
     }),
     falhas: 0,
     restantes: 0,
   };
   for (const registro of linhas) {
     try {
-      const saida = await revisarRecebimento(
-        prisma,
-        registro.id,
-        null,
-        { acao: "aprovar" },
-        true,
-      );
+      const saida = await processarRecebimento(prisma, registro.id);
       if (saida.repetido || saida.ignorado) resultado.ignorados++;
       else if (saida.operacao === "criado") resultado.criados++;
       else if (saida.operacao === "atualizado") resultado.atualizados++;
@@ -37,6 +28,8 @@ export async function automatizarAlunos(prisma, fonte) {
       resultado.falhas++;
     }
   }
-  resultado.restantes = await prisma.recebimentoCadastro.count({ where: validos });
+  resultado.restantes = await prisma.recebimentoCadastro.count({
+    where: filtro,
+  });
   return resultado;
 }
