@@ -3,36 +3,38 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { adminLoginSchema } from "@/lib/validations/adminLoginSchema";
 import { loginAdmin } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "@/constants/routes";
 
 export function useAdminLogin() {
-  const [apiError, setApiError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [erroApi, setErroApi] = useState(null);
+  const [carregando, setCarregando] = useState(false);
   const { login } = useAuth();
-
-  const form = useForm({
+  const router = useRouter();
+  const formulario = useForm({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: { email: "", senha: "" },
   });
-
-  const onSubmit = form.handleSubmit(async (values) => {
-    setApiError(null);
-    setIsLoading(true);
+  const enviarFormulario = formulario.handleSubmit(async (valores) => {
+    setErroApi(null);
+    setCarregando(true);
     try {
-      const data = await loginAdmin(values);
-      // A rota /api/auth/admin/login ainda não emite token (ver authService.js),
-      // então guardamos a sessão sem token por enquanto. Quando a rota passar a
-      // retornar um token, basta trocar `null` por `data.token` aqui.
-      login(null, "admin", data.usuario);
-      // TODO: redirecionar para ROUTES.ADMIN_DASHBOARD assim que a tela existir
-    } catch (err) {
-      setApiError("E-mail ou senha inválidos.");
+      const dados = await loginAdmin(valores);
+      login("admin", dados.usuario);
+      router.push(ROUTES.ADMIN_DASHBOARD);
+    } catch (erroCapturado) {
+      setErroApi(erroCapturado.response?.data?.mensagem || "E-mail ou senha inválidos.");
     } finally {
-      setIsLoading(false);
+      setCarregando(false);
     }
   });
-
-  return { ...form, onSubmit, apiError, isLoading };
+  return {
+    ...formulario,
+    onSubmit: enviarFormulario,
+    apiError: erroApi,
+    isLoading: carregando,
+  };
 }

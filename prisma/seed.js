@@ -12,73 +12,76 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  // Dados do administrador vindos do arquivo .env
-  const nome = process.env.ADMIN_INITIAL_NAME;
-  const email = process.env.ADMIN_INITIAL_EMAIL;
-  const senha = process.env.ADMIN_INITIAL_PASSWORD;
-
-  // Senha inicial da empresa de teste
+  const nomeAdministrador = process.env.ADMIN_INITIAL_NAME;
+  const emailAdministrador = process.env.ADMIN_INITIAL_EMAIL;
+  const senhaAdministrador = process.env.ADMIN_INITIAL_PASSWORD;
   const senhaEmpresa = process.env.EMPRESA_TEST_PASSWORD;
 
-  // Confere os dados obrigatórios do administrador
-  if (!nome || !email || !senha) {
+  if (
+    !nomeAdministrador ||
+    !emailAdministrador ||
+    !senhaAdministrador
+  ) {
     throw new Error(
       "Configure ADMIN_INITIAL_NAME, ADMIN_INITIAL_EMAIL e ADMIN_INITIAL_PASSWORD no .env."
     );
   }
 
-  // Confere a senha da empresa de teste
   if (!senhaEmpresa) {
     throw new Error(
       "Configure EMPRESA_TEST_PASSWORD no arquivo .env."
     );
   }
 
-  // Impede uma senha administrativa muito curta
-  if (senha.length < 8) {
+  if (senhaAdministrador.length < 8) {
     throw new Error(
       "ADMIN_INITIAL_PASSWORD deve possuir pelo menos 8 caracteres."
     );
   }
 
-  // Impede uma senha de empresa muito curta
   if (senhaEmpresa.length < 8) {
     throw new Error(
       "EMPRESA_TEST_PASSWORD deve possuir pelo menos 8 caracteres."
     );
   }
 
-  // Normaliza o e-mail do administrador
-  const emailNormalizado = email.trim().toLowerCase();
+  const emailAdministradorNormalizado = emailAdministrador
+    .trim()
+    .toLowerCase();
 
-  // Cria hashes seguros para as duas senhas
-  const senhaHashAdministrador = await hash(senha, 12);
+  const senhaHashAdministrador = await hash(
+    senhaAdministrador,
+    12
+  );
+
   const senhaHashEmpresa = await hash(senhaEmpresa, 12);
 
-  // Cria ou atualiza o administrador
+  // Cria ou atualiza o administrador inicial
   const administrador = await prisma.administrador.upsert({
     where: {
-      email: emailNormalizado,
+      email: emailAdministradorNormalizado,
     },
 
     update: {
-      nome: nome.trim(),
+      nome: nomeAdministrador.trim(),
       senhaHash: senhaHashAdministrador,
       ativo: true,
     },
 
     create: {
-      nome: nome.trim(),
-      email: emailNormalizado,
+      nome: nomeAdministrador.trim(),
+      email: emailAdministradorNormalizado,
       senhaHash: senhaHashAdministrador,
       ativo: true,
     },
   });
 
-  console.log(`Administrador preparado: ${administrador.email}`);
+  console.log(
+    `Administrador preparado: ${administrador.email}`
+  );
 
-  // Cria ou atualiza a empresa de teste
-  const empresa = await prisma.empresa.upsert({
+  // Empresa usada para testar o login
+  const empresaTeste = await prisma.empresa.upsert({
     where: {
       cnpj: "11222333000181",
     },
@@ -105,12 +108,91 @@ async function main() {
     },
   });
 
-  console.log(`Empresa preparada: ${empresa.razaoSocial}`);
+  console.log(
+    `Empresa preparada: ${empresaTeste.nomeFantasia}`
+  );
+
+  /*
+   * Empresas disponíveis no Google Forms.
+   *
+   * Os nomes fantasia precisam permanecer iguais aos nomes
+   * presentes na planilha, pois serão utilizados para relacionar
+   * o aluno à empresa.
+   *
+   * Estes CNPJs são destinados somente ao ambiente local de teste.
+   */
+  const empresasDoFormulario = [
+    {
+      cnpj: "90000000000184",
+      razaoSocial: "Tech Solutions - Ambiente de Teste",
+      nomeFantasia: "Tech Solutions",
+    },
+    {
+      cnpj: "90000000000265",
+      razaoSocial: "Alfa Industrial - Ambiente de Teste",
+      nomeFantasia: "Alfa Industrial",
+    },
+    {
+      cnpj: "90000000000346",
+      razaoSocial: "Acciona - Ambiente de Teste",
+      nomeFantasia: "Acciona",
+    },
+    {
+      cnpj: "90000000000427",
+      razaoSocial: "Microsoft - Ambiente de Teste",
+      nomeFantasia: "Microsoft",
+    },
+    {
+      cnpj: "90000000000508",
+      razaoSocial: "Google - Ambiente de Teste",
+      nomeFantasia: "Google",
+    },
+    {
+      cnpj: "90000000000699",
+      razaoSocial: "BrSplice - Ambiente de Teste",
+      nomeFantasia: "BrSplice",
+    },
+  ];
+
+  for (const dadosEmpresa of empresasDoFormulario) {
+    const empresa = await prisma.empresa.upsert({
+      where: {
+        cnpj: dadosEmpresa.cnpj,
+      },
+
+      update: {
+        razaoSocial: dadosEmpresa.razaoSocial,
+        nomeFantasia: dadosEmpresa.nomeFantasia,
+        senhaHash: senhaHashEmpresa,
+        autorizada: true,
+        ativa: true,
+      },
+
+      create: {
+        cnpj: dadosEmpresa.cnpj,
+        razaoSocial: dadosEmpresa.razaoSocial,
+        nomeFantasia: dadosEmpresa.nomeFantasia,
+        senhaHash: senhaHashEmpresa,
+        autorizada: true,
+        ativa: true,
+      },
+    });
+
+    console.log(
+      `Empresa preparada: ${empresa.nomeFantasia}`
+    );
+  }
+
+  console.log("Dados iniciais preparados com sucesso.");
 }
 
 main()
   .catch((error) => {
-    console.error("Erro ao preparar os dados iniciais:", error);
+    console.error(
+      "Erro ao preparar os dados iniciais:",
+      error
+    );
+
     process.exitCode = 1;
   })
   .finally(async () => {

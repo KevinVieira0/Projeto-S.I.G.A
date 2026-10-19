@@ -1,15 +1,17 @@
 /**
  * Remove tudo que não for dígito.
  */
-export function onlyDigits(value = "") {
-  return value.replace(/\D/g, "");
+
+export function onlyDigits(valor = "") {
+  return valor.replace(/\D/g, "");
 }
 
 /**
  * Aplica a máscara 00.000.000/0000-00 enquanto o usuário digita.
  */
-export function maskCnpj(value = "") {
-  return onlyDigits(value)
+
+export function maskCnpj(valor = "") {
+  return onlyDigits(valor)
     .slice(0, 14)
     .replace(/^(\d{2})(\d)/, "$1.$2")
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
@@ -22,26 +24,27 @@ export function maskCnpj(value = "") {
  * NÃO confirma se é uma empresa beneficiária - isso é feito
  * pela API em cnpjService.js).
  */
-export function isValidCnpjFormat(cnpj = "") {
-  const digits = onlyDigits(cnpj);
-  if (digits.length !== 14) return false;
-  if (/^(\d)\1{13}$/.test(digits)) return false;
 
-  const calcCheckDigit = (base) => {
-    const weights =
+export function isValidCnpjFormat(cnpj = "") {
+  const digitos = onlyDigits(cnpj);
+  if (digitos.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digitos)) return false;
+  const calcularDigitoVerificador = (base) => {
+    const pesos =
       base.length === 12
         ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
         : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    const sum = base
+    const soma = base
       .split("")
-      .reduce((acc, digit, i) => acc + Number(digit) * weights[i], 0);
-    const rest = sum % 11;
+      .reduce(
+        (acumulado, digito, indice) => acumulado + Number(digito) * pesos[indice],
+        0,
+      );
+    const rest = soma % 11;
     return rest < 2 ? 0 : 11 - rest;
   };
-
-  const base = digits.slice(0, 12);
-  const digit1 = calcCheckDigit(base);
-  const digit2 = calcCheckDigit(base + digit1);
-
-  return digits === base + String(digit1) + String(digit2);
+  const base = digitos.slice(0, 12);
+  const primeiroDigito = calcularDigitoVerificador(base);
+  const segundoDigito = calcularDigitoVerificador(base + primeiroDigito);
+  return digitos === base + String(primeiroDigito) + String(segundoDigito);
 }

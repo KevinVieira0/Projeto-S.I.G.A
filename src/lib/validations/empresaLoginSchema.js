@@ -5,12 +5,8 @@ export const empresaLoginSchema = z.object({
   cnpj: z
     .string()
     .min(1, "Informe o CNPJ")
-    .refine(
-      (value) => onlyDigits(value).length === 14,
-      "CNPJ incompleto"
-    )
+    .refine((valor) => onlyDigits(valor).length === 14, "CNPJ incompleto")
     .refine(isValidCnpjFormat, "CNPJ inválido"),
-
   senha: z
     .string()
     .min(1, "Informe a senha")

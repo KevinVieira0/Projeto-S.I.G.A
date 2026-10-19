@@ -7,64 +7,42 @@ import { empresaLoginSchema } from "@/lib/validations/empresaLoginSchema";
 import { useCnpjValidation } from "./useCnpjValidation";
 import { loginEmpresa } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 export function useEmpresaLogin() {
-  const [apiError, setApiError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [erroApi, setErroApi] = useState(null);
+  const [carregando, setCarregando] = useState(false);
   const { login } = useAuth();
-
-  const form = useForm({
+  const router = useRouter();
+  const formulario = useForm({
     resolver: zodResolver(empresaLoginSchema),
-
-    defaultValues: {
-      cnpj: "",
-      senha: "",
-    },
+    defaultValues: { cnpj: "", senha: "" },
   });
-
-  const cnpjValue = form.watch("cnpj");
-
-  const { status, razaoSocial } = useCnpjValidation(cnpjValue);
-
-  const onSubmit = form.handleSubmit(async (values) => {
-    setApiError(null);
-
+  const valorCnpj = formulario.watch("cnpj");
+  const { status } = useCnpjValidation(valorCnpj);
+  const enviarFormulario = formulario.handleSubmit(async (valores) => {
+    setErroApi(null);
     if (status !== "valid") {
-      setApiError(
-        "Confirme um CNPJ de empresa beneficiária válido antes de continuar."
-      );
+      setErroApi("Confirme um CNPJ de empresa beneficiária válido antes de continuar.");
       return;
     }
-
-    setIsLoading(true);
-
+    setCarregando(true);
     try {
-      const data = await loginEmpresa(values);
-
-      login(null, "empresa", data.usuario);
-
-      console.log(
-        "Login da empresa realizado com sucesso:",
-        data.usuario,
-        razaoSocial
-      );
-
-      // O redirecionamento será adicionado quando o dashboard existir.
-    } catch (error) {
-      setApiError(
-        error.response?.data?.mensagem || "CNPJ ou senha inválidos."
-      );
+      const dados = await loginEmpresa(valores);
+      login("empresa", dados.usuario);
+      router.push(ROUTES.EMPRESA_SOLICITACAO);
+    } catch (erroCapturado) {
+      setErroApi(erroCapturado.response?.data?.mensagem || "CNPJ ou senha inválidos.");
     } finally {
-      setIsLoading(false);
+      setCarregando(false);
     }
   });
-
   return {
-    ...form,
-    onSubmit,
-    apiError,
-    isLoading,
+    ...formulario,
+    onSubmit: enviarFormulario,
+    apiError: erroApi,
+    isLoading: carregando,
     cnpjStatus: status,
   };
 }
