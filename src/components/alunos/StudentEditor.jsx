@@ -308,7 +308,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                       mudar("termo", 1);
                     }}
                   >
-                    <option value="">Selecione uma oferta</option>
+                    <option value="">Selecione uma turma</option>
                     {catalogo.turmas.map((oferta) => (
                       <option key={oferta.id} value={oferta.id}>
                         {oferta.curso.nome} · {oferta.curso.tipoCurso} ·{" "}

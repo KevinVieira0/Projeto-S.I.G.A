@@ -8,7 +8,7 @@ export const SEXOS = [
 
 export const PRATICAS = [
   { value: "com", label: "Com prática na empresa" },
-  { value: "sem", label: "Sem prática (somente bolsa)" },
+  { value: "sem", label: "Sem prática" },
 ];
 
 // Datas civis YYYY-MM-DD no calendário do SENAI (America/Sao_Paulo).

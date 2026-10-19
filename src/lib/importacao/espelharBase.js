@@ -181,10 +181,12 @@ export async function espelharBase(prisma) {
   if (process.env.GOOGLE_SHEETS_ESPELHO_AUTO !== "true")
     return { desativado: true };
   const idPlanilha = process.env.GOOGLE_SHEETS_ACADEMICO_ID;
+
   const autenticacao = new google.auth.GoogleAuth({
-    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS),
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
+  console.log(autenticacao);
   const planilhas = google.sheets({
     version: "v4",
     auth: await autenticacao.getClient(),

@@ -15,7 +15,7 @@ export const dashboardStyles = {
   primaryAction:
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none",
   secondaryAction:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg  border border-gray-200 bg-[#0a3d7c] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a75dc] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
   error:
     "rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700",
 };
