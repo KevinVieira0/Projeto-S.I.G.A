@@ -19,7 +19,7 @@ import DashboardCard, {
   dashboardStyles,
 } from "./DashboardCard";
 
-export default function CompaniesTable() {
+export default function CompaniesTable({ gestao = false }) {
   const idTitulo = useId();
   const tabelaRef = useRef(null);
   const buscaRef = useRef(null);
@@ -92,7 +92,11 @@ export default function CompaniesTable() {
         headingId={idTitulo}
         eyebrow="Cadastros"
         title="Empresas cadastradas"
-        description="Clique em uma empresa para ver os detalhes, alunos vinculados e solicitações."
+        description={
+          gestao
+            ? "Clique em uma empresa para ver os detalhes, alunos vinculados e solicitações."
+            : "Consulte as empresas cadastradas e sua situação cadastral."
+        }
       />
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -143,7 +147,7 @@ export default function CompaniesTable() {
             </div>
           </div>
         </div>
-        {mensagem && (
+        {gestao && mensagem && (
           <p
             role="status"
             className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
@@ -190,19 +194,21 @@ export default function CompaniesTable() {
                       {titulo}
                     </th>
                   ))}
-                  <th
-                    scope="col"
-                    className="sticky right-0 z-10 border-l border-gray-200 bg-gray-50 px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500"
-                  >
-                    Ações
-                  </th>
+                  {gestao && (
+                    <th
+                      scope="col"
+                      className="sticky right-0 z-10 border-l border-gray-200 bg-gray-50 px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500"
+                    >
+                      Ações
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {carregando ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7 + (gestao ? 1 : 0)}
                       className="px-4 py-10 text-center text-sm text-gray-500"
                     >
                       <span role="status">Carregando empresas...</span>
@@ -212,31 +218,45 @@ export default function CompaniesTable() {
                   dados.itens.map((empresa) => (
                     <tr
                       key={empresa.id}
-                      className={`cursor-pointer transition-colors motion-reduce:transition-none ${painel?.id === empresa.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"}`}
-                      onClick={(evento) => {
-                        if (evento.target.closest("button, a, input, select"))
-                          return;
-                        evento.currentTarget
-                          .querySelector("button[data-detalhes]")
-                          ?.focus();
-                        setPainel({ id: empresa.id, modo: "detalhes" });
-                      }}
+                      className={`transition-colors motion-reduce:transition-none ${gestao ? "cursor-pointer" : ""} ${gestao && painel?.id === empresa.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"}`}
+                      onClick={
+                        gestao
+                          ? (evento) => {
+                              if (
+                                evento.target.closest(
+                                  "button, a, input, select",
+                                )
+                              )
+                                return;
+                              evento.currentTarget
+                                .querySelector("button[data-detalhes]")
+                                ?.focus();
+                              setPainel({ id: empresa.id, modo: "detalhes" });
+                            }
+                          : undefined
+                      }
                     >
                       <td className="whitespace-nowrap px-4 py-3 text-gray-600">
-                        <button
-                          type="button"
-                          data-detalhes
-                          data-empresa-id={empresa.id}
-                          aria-haspopup="dialog"
-                          aria-label={`Ver detalhes de ${empresa.razaoSocial}`}
-                          className="rounded text-left font-medium text-gray-900 hover:text-[#0a3d7c] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                          onClick={(evento) => {
-                            evento.currentTarget.focus();
-                            setPainel({ id: empresa.id, modo: "detalhes" });
-                          }}
-                        >
-                          {empresa.razaoSocial}
-                        </button>
+                        {gestao ? (
+                          <button
+                            type="button"
+                            data-detalhes
+                            data-empresa-id={empresa.id}
+                            aria-haspopup="dialog"
+                            aria-label={`Ver detalhes de ${empresa.razaoSocial}`}
+                            className="rounded text-left font-medium text-gray-900 hover:text-[#0a3d7c] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                            onClick={(evento) => {
+                              evento.currentTarget.focus();
+                              setPainel({ id: empresa.id, modo: "detalhes" });
+                            }}
+                          >
+                            {empresa.razaoSocial}
+                          </button>
+                        ) : (
+                          <span className="font-medium text-gray-900">
+                            {empresa.razaoSocial}
+                          </span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-gray-600">
                         {empresa.nomeFantasia || "—"}
@@ -264,29 +284,31 @@ export default function CompaniesTable() {
                           {empresa.ativa ? "Ativa" : "Inativa"}
                         </span>
                       </td>
-                      <td className="sticky right-0 whitespace-nowrap border-l border-gray-100 bg-white px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          data-empresa-id={empresa.id}
-                          aria-haspopup="dialog"
-                          aria-label={`Editar empresa ${empresa.razaoSocial}`}
-                          title="Editar empresa"
-                          className="rounded-lg p-2 text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                          onClick={(evento) => {
-                            evento.currentTarget.focus();
-                            setMensagem("");
-                            setPainel({ id: empresa.id, modo: "editar" });
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                      </td>
+                      {gestao && (
+                        <td className="sticky right-0 whitespace-nowrap border-l border-gray-100 bg-white px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            data-empresa-id={empresa.id}
+                            aria-haspopup="dialog"
+                            aria-label={`Editar empresa ${empresa.razaoSocial}`}
+                            title="Editar empresa"
+                            className="rounded-lg p-2 text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            onClick={(evento) => {
+                              evento.currentTarget.focus();
+                              setMensagem("");
+                              setPainel({ id: empresa.id, modo: "editar" });
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7 + (gestao ? 1 : 0)}
                       className="px-4 py-10 text-center text-sm text-gray-500"
                     >
                       Nenhuma empresa encontrada com os filtros atuais.
@@ -332,7 +354,7 @@ export default function CompaniesTable() {
           </button>
         </div>
       </DashboardCardFooter>
-      {painel?.modo === "detalhes" && (
+      {gestao && painel?.modo === "detalhes" && (
         <CompanyDetails
           key={`detalhes-${painel.id}`}
           empresaId={painel.id}
@@ -343,7 +365,7 @@ export default function CompaniesTable() {
           }}
         />
       )}
-      {painel?.modo === "editar" && (
+      {gestao && painel?.modo === "editar" && (
         <CompanyEditor
           key={`editar-${painel.id}`}
           empresaId={painel.id}
