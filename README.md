@@ -246,6 +246,32 @@ npx.cmd prisma studio
 
 ---
 
+### Dados fictícios durante o desenvolvimento
+
+As duas opções ficam no `.env` da raiz e só têm efeito com `npm run dev`:
+
+```env
+NEXT_PUBLIC_MODO_TESTE="true"
+VALIDAR_CPF="false"
+```
+
+- `NEXT_PUBLIC_MODO_TESTE=true`: mostra **Preencher dados de teste** em
+  **Alunos > Novo aluno**. O botão preenche os dados pessoais e gera um novo CPF
+  com dígitos verificadores válidos a cada clique. Ele não aparece na edição
+  de alunos e não salva o formulário. Escolha curso, turma e termo, revise e
+  clique em **Cadastrar aluno**.
+- `VALIDAR_CPF=false`: permite CPF fictício no cadastro e na edição internos,
+  mantendo a exigência de 11 dígitos e a proteção contra duplicidades.
+  `true`, ausência da variável ou execução em produção exigem CPF válido.
+  Essa opção não altera CNPJ nem as validações de Google Forms e importações.
+- O código do botão está em `src/components/alunos/StudentEditor.jsx`; os dados
+  são gerados em `src/lib/alunos/dadosPessoais.js`. A validação do CPF está em
+  `src/lib/alunos/gestao.js`, no `alunoSchema`.
+
+As opções são independentes: o botão também funciona com `VALIDAR_CPF=true`.
+Reinicie o servidor após mudar o `.env`. Para esconder o botão, use
+`NEXT_PUBLIC_MODO_TESTE=false`. O `.env.example` contém o mesmo modelo.
+
 ## 8. Integrar Google Sheets e Google Forms
 
 Pule esta seção se desejar apenas abrir o sistema com o banco local. Nesse caso, mantenha as duas variáveis `GOOGLE_SHEETS_*_AUTO` como `false`.
