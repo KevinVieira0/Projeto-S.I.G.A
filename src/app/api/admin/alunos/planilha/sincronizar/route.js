@@ -1,8 +1,9 @@
-
 import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sincronizarRecebimentos } from "@/lib/importacao/sincronizarRecebimentos";
+import { ErroFonteAcademica } from "@/lib/importacao/googleSheetsAcademico";
+import { mensagemErroGoogle } from "@/lib/importacao/autenticacaoGoogle";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,14 +42,17 @@ export async function POST(requisicao) {
   } catch (error) {
     console.error("[SINCRONIZACAO] Falha:", {
       nome: error?.name,
-      mensagem: error?.message,
       codigo: error?.code,
       status: error?.response?.status,
     });
 
     return NextResponse.json(
       {
-        mensagem: "Erro interno ao sincronizar os cadastros.",
+        mensagem:
+          mensagemErroGoogle(error) ||
+          (error instanceof ErroFonteAcademica
+            ? error.message
+            : "Não foi possível sincronizar os cadastros. Confira o catálogo e a conexão com o banco."),
       },
       { status: 502 },
     );

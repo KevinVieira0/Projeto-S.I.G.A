@@ -20,6 +20,8 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
   const [conflito, setConflito] = useState(false);
+  const [senhaAcesso, setSenhaAcesso] = useState("");
+  const [confirmacaoSenha, setConfirmacaoSenha] = useState("");
   useEffect(() => {
     const dialogo = dialogoRef.current;
     const focoAnterior = document.activeElement;
@@ -39,6 +41,8 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
     setFormulario(null);
     setErro("");
     setConflito(false);
+    setSenhaAcesso("");
+    setConfirmacaoSenha("");
     apiClient
       .get(`/admin/empresas/${empresaId}`, { signal: controlador.signal })
       .then(({ data }) => {
@@ -72,12 +76,17 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
   async function salvar(evento) {
     evento.preventDefault();
     if (carregando || salvando || conflito || !empresa) return;
+    if (senhaAcesso !== confirmacaoSenha) {
+      setErro("As senhas não coincidem.");
+      return;
+    }
     setSalvando(true);
     setErro("");
     try {
       const { data } = await apiClient.patch(`/admin/empresas/${empresaId}`, {
         ...formulario,
         versao: empresa.versao,
+        ...(senhaAcesso ? { senhaAcesso } : {}),
       });
       window.dispatchEvent(new Event("empresas:sincronizadas"));
       if (montadoRef.current)
@@ -186,18 +195,75 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
                     <select
                       className={classeCampo}
                       value={formulario.ativa ? "ativa" : "inativa"}
-                      onChange={(evento) =>
+                      onChange={(evento) => {
                         setFormulario((anterior) => ({
                           ...anterior,
                           ativa: evento.target.value === "ativa",
-                        }))
-                      }
+                        }));
+                        setSenhaAcesso("");
+                        setConfirmacaoSenha("");
+                      }}
                     >
                       <option value="ativa">Ativa</option>
                       <option value="inativa">Inativa</option>
                     </select>
                   </label>
                 </div>
+                <section
+                  aria-label="Acesso da empresa"
+                  className="space-y-4 rounded-xl border border-gray-200 p-4"
+                >
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Acesso da empresa
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                      {empresa.acessoConfigurado
+                        ? "Senha cadastrada. Preencha os campos somente se quiser alterá-la."
+                        : "Para entrar no sistema, a empresa precisa de uma senha. Defina-a abaixo e salve o cadastro."}
+                    </p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block text-xs font-medium text-gray-600">
+                      {empresa.acessoConfigurado
+                        ? "Nova senha de acesso"
+                        : "Senha de acesso"}
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        className={classeCampo}
+                        value={senhaAcesso}
+                        onChange={(evento) =>
+                          setSenhaAcesso(evento.target.value)
+                        }
+                        minLength={8}
+                        maxLength={72}
+                        disabled={!formulario.ativa}
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-gray-600">
+                      Confirmar senha de acesso
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        className={classeCampo}
+                        value={confirmacaoSenha}
+                        onChange={(evento) =>
+                          setConfirmacaoSenha(evento.target.value)
+                        }
+                        minLength={8}
+                        maxLength={72}
+                        required={Boolean(senhaAcesso)}
+                        disabled={!formulario.ativa}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs leading-5 text-gray-500">
+                    {formulario.ativa
+                      ? "Use pelo menos 8 caracteres. Ao salvar a senha, o acesso fica habilitado com o CNPJ cadastrado. Alterá-la encerra as sessões anteriores."
+                      : "O acesso permanece bloqueado enquanto a empresa estiver inativa."}
+                  </p>
+                </section>
                 <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
                   <p className="text-xs leading-5 text-gray-500">
                     Inativar bloqueia o acesso da empresa ao sistema e novos

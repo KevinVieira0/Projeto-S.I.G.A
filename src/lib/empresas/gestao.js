@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hash } from "bcryptjs";
 
 export class ErroGestaoEmpresa extends Error {
   constructor(mensagem, status = 400) {
@@ -47,6 +48,15 @@ const empresaSchema = z
       )
       .transform((valor) => valor || null),
     ativa: z.boolean(),
+    senhaAcesso: z
+      .string()
+      .refine(
+        (valor) =>
+          valor === "" ||
+          (valor.trim().length >= 8 && Buffer.byteLength(valor, "utf8") <= 72),
+        "A senha deve ter pelo menos 8 caracteres e no máximo 72 bytes.",
+      )
+      .optional(),
     versao: z.string().datetime(),
   })
   .strict();
@@ -61,7 +71,12 @@ export async function editarEmpresa(prisma, administradorId, id, entrada) {
   const validacao = empresaSchema.safeParse(entrada);
   if (!validacao.success)
     throw new ErroGestaoEmpresa(validacao.error.issues[0].message);
-  const { versao, ...dados } = validacao.data;
+  const { versao, senhaAcesso, ...dados } = validacao.data;
+  if (senhaAcesso && !dados.ativa)
+    throw new ErroGestaoEmpresa(
+      "Ative a empresa antes de configurar o acesso.",
+    );
+  const senhaHash = senhaAcesso ? await hash(senhaAcesso, 12) : null;
   return prisma.$transaction(
     async (transacao) => {
       // Compartilhado com a entrada por formulário e o espelho da planilha.
@@ -84,7 +99,10 @@ export async function editarEmpresa(prisma, administradorId, id, entrada) {
         );
       return transacao.empresa.update({
         where: { id },
-        data: dados,
+        data: {
+          ...dados,
+          ...(senhaHash ? { senhaHash, autorizada: true } : {}),
+        },
         select: camposEmpresa,
       });
     },

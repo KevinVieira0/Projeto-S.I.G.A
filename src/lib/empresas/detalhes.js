@@ -9,9 +9,10 @@ export async function obterDetalhesEmpresa(prisma, id) {
     async (transacao) => {
       const empresa = await transacao.empresa.findUnique({
         where: { id },
-        select: camposEmpresa,
+        select: { ...camposEmpresa, autorizada: true, senhaHash: true },
       });
       if (!empresa) throw new ErroGestaoEmpresa("Empresa não encontrada.", 404);
+      const { senhaHash, autorizada, ...cadastro } = empresa;
       const filtroAlunos = { empresaId: id, arquivadoEm: null };
       const filtroContratos = {
         empresaAtualId: id,
@@ -67,7 +68,8 @@ export async function obterDetalhesEmpresa(prisma, id) {
         }),
       ]);
       return {
-        ...empresa,
+        ...cadastro,
+        acessoConfigurado: Boolean(autorizada && senhaHash),
         versao: empresa.atualizadoEm.toISOString(),
         alunos,
         solicitacoes,

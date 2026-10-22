@@ -10,7 +10,9 @@ const loginSchema = z.object({
     .string()
     .transform((valor) => valor.replace(/\D/g, ""))
     .refine((valor) => /^\d{14}$/.test(valor), { message: "CNPJ inválido." }),
-  senha: z.string().min(6, { message: "A senha deve possuir pelo menos 6 caracteres." }),
+  senha: z
+    .string()
+    .min(6, { message: "A senha deve possuir pelo menos 6 caracteres." }),
 });
 
 export async function POST(requisicao) {
@@ -38,12 +40,27 @@ export async function POST(requisicao) {
         ativa: true,
       },
     });
-    if (!empresa || !empresa.ativa || !empresa.autorizada || !empresa.senhaHash) {
-      return NextResponse.json({ mensagem: "CNPJ ou senha inválidos." }, { status: 401 });
+    if (!empresa || !empresa.ativa) {
+      return NextResponse.json(
+        { mensagem: "CNPJ ou senha inválidos." },
+        { status: 401 },
+      );
+    }
+    if (!empresa.autorizada || !empresa.senhaHash) {
+      return NextResponse.json(
+        {
+          mensagem:
+            "O acesso desta empresa ainda não foi configurado. Peça ao administrador que defina a senha no cadastro da empresa.",
+        },
+        { status: 403 },
+      );
     }
     const senhaCorreta = await compare(senha, empresa.senhaHash);
     if (!senhaCorreta) {
-      return NextResponse.json({ mensagem: "CNPJ ou senha inválidos." }, { status: 401 });
+      return NextResponse.json(
+        { mensagem: "CNPJ ou senha inválidos." },
+        { status: 401 },
+      );
     }
     const resposta = NextResponse.json({
       mensagem: "Login realizado com sucesso.",

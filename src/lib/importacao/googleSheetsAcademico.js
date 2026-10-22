@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import { LIMITE_LINHAS } from "./baseAcademica";
+import { criarAutenticacaoGoogle } from "./autenticacaoGoogle";
 
 const COLUNAS = {
   Cursos: "C",
@@ -13,22 +14,13 @@ export class ErroFonteAcademica extends Error {}
 
 export async function lerBaseAcademicaDaPlanilha(colunas = COLUNAS) {
   const idPlanilha = process.env.GOOGLE_SHEETS_ACADEMICO_ID;
-  const arquivoCredenciais = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-  
-
-  console.log(arquivoCredenciais);
   if (!idPlanilha)
     throw new ErroFonteAcademica(
       "Configure GOOGLE_SHEETS_ACADEMICO_ID com a planilha acadêmica.",
     );
-  if (!arquivoCredenciais)
-    throw new ErroFonteAcademica(
-      "Credenciais de leitura do Google Sheets não configuradas.",
-    );
-  const autenticacao = new google.auth.GoogleAuth({
-    credentials: arquivoCredenciais,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
+  const autenticacao = criarAutenticacaoGoogle([
+    "https://www.googleapis.com/auth/spreadsheets.readonly",
+  ]);
   const planilhas = google.sheets({
     version: "v4",
     auth: await autenticacao.getClient(),
