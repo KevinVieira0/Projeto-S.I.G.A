@@ -19,12 +19,18 @@ export function useCnpjValidation(valorCnpj) {
         ativo = false;
       };
     }
+    setStatus("checking");
     temporizadorRef.current = setTimeout(async () => {
-      setStatus("checking");
       try {
         const resultado = await validarCnpjBeneficiaria(valorCnpj);
         if (ativo) {
-          setStatus(resultado.beneficiaria ? "valid" : "invalid");
+          setStatus(
+            !resultado.beneficiaria
+              ? "invalid"
+              : resultado.acessoConfigurado === false
+                ? "access_pending"
+                : "valid",
+          );
         }
       } catch {
         if (ativo) {

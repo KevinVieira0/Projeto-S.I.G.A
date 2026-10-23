@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_requisicao, { params: parametros }) {
   const cnpj = parametros.cnpj.replace(/\D/g, "");
   if (!/^\d{14}$/.test(cnpj)) {
@@ -12,20 +14,30 @@ export async function GET(_requisicao, { params: parametros }) {
   try {
     const empresa = await prisma.empresa.findUnique({
       where: { cnpj },
-      select: { razaoSocial: true, autorizada: true, ativa: true },
+      select: {
+        razaoSocial: true,
+        autorizada: true,
+        ativa: true,
+        senhaHash: true,
+      },
     });
 
-    // A empresa só é beneficiária se existir, estiver autorizada e ativa
-    const beneficiaria = Boolean(empresa && empresa.autorizada && empresa.ativa);
-    return NextResponse.json({
-      beneficiaria,
-      razaoSocial: beneficiaria ? empresa.razaoSocial : null,
-      message: beneficiaria
-        ? "Empresa autorizada."
-        : "Empresa não localizada ou não autorizada.",
-    });
+    const beneficiaria = Boolean(empresa?.ativa);
+    return NextResponse.json(
+      {
+        beneficiaria,
+        acessoConfigurado: Boolean(
+          beneficiaria && empresa.autorizada && empresa.senhaHash,
+        ),
+        razaoSocial: beneficiaria ? empresa.razaoSocial : null,
+        message: beneficiaria
+          ? "Empresa beneficiária cadastrada."
+          : "Empresa não localizada ou inativa.",
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (erroCapturado) {
-    console.error("Erro ao consultar empresa:", erroCapturado);
+    console.error("Não foi possível consultar a empresa para validar o CNPJ.");
     return NextResponse.json(
       {
         beneficiaria: false,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useSincronizacaoAlunos } from "@/hooks/useSincronizacaoAlunos";
-import { dashboardStyles } from "./DashboardCard";
+import { dashboardStyles } from "../dashboard/DashboardCard";
 
-export default function StudentIntakeStatus({ tipo = "ALUNO" }) {
+export default function  StudentIntakeStatus({ tipo = "ALUNO" }) {
   const {
     sincronizar,
     isLoading: carregando,

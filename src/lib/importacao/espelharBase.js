@@ -5,6 +5,38 @@ import {
   dataAcademica,
 } from "./baseAcademica";
 import { lerBaseAcademicaDaPlanilha } from "./googleSheetsAcademico";
+import {
+  criarAutenticacaoGoogle,
+  mensagemErroGoogle,
+} from "./autenticacaoGoogle";
+
+export class ErroEspelhoNaoConciliado extends Error {
+  constructor(aba) {
+    super(
+      `Há registros na aba ${aba} que ainda não existem neste banco. Concilie os cadastros antes de espelhar a planilha.`,
+    );
+  }
+}
+
+export function conferirIdentidadesEspelho(abas, identidades) {
+  for (const nome of ["Alunos", "Empresas", "Matriculas", "Historico"]) {
+    const existentes = identidades[nome];
+    const ids = new Set(existentes.map((registro) => registro.id));
+    const documento =
+      nome === "Alunos" ? "cpf" : nome === "Empresas" ? "cnpj" : null;
+    const documentos = new Set(
+      documento ? existentes.map((registro) => registro[documento]) : [],
+    );
+    for (const linha of abas[nome].slice(1)) {
+      if (!linha.some((valor) => String(valor ?? "").trim())) continue;
+      const documentoConhecido =
+        documento && documentos.has(String(linha[2] || "").replace(/\D/g, ""));
+      // Inclui IDs arquivados: excluir pelo sistema também precisa limpar o espelho.
+      if (!ids.has(linha[0]) && !documentoConhecido)
+        throw new ErroEspelhoNaoConciliado(nome);
+    }
+  }
+}
 
 const dia = (valor) =>
   valor ? new Date(valor).toISOString().slice(0, 10) : "";
@@ -181,10 +213,10 @@ export async function espelharBase(prisma) {
   if (process.env.GOOGLE_SHEETS_ESPELHO_AUTO !== "true")
     return { desativado: true };
   const idPlanilha = process.env.GOOGLE_SHEETS_ACADEMICO_ID;
-  const autenticacao = new google.auth.GoogleAuth({
-    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
+
+  const autenticacao = criarAutenticacaoGoogle([
+    "https://www.googleapis.com/auth/spreadsheets",
+  ]);
   const planilhas = google.sheets({
     version: "v4",
     auth: await autenticacao.getClient(),
@@ -196,6 +228,10 @@ export async function espelharBase(prisma) {
       const catalogo = await lerBaseAcademicaDaPlanilha({
         Cursos: "C",
         Turmas: "G",
+        Alunos: "O",
+        Empresas: "J",
+        Matriculas: "J",
+        Historico: "H",
       });
       const [
         alunos,
@@ -205,6 +241,9 @@ export async function espelharBase(prisma) {
         matriculas,
         historico,
         recebimentos,
+        identidadesAlunos,
+        identidadesMatriculas,
+        identidadesHistorico,
       ] = await Promise.all([
         transacao.aluno.findMany({
           where: { arquivadoEm: null },
@@ -245,7 +284,16 @@ export async function espelharBase(prisma) {
             auditoria: true,
           },
         }),
+        transacao.aluno.findMany({ select: { id: true, cpf: true } }),
+        transacao.matricula.findMany({ select: { id: true } }),
+        transacao.historicoAcompanhamento.findMany({ select: { id: true } }),
       ]);
+      conferirIdentidadesEspelho(catalogo, {
+        Alunos: identidadesAlunos,
+        Empresas: empresas,
+        Matriculas: identidadesMatriculas,
+        Historico: identidadesHistorico,
+      });
       const espelho = montarEspelho(
         { alunos, empresas, cursos, turmas, matriculas, historico },
         catalogo,
@@ -413,11 +461,15 @@ export async function espelharBase(prisma) {
 export async function tentarEspelharBase(prisma) {
   try {
     return await espelharBase(prisma);
-  } catch {
+  } catch (erro) {
     return {
       falha: true,
       mensagem:
-        "Cadastro salvo no banco. Não foi possível atualizar o espelho da planilha; a próxima sincronização tentará novamente.",
+        "Cadastro salvo no banco. " +
+        (mensagemErroGoogle(erro) ||
+          (erro instanceof ErroEspelhoNaoConciliado
+            ? erro.message
+            : "Não foi possível atualizar o espelho da planilha; a próxima sincronização tentará novamente.")),
     };
   }
 }

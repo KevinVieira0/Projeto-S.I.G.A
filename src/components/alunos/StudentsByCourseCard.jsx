@@ -8,7 +8,7 @@ import DashboardCard, {
   DashboardCardHeader,
   DashboardCardFooter,
   dashboardStyles,
-} from "./DashboardCard";
+} from "../dashboard/DashboardCard";
 
 const numero = (valor) => valor.toLocaleString("pt-BR");
 
