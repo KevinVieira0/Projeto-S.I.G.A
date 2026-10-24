@@ -15,7 +15,11 @@ function CampoComErro({ children, erro, largo = false, campo }) {
       {children}
 
       {erro && (
-        <p id={campo + "-erro"} role="alert" className="mt-1 text-sm text-red-600">
+        <p
+          id={campo + "-erro"}
+          role="alert"
+          className="mt-1 text-sm text-red-600"
+        >
           {erro}
         </p>
       )}
@@ -62,7 +66,8 @@ export default function Solicitacao() {
         "
         style={{
           clipPath: "polygon(0 0, 100% 0, 81% 100%, 0 100%)",
-          background: "linear-gradient(180deg, #f97316 0%, #ffffff 50%, #0a3d7c 100%)",
+          background:
+            "linear-gradient(180deg, #f97316 0%, #ffffff 50%, #0a3d7c 100%)",
           filter: "drop-shadow(0 0 25px rgba(249, 115, 22, 0.5))",
         }}
       />
@@ -160,8 +165,8 @@ export default function Solicitacao() {
             text-slate-200
           "
         >
-          Solicite um aprendiz formado pelo SENAI e encontre jovens preparados para
-          transformar conhecimento técnico em resultados para sua empresa.
+          Solicite um aprendiz formado pelo SENAI e encontre jovens preparados
+          para transformar conhecimento técnico em resultados para sua empresa.
         </p>
 
         <div
@@ -227,7 +232,10 @@ export default function Solicitacao() {
           >
             {erroApi}
             {sessaoExpirada && (
-              <Link className="ml-2 font-semibold underline" href={ROUTES.LOGIN}>
+              <Link
+                className="ml-2 font-semibold underline"
+                href={ROUTES.LOGIN}
+              >
                 Entrar novamente
               </Link>
             )}
@@ -314,7 +322,7 @@ export default function Solicitacao() {
                   value={formulario.pratica}
                   onChange={alterarCampo}
                   options={PRATICAS}
-                  tooltip="Define se o aprendiz atuará de forma presencial ou remota, conforme a natureza da vaga."
+                  tooltip="Informe se a empresa oferecerá atividade prática aos alunos ou somente apoio financeiro por meio de bolsa."
                 />
               </CampoComErro>
 
@@ -330,7 +338,9 @@ export default function Solicitacao() {
                 />
 
                 {carregandoCursos && (
-                  <p className="mt-1 text-sm text-gray-500">Carregando cursos...</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Carregando cursos...
+                  </p>
                 )}
               </CampoComErro>
 
@@ -360,7 +370,10 @@ export default function Solicitacao() {
                 />
               </CampoComErro>
 
-              <CampoComErro campo="quantidadeAlunos" erro={erros.quantidadeAlunos}>
+              <CampoComErro
+                campo="quantidadeAlunos"
+                erro={erros.quantidadeAlunos}
+              >
                 <Inputsolicitacao
                   label="Quantidade"
                   name="quantidadeAlunos"

@@ -6,8 +6,18 @@ import { maskCnpj } from "@/lib/validations/cnpjUtils";
 
 const MENSAGENS_STATUS = {
   checking: { text: "Verificando CNPJ...", className: "text-slate-500" },
-  valid: { text: "Empresa beneficiária confirmada.", className: "text-green-600" },
-  invalid: { text: "CNPJ não encontrado como beneficiária.", className: "text-red-600" },
+  valid: {
+    text: "Empresa beneficiária confirmada.",
+    className: "text-green-600",
+  },
+  invalid: {
+    text: "CNPJ não encontrado como beneficiária.",
+    className: "text-red-600",
+  },
+  access_pending: {
+    text: "Empresa cadastrada, mas sem acesso configurado. Peça ao administrador que defina a senha no cadastro da empresa.",
+    className: "text-amber-700",
+  },
   error: {
     text: "Não foi possível validar agora. Tente novamente.",
     className: "text-red-600",
