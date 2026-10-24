@@ -276,51 +276,51 @@ export default function DashboardEmpresa() {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      {/* Faixa laranja: identificação + abas encaixadas no conteúdo */}
+      {/* Header flutuante: o wrapper é sticky e não captura cliques (pointer-events-none);
+        só a pílula recebe eventos, então o conteúdo atrás continua clicável */}
+      <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-6 pt-4">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-orange-200/80 bg-white/80 p-1.5 shadow-lg shadow-orange-900/10 backdrop-blur-xl">
+          <div
+            role="tablist"
+            aria-label="Seções do painel"
+            className="flex gap-1"
+          >
+            {ABAS.map((item) => {
+              const ativa = aba === item.id;
 
-      <header className="border-b-4 border-[#ef5e31] bg-[#f9a870]">
-        <div className="mx-auto max-w-6xl px-6 pt-6 h-28">
-          <div className="flex flex-wrap items-center gap-4">
-            <h1 className="mt-1 shrink-0 text-2xl font-extrabold text-[#0f172a] sm:text-3xl">
-              Olá, {nomeEmpresa || "..."}
-            </h1>
+              return (
+                <button
+                  key={item.id}
+                  role="tab"
+                  id={`aba-${item.id}`}
+                  aria-selected={ativa}
+                  aria-controls={`painel-${item.id}`}
+                  onClick={() => setAba(item.id)}
+                  className={`shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-800 ${ativa
+                      ? "bg-orange-100 text-orange-900 ring-1 ring-inset ring-orange-300"
+                      : "text-orange-950 hover:bg-orange-100/70"
+                    }`}
+                >
+                  {item.rotulo}
+                </button>
+              );
+            })}
+          </div>
 
-            <div
-              role="tablist"
-              aria-label="Seções do painel"
-              className="order-last flex w-full justify-center gap-1 overflow-x-auto self-end sm:order-none sm:w-auto sm:flex-1"
-            >
-              {ABAS.map((item) => {
-                const ativa = aba === item.id;
+          <span aria-hidden="true" className="mx-1 h-6 w-px bg-orange-200" />
 
-                return (
-                  <button
-                    key={item.id}
-                    role="tab"
-                    id={`aba-${item.id}`}
-                    aria-selected={ativa}
-                    aria-controls={`painel-${item.id}`}
-                    onClick={() => setAba(item.id)}
-                    className={`shrink-0 rounded-2xl px-6 py-3 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-800 ${ativa
-                      ? "bg-orange-50 text-orange-800 shadow-sm"
-                      : "text-orange-950 hover:bg-white/40"
-                      }`}
-                  >
-                    {item.rotulo}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="ml-auto shrink-0 self-center">
-              <LogoutButton variante="laranja" />
-            </div>
+          <div className="shrink-0 pr-0.5">
+            <LogoutButton variante="laranja" />
           </div>
         </div>
       </header>
 
+      <main className="mx-auto max-w-6xl px-6 pb-10 pt-8">
+        {/* Saudação movida do header para o conteúdo (remova esta linha se não quiser) */}
+        <h1 className="mb-6 text-2xl font-extrabold text-[#0f172a] sm:text-3xl">
+          Olá, {nomeEmpresa || "..."}
+        </h1>
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
         <div
           role="tabpanel"
           id={`painel-${aba}`}
