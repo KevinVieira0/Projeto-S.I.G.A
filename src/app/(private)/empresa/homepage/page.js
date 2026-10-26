@@ -54,6 +54,17 @@ function CampoLeitura({ rotulo, valor, largo = false }) {
   );
 }
 
+/* Primeira letra dos dois primeiros nomes: "Kevin da Silva Vieira" -> "KD" */
+function iniciais(nome = "") {
+  return nome
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0])
+    .join("")
+    .toUpperCase();
+}
+
 function AbaAprendizes() {
 
   const [aprendizes, setAprendizes] = useState([]);
@@ -125,9 +136,22 @@ function AbaAprendizes() {
               </tr>
             ) : (
               aprendizes.map((a) => (
-                <tr key={a.id} className="odd:bg-white even:bg-orange-50/40">
-                  <td className="px-5 py-4 font-semibold text-slate-900">
-                    {a.nome}
+                <tr
+                  key={a.id}
+                  className="transition-colors odd:bg-white even:bg-orange-50/40 hover:bg-orange-100/70"
+                >
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-orange-100 text-xs font-bold text-orange-700"
+                      >
+                        {iniciais(a.nome)}
+                      </span>
+                      <span className="font-semibold text-slate-900">
+                        {a.nome}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-slate-700">{a.curso}</td>
                   <td className="px-5 py-4 text-slate-700">—</td>
@@ -275,10 +299,21 @@ export default function DashboardEmpresa() {
 
 
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className="relative bg-orange-50 h-screen overflow-y-auto [scrollbar-gutter:stable]">
+      {/* Blobs de fundo: o overflow-hidden evita barra de rolagem horizontal.
+        Vêm primeiro no DOM, então ficam atrás do header e do conteúdo. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-orange-300/30 blur-3xl" />
+        <div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" />
+        <div className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-orange-200/40 blur-3xl" />
+      </div>
+
       {/* Header flutuante: o wrapper é sticky e não captura cliques (pointer-events-none);
         só a pílula recebe eventos, então o conteúdo atrás continua clicável */}
-      <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-6 pt-4">
+      <header className="pointer-events-none sticky flex justify-center px-6 pt-4">
         <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-orange-200/80 bg-white/80 p-1.5 shadow-lg shadow-orange-900/10 backdrop-blur-xl">
           <div
             role="tablist"
@@ -315,12 +350,7 @@ export default function DashboardEmpresa() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 pb-10 pt-8">
-        {/* Saudação movida do header para o conteúdo (remova esta linha se não quiser) */}
-        <h1 className="mb-6 text-2xl font-extrabold text-[#0f172a] sm:text-3xl">
-          Olá, {nomeEmpresa || "..."}
-        </h1>
-
+      <main className="relative mx-auto max-w-6xl px-6 pb-10 pt-8">
         <div
           role="tabpanel"
           id={`painel-${aba}`}
