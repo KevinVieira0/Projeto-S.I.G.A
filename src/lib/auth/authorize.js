@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE, verifySessionToken, matchesCredential } from "./session";
+import {
+  SESSION_COOKIE,
+  SESSION_COOKIES,
+  verifySessionToken,
+  matchesCredential,
+} from "./session";
 
 export async function resolveSession(token) {
   const declaracoes = verifySessionToken(token);
@@ -32,17 +37,45 @@ export async function resolveSession(token) {
     where: { id: declaracoes.sub },
     select: { id: true, nome: true, email: true, ativo: true, senhaHash: true },
   });
-  if (!administrador?.ativo || !matchesCredential(declaracoes, administrador.senhaHash))
+  if (
+    !administrador?.ativo ||
+    !matchesCredential(declaracoes, administrador.senhaHash)
+  )
     return null;
   const { ativo, senhaHash, ...dados } = administrador;
   return { tipo: "admin", dados: { ...dados, role: "admin" } };
 }
 
-export async function getCurrentSession() {
-  return resolveSession(cookies().get(SESSION_COOKIE)?.value);
+export async function resolveProfileSession(armazenamento, perfil) {
+  const nome = SESSION_COOKIES[perfil];
+  if (typeof nome !== "string") return null;
+  // O cookie específico prevalece, inclusive quando inválido, para não reativar uma sessão antiga.
+  const token =
+    armazenamento.get(nome)?.value ?? armazenamento.get(SESSION_COOKIE)?.value;
+  if (verifySessionToken(token)?.tipo !== perfil) return null;
+  return resolveSession(token);
 }
 
-export function validateMutationOrigin(requisicao) {
+async function sessoesAtivas(armazenamento) {
+  return (
+    await Promise.all(
+      Object.keys(SESSION_COOKIES).map((perfil) =>
+        resolveProfileSession(armazenamento, perfil),
+      ),
+    )
+  ).filter(Boolean);
+}
+
+export async function getCurrentSession(perfil) {
+  if (perfil) return resolveProfileSession(cookies(), perfil);
+  const ativas = await sessoesAtivas(cookies());
+  return ativas.length === 1 ? ativas[0] : null;
+}
+
+export function validateMutationOrigin(
+  requisicao,
+  tipoConteudo = "application/json",
+) {
   const origin = requisicao.headers.get("origin");
   const url = new URL(requisicao.url);
   // Next pode usar o hostname interno em request.url durante o desenvolvimento.
@@ -62,24 +95,59 @@ export function validateMutationOrigin(requisicao) {
     );
   }
   if (
-    requisicao.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !==
-    "application/json"
+    requisicao.headers
+      .get("content-type")
+      ?.split(";")[0]
+      .trim()
+      .toLowerCase() !== tipoConteudo
   ) {
     return NextResponse.json(
-      { message: "Envie os dados em JSON.", mensagem: "Envie os dados em JSON." },
+      {
+        message:
+          tipoConteudo === "application/json"
+            ? "Envie os dados em JSON."
+            : "Envie o arquivo por formulário.",
+        mensagem:
+          tipoConteudo === "application/json"
+            ? "Envie os dados em JSON."
+            : "Envie o arquivo por formulário.",
+      },
       { status: 415 },
     );
   }
   return null;
 }
 
-export async function authorize(requisicao, tipo) {
+export async function authorize(requisicao, tipo, { tipoConteudo } = {}) {
   if (!["GET", "HEAD"].includes(requisicao.method)) {
-    const erroCapturado = validateMutationOrigin(requisicao);
+    const erroCapturado = validateMutationOrigin(requisicao, tipoConteudo);
     if (erroCapturado) return { error: erroCapturado };
   }
-  const sessao = await resolveSession(requisicao.cookies.get(SESSION_COOKIE)?.value);
+  const ativas = tipo
+    ? [await resolveProfileSession(requisicao.cookies, tipo)].filter(Boolean)
+    : await sessoesAtivas(requisicao.cookies);
+  if (!tipo && ativas.length > 1)
+    return {
+      error: NextResponse.json(
+        {
+          mensagem: "Informe o perfil da sessão nesta operação.",
+          message: "Informe o perfil da sessão nesta operação.",
+        },
+        { status: 409 },
+      ),
+    };
+  const sessao = ativas[0];
   if (!sessao) {
+    if (tipo && (await sessoesAtivas(requisicao.cookies)).length)
+      return {
+        error: NextResponse.json(
+          {
+            mensagem: "Acesso não permitido para este perfil.",
+            message: "Acesso não permitido para este perfil.",
+          },
+          { status: 403 },
+        ),
+      };
     return {
       error: NextResponse.json(
         {

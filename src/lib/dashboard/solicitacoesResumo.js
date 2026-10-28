@@ -77,7 +77,7 @@ export function vagasPorCurso(solicitacoes, limite = 6) {
     const curso =
       String(solicitacao.cursos ?? "").trim() || "Curso não informado";
     const item = porCurso.get(curso) ?? { curso, vagas: 0, solicitacoes: 0 };
-    item.vagas += Number(solicitacao.quantidadeAlunos) || 0;
+    item.vagas += Number(solicitacao.quantidadeVagas) || 0;
     item.solicitacoes += 1;
     porCurso.set(curso, item);
   }
@@ -124,7 +124,7 @@ export function solicitacoesPorMes(
     const balde = partes && porChave.get(chaveDe(partes.ano, partes.mes));
     if (!balde) continue;
     balde.solicitacoes += 1;
-    balde.vagas += Number(solicitacao.quantidadeAlunos) || 0;
+    balde.vagas += Number(solicitacao.quantidadeVagas) || 0;
   }
   return baldes;
 }

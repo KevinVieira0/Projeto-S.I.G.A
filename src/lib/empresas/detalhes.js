@@ -55,7 +55,7 @@ export async function obterDetalhesEmpresa(prisma, id) {
             criadoEm: true,
             inicio: true,
             fim: true,
-            quantidadeAlunos: true,
+            quantidadeVagas: true,
             cursos: true,
             pratica: true,
           },

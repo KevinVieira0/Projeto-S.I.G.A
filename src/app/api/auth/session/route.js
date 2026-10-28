@@ -5,7 +5,16 @@ export const dynamic = "force-dynamic";
 
 export async function GET(requisicao) {
   try {
-    const { session: sessao, error: erroCapturado } = await authorize(requisicao);
+    const perfil = new URL(requisicao.url).searchParams.get("perfil");
+    if (perfil && !["admin", "empresa"].includes(perfil))
+      return NextResponse.json(
+        { mensagem: "Perfil inválido." },
+        { status: 400 },
+      );
+    const { session: sessao, error: erroCapturado } = await authorize(
+      requisicao,
+      perfil || undefined,
+    );
     if (erroCapturado) return erroCapturado;
     return NextResponse.json(
       { session: sessao },

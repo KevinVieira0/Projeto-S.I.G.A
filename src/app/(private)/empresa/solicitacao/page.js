@@ -6,7 +6,11 @@ import Selectsolicitacao from "@/components/solicitacao/selectsolicitacao";
 import LogoutButton from "@/components/login/LogoutButton";
 import { useCursos } from "@/hooks/useCursos";
 import { useEmpresaSolicitacao } from "@/hooks/useEmpresaSolicitacao";
-import { SEXOS, PRATICAS } from "@/lib/validations/solicitacaoSchema";
+import {
+  SEXOS,
+  PRATICAS,
+  PERIODOS_PRATICA,
+} from "@/lib/validations/solicitacaoSchema";
 import { ROUTES } from "@/constants/routes";
 
 function CampoComErro({ children, erro, largo = false, campo }) {
@@ -34,6 +38,7 @@ export default function Solicitacao() {
     erros,
     apiError: erroApi,
     mensagemSucesso,
+    solicitacaoCriada,
     isLoading: carregando,
     carregandoSessao,
     sessaoExpirada,
@@ -257,6 +262,14 @@ export default function Solicitacao() {
             "
           >
             Solicitação enviada com sucesso!
+            {solicitacaoCriada && (
+              <Link
+                className="ml-2 font-semibold underline"
+                href={`${ROUTES.EMPRESA_HOMEPAGE}?solicitacao=${solicitacaoCriada.id}`}
+              >
+                Acompanhar solicitação
+              </Link>
+            )}
           </div>
         )}
 
@@ -326,6 +339,23 @@ export default function Solicitacao() {
                 />
               </CampoComErro>
 
+              {formulario.pratica === "com" && (
+                <CampoComErro
+                  campo="periodoPratica"
+                  erro={erros.periodoPratica}
+                >
+                  <Selectsolicitacao
+                    label="Período da prática"
+                    name="periodoPratica"
+                    erro={erros.periodoPratica}
+                    value={formulario.periodoPratica}
+                    onChange={alterarCampo}
+                    options={PERIODOS_PRATICA}
+                    tooltip="Informe se a prática será realizada pela manhã ou à tarde."
+                  />
+                </CampoComErro>
+              )}
+
               <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
                 <Selectsolicitacao
                   label="Cursos"
@@ -371,14 +401,14 @@ export default function Solicitacao() {
               </CampoComErro>
 
               <CampoComErro
-                campo="quantidadeAlunos"
-                erro={erros.quantidadeAlunos}
+                campo="quantidadeVagas"
+                erro={erros.quantidadeVagas}
               >
                 <Inputsolicitacao
                   label="Quantidade"
-                  name="quantidadeAlunos"
-                  erro={erros.quantidadeAlunos}
-                  value={formulario.quantidadeAlunos}
+                  name="quantidadeVagas"
+                  erro={erros.quantidadeVagas}
+                  value={formulario.quantidadeVagas}
                   onChange={alterarCampo}
                   placeholder="Até 5"
                   tipo="number"

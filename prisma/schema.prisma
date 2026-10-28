@@ -18,11 +18,13 @@ model Administrador {
 
   eventosAcompanhamento HistoricoAcompanhamento[]
   alteracoesAlunos AuditoriaAluno[]
+  eventosParticipacao EventoParticipacao[]
 
   @@map("administradores")
 }
 
 model Empresa {
+  comprovantes ComprovanteContrato[]
   id           String        @id @default(uuid())
   cnpj         String        @unique @db.Char(14)
   razaoSocial  String        @map("razao_social") @db.VarChar(255)
@@ -40,12 +42,14 @@ model Empresa {
   contribuinte          Boolean?
   matriculas            Matricula[]
   eventosAcompanhamento HistoricoAcompanhamento[]
+  eventosParticipacao EventoParticipacao[]
 
   @@index([autorizada, ativa])
   @@map("empresas")
 }
 
 model Aluno {
+  comprovantes ComprovanteContrato[]
   id                String   @id @default(uuid())
   nome              String   @db.VarChar(150)
   cpf               String   @unique @db.Char(11)
@@ -76,6 +80,7 @@ model Aluno {
   ultimaSincronizacao DateTime?           @map("ultima_sincronizacao")
   matriculas          Matricula[]
   pendenciasMigracao  PendenciaMigracao[]
+  participacoes ParticipacaoSolicitacao[]
 
   empresa Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
@@ -103,6 +108,7 @@ model Solicitacao {
 
   empresa               Empresa                   @relation(fields: [idEmpresa], references: [id])
   eventosAcompanhamento HistoricoAcompanhamento[]
+  participacoes ParticipacaoSolicitacao[]
 
   @@map("Solicitacoes")
 }
@@ -152,6 +158,7 @@ model Turma {
 }
 
 model Matricula {
+  comprovantes ComprovanteContrato[]
   id                    String                    @id @default(uuid())
   alunoId               String                    @map("aluno_id")
   turmaId               String                    @map("turma_id")
@@ -173,6 +180,7 @@ model Matricula {
   empresaAtual          Empresa?                  @relation(fields: [empresaAtualId], references: [id], onDelete: Restrict)
   historico             HistoricoAcompanhamento[]
   pendenciasMigracao    PendenciaMigracao[]
+  participacoes ParticipacaoSolicitacao[]
 
   @@index([alunoId, turmaId])
   @@index([turmaId, status])
@@ -251,4 +259,83 @@ model AuditoriaAluno {
   responsavel Administrador @relation(fields: [responsavelId], references: [id], onDelete: Restrict)
   @@index([alunoId, criadoEm])
   @@map("auditoria_alunos")
+}
+
+enum StatusParticipacao {
+  INDICADO
+  EM_PROCESSO
+  APROVADO
+  CONTRATADO
+  NAO_CONTRATADO
+  DESISTIU
+  CANCELADO
+}
+
+enum AutorParticipacao {
+  ADMIN
+  EMPRESA
+  SISTEMA
+}
+
+model ParticipacaoSolicitacao {
+  comprovantes ComprovanteContrato[]
+  id String @id @default(uuid())
+  solicitacaoId String @map("solicitacao_id")
+  matriculaId String @map("matricula_id")
+  alunoId String @map("aluno_id")
+  status StatusParticipacao @default(INDICADO)
+  motivo String? @db.VarChar(300)
+  iniciadoEm DateTime? @map("iniciado_em")
+  aprovadoEm DateTime? @map("aprovado_em")
+  contratadoEm DateTime? @map("contratado_em")
+  encerradoEm DateTime? @map("encerrado_em")
+  criadoEm DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  solicitacao Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Restrict)
+  matricula Matricula @relation(fields: [matriculaId], references: [id], onDelete: Restrict)
+  aluno Aluno @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  eventos EventoParticipacao[]
+  @@unique([solicitacaoId, alunoId])
+  @@index([solicitacaoId, status])
+  @@index([matriculaId])
+  @@map("participacoes_solicitacao")
+}
+
+model EventoParticipacao {
+  id String @id @default(uuid())
+  participacaoId String @map("participacao_id")
+  statusAnterior StatusParticipacao? @map("status_anterior")
+  novoStatus StatusParticipacao @map("novo_status")
+  autor AutorParticipacao
+  descricao String? @db.VarChar(100)
+  administradorId String? @map("administrador_id")
+  empresaId String? @map("empresa_id")
+  registradoEm DateTime @default(now()) @map("registrado_em")
+  participacao ParticipacaoSolicitacao @relation(fields: [participacaoId], references: [id], onDelete: Restrict)
+  administrador Administrador? @relation(fields: [administradorId], references: [id], onDelete: Restrict)
+  empresa Empresa? @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  @@index([participacaoId, registradoEm])
+  @@index([autor, registradoEm])
+  @@map("eventos_participacao")
+}
+
+model ComprovanteContrato {
+  id String @id @default(uuid())
+  alunoId String @map("aluno_id")
+  matriculaId String @map("matricula_id")
+  empresaId String @map("empresa_id")
+  participacaoId String @map("participacao_id")
+  nome String @db.VarChar(160)
+  tipo String @db.VarChar(80)
+  tamanho Int
+  hash String @db.Char(64)
+  conteudo Bytes @db.ByteA
+  criadoEm DateTime @default(now()) @map("criado_em")
+  aluno Aluno @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  matricula Matricula @relation(fields: [matriculaId], references: [id], onDelete: Restrict)
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Restrict)
+  participacao ParticipacaoSolicitacao @relation(fields: [participacaoId], references: [id], onDelete: Restrict)
+  @@index([alunoId, criadoEm])
+  @@index([participacaoId, criadoEm])
+  @@map("comprovantes_contrato")
 }

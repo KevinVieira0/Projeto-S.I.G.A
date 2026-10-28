@@ -82,7 +82,13 @@ export function createSolicitacaoSchema(
           (valor) => PRATICAS.some((item) => item.value === valor),
           "Selecione uma opção de prática válida.",
         ),
-      periodoPratica: z.string().optional(),
+      periodoPratica: z
+        .enum(["", ...PERIODOS_PRATICA.map((periodo) => periodo.value)], {
+          errorMap: () => ({
+            message: "Selecione um período de prática válido.",
+          }),
+        })
+        .optional(),
       cursos: z.string().trim().min(1, "Selecione um curso."),
       inicio: z
         .string()
@@ -120,13 +126,12 @@ export function createSolicitacaoSchema(
           "idadeMaxima",
           "A idade máxima não pode ser menor que a idade mínima.",
         );
-        if (
-          dados.pratica === "com" &&
-          !PERIODOS_PRATICA.some((item) => item.value === dados.periodoPratica)
-        ) {
-          adicionarErro("periodoPratica", "Selecione o período da prática.");
-        }
       }
+      if (
+        dados.pratica === "com" &&
+        !PERIODOS_PRATICA.some((item) => item.value === dados.periodoPratica)
+      )
+        adicionarErro("periodoPratica", "Selecione o período da prática.");
       if (cursosDisponiveis && !cursosDisponiveis.includes(dados.cursos))
         adicionarErro(
           "cursos",

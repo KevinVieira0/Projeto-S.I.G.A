@@ -9,6 +9,9 @@ export default function CompanyDrawer({
   nome,
   subtitulo,
   ocupado = false,
+  variante = "azul",
+  categoria = "Cadastro da empresa",
+  rotuloFechar = "Fechar painel da empresa",
   onClose,
   children,
 }) {
@@ -31,7 +34,9 @@ export default function CompanyDrawer({
         : [...document.querySelectorAll("button[data-empresa-id]")].find(
             (botao) => botao.dataset.empresaId === empresaId,
           );
-      focoRetorno?.focus();
+      (
+        focoRetorno || document.querySelector("[data-foco-acompanhamento]")
+      )?.focus();
     };
   }, [empresaId]);
   function fechar(acao = onClose) {
@@ -65,10 +70,12 @@ export default function CompanyDrawer({
       data-fechando={fechando || undefined}
       className="company-drawer fixed m-0 overflow-hidden border-0 p-0 text-gray-900"
     >
-      <header className="z-10 flex shrink-0 items-center justify-between gap-4 border-b border-gray-200/70 border-t-[3px] border-t-[#0a3d7c] bg-white/80 px-5 py-5 backdrop-blur-xl sm:px-7">
+      <header
+        className={`z-10 flex shrink-0 items-center justify-between gap-4 border-b border-gray-200/70 border-t-[3px] ${variante === "laranja" ? "border-t-orange-500" : "border-t-[#0a3d7c]"} bg-white/80 px-5 py-5 backdrop-blur-xl sm:px-7`}
+      >
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg font-semibold text-[#0a3d7c]"
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-lg font-semibold ${variante === "laranja" ? "bg-orange-100 text-orange-800" : "bg-blue-50 text-[#0a3d7c]"}`}
             aria-hidden="true"
           >
             {nome
@@ -80,8 +87,10 @@ export default function CompanyDrawer({
               .toUpperCase() || <Building2 className="h-6 w-6" />}
           </span>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#0a3d7c]">
-              Cadastro da empresa
+            <p
+              className={`text-[11px] font-semibold uppercase tracking-widest ${variante === "laranja" ? "text-orange-700" : "text-[#0a3d7c]"}`}
+            >
+              {categoria}
             </p>
             <h2
               id={tituloId}
@@ -101,7 +110,7 @@ export default function CompanyDrawer({
         </div>
         <button
           type="button"
-          aria-label="Fechar painel da empresa"
+          aria-label={rotuloFechar}
           onClick={() => fechar()}
           disabled={ocupado || fechando}
           className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40"

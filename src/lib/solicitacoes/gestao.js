@@ -2,6 +2,7 @@ import { z } from "zod";
 import { selectAluno } from "@/lib/alunos/gestao";
 import { idadeAluno, matriculaCompativel } from "./requisitos";
 import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
+import { registrarParticipacao } from "./participacoes";
 
 export class ErroGestaoSolicitacao extends Error {
   constructor(mensagem, status = 400) {
@@ -116,6 +117,25 @@ export async function listarIndicacoes(prisma, id, parametros = {}) {
     turma: evento.matricula.turma.codigo,
     indicadoEm: evento.registradoEm,
   }));
+  const participacoes = await prisma.participacaoSolicitacao.findMany({
+    where: { solicitacaoId: id },
+    select: { alunoId: true, status: true },
+  });
+  const rotulos = {
+    INDICADO: "Indicado",
+    EM_PROCESSO: "Em processo",
+    APROVADO: "Aprovado — aguardando formalização",
+    CONTRATADO: "Contratado",
+    NAO_CONTRATADO: "Não contratado",
+    DESISTIU: "Desistiu",
+    CANCELADO: "Encerrado pela coordenação",
+  };
+  for (const indicacao of indicacoes) {
+    const participacao = participacoes.find(
+      (p) => p.alunoId === indicacao.alunoId,
+    );
+    if (participacao) indicacao.status = rotulos[participacao.status];
+  }
   const tamanhoPagina = 20;
   if (!solicitacao.ativa)
     return {
@@ -266,6 +286,7 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
         }
       }
       for (const matricula of matriculas) {
+        await registrarParticipacao(transacao, matricula, id, administradorId);
         await transacao.matricula.update({
           where: { id: matricula.id },
           data: { status: "INDICADO", empresaAtualId: solicitacao.idEmpresa },

@@ -11,10 +11,12 @@
     "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"scripts/**/*.js\" \"tests/**/*.js\" && prettier --parser babel --check \"scripts/**/*.gs\"",
     "test": "npm run test:detalhes",
     "test:detalhes": "tsx --tsconfig jsconfig.json --test tests/detalhesAluno.integration.test.js",
+    "test:empresa": "tsx --tsconfig jsconfig.json --test --test-concurrency=1 tests/solicitacaoSchema.test.js tests/homepageEmpresa.integration.test.js tests/acompanhamentoEmpresa.integration.test.js",
     "db:recebimentos": "tsx --tsconfig jsconfig.json scripts/buscar-recebimentos.js",
     "db:demonstracao:previa": "tsx --tsconfig jsconfig.json scripts/preparar-demonstracao.js",
     "db:previa-academica": "tsx --tsconfig jsconfig.json scripts/previa-base-academica.js",
-    "dev:turbo": "next dev --turbo"
+    "dev:turbo": "next dev --turbo",
+    "test:sessoes": "tsx --tsconfig jsconfig.json --test tests/sessoesPerfis.integration.test.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

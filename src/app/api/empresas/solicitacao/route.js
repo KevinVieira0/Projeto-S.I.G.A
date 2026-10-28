@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorize } from "@/lib/auth/authorize";
+import { listarPedidosEmpresa } from "@/lib/solicitacoes/participacoes";
 import { lerCursosParaSolicitacao } from "@/lib/listas/cursos";
 import {
   createSolicitacaoSchema,
@@ -8,10 +9,14 @@ import {
 } from "@/lib/validations/solicitacaoSchema";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function invalido(resultado) {
   return NextResponse.json(
-    { message: "Dados de solicitação inválidos.", errors: resultado.error.flatten() },
+    {
+      message: "Dados de solicitação inválidos.",
+      errors: resultado.error.flatten(),
+    },
     { status: 400 },
   );
 }
@@ -37,7 +42,10 @@ export async function POST(requisicao) {
       cursos = await lerCursosParaSolicitacao();
     } catch {
       return NextResponse.json(
-        { message: "Não foi possível validar os cursos. Tente novamente em instantes." },
+        {
+          message:
+            "Não foi possível validar os cursos. Tente novamente em instantes.",
+        },
         { status: 503 },
       );
     }
@@ -47,7 +55,8 @@ export async function POST(requisicao) {
     const solicitacao = await prisma.solicitacao.create({
       data: {
         ...valores,
-        periodoPratica: valores.pratica === "com" ? valores.periodoPratica : null,
+        periodoPratica:
+          valores.pratica === "com" ? valores.periodoPratica : null,
         inicio: parseCivilDate(inicio),
         fim: parseCivilDate(fim),
         empresa: { connect: { id: sessao.dados.id } },
@@ -74,25 +83,12 @@ export async function GET(requisicao) {
     );
     if (erroCapturado) return erroCapturado;
 
-    const solicitacoes = await prisma.solicitacao.findMany({
-      where: { idEmpresa: sessao.dados.id },
-      orderBy: { criadoEm: "desc" },
-      select: {
-        id: true,
-        cursos: true,
-        idadeMinima: true,
-        idadeMaxima: true,
-        pratica: true,
-        periodoPratica: true,
-        inicio: true,
-        fim: true,
-        quantidadeVagas: true,
-        ativa: true,
-        criadoEm: true,
-      },
-    });
+    const solicitacoes = await listarPedidosEmpresa(prisma, sessao.dados.id);
 
-    return NextResponse.json({ solicitacoes });
+    return NextResponse.json(
+      { solicitacoes },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (erro) {
     console.error("Falha ao listar solicitações.", erro);
     return NextResponse.json(

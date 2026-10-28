@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
 import { dashboardStyles } from "../dashboard/DashboardCard";
+import ComprovantesContrato from "./ComprovantesContrato";
 
 const rotulosStatus = {
   DISPONIVEL: "Disponível",
@@ -338,6 +339,17 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
                   )}
                 </Secao>
               </div>
+              <Secao titulo="Contratos e comprovantes" Icone={FileCheck2}>
+                <ComprovantesContrato
+                  documentos={aluno.comprovantes}
+                  mostrarEmpresa
+                />
+                <p className="mt-3 text-xs leading-5 text-gray-500">
+                  O envio pela empresa conclui a contratação automaticamente. Se
+                  houver dúvidas ou necessidade de correção, entre em contato
+                  com a empresa e solicite a substituição do arquivo.
+                </p>
+              </Secao>
               <Secao titulo="Formação e matrículas" Icone={GraduationCap}>
                 {aluno.matriculas.length ? (
                   <div className="space-y-3">
@@ -378,9 +390,14 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
                             <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-gray-700">
                               <span className="flex items-center gap-2">
                                 <FileCheck2 className="h-4 w-4 text-[#0a3d7c]" />
-                                Contrato enviado e assinado
+                                Comprovante de contrato
                               </span>
-                              {onEdit ? (
+                              {onEdit &&
+                              !aluno.comprovantes?.some(
+                                (c) =>
+                                  c.matriculaId === m.id &&
+                                  c.empresaId === m.empresaAtualId,
+                              ) ? (
                                 <fieldset
                                   aria-label={`Contrato enviado e assinado — ${m.turma.codigo}`}
                                   disabled={Boolean(salvando) || fechando}
@@ -428,7 +445,7 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
                                 ? "Salvando confirmação…"
                                 : m.contratoAtualizadoEm
                                   ? `Atualizado em ${data(m.contratoAtualizadoEm, true)}.`
-                                  : "Marque Sim quando a empresa enviar o contrato assinado. Apenas confirmação, sem anexos."}
+                                  : "Registro manual anterior, sem comprovante anexado no sistema."}
                             </p>
                           </div>
                         )}
@@ -466,7 +483,7 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
                             {s.pratica}
                           </p>
                           <p className="mt-2 text-xs text-gray-500">
-                            {s.quantidadeAlunos} vagas · {data(s.inicio)} a{" "}
+                            {s.quantidadeVagas} vagas · {data(s.inicio)} a{" "}
                             {data(s.fim)}
                           </p>
                           {s.eventosAcompanhamento[0] && (
