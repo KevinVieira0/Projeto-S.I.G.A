@@ -103,7 +103,7 @@ function DetalhePedido({ pedidoId, voltar }) {
               </div>
               <SituacaoPedido pedido={p} />
             </div>
-            <dl className="mt-6 grid grid-cols-2 gap-5 border-y border-slate-100 py-5 sm:grid-cols-4">
+            <dl className="mt-6 grid grid-cols-2 gap-5 border-y border-slate-200 py-5 sm:grid-cols-4">
               {[
                 ["Vagas solicitadas", p.quantidadeVagas],
                 ["Faixa etária", `${p.idadeMinima} a ${p.idadeMaxima} anos`],
@@ -163,7 +163,7 @@ function DetalhePedido({ pedidoId, voltar }) {
             className={estilosEmpresa.superficie}
             aria-labelledby="alunos-pedido-titulo"
           >
-            <div className="border-b border-slate-100 p-5">
+            <div className="border-b border-slate-200 p-5">
               <h3
                 id="alunos-pedido-titulo"
                 className="font-semibold text-slate-900"
@@ -187,7 +187,7 @@ function DetalhePedido({ pedidoId, voltar }) {
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-slate-200">
                 {p.participacoes.map((aluno) => (
                   <li key={aluno.id}>
                     <button
@@ -305,7 +305,7 @@ export default function SolicitacoesEmpresa({
           {dados.solicitacoes.map((p) => (
             <li
               key={p.id}
-              className={`${estilosEmpresa.superficie} flex flex-col p-5 transition-shadow hover:shadow-md`}
+              className={`${estilosEmpresa.superficie} flex flex-col p-5`}
             >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">

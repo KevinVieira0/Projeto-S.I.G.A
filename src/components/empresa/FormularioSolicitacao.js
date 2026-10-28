@@ -48,7 +48,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
   const exigePeriodo = formulario.pratica === "com";
 
   return (
-    <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl lg:p-10">
+    <div className="w-full rounded-3xl border border-slate-300 bg-white p-8 shadow-2xl lg:p-10">
       {erroApi && (
         <div
           role="alert"

@@ -5,13 +5,13 @@ import { apiClient } from "@/lib/api/axiosClient";
 
 export const estilosEmpresa = {
   superficie:
-    "min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-sm",
+    "min-w-0 rounded-2xl border border-slate-300 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:border-orange-400 hover:shadow-[0_0_0_1px_rgba(249,115,22,0.12),0_8px_24px_-8px_rgba(249,115,22,0.24)] motion-reduce:transition-none",
   primario:
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   secundario:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
   campo:
-    "min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
+    "min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
 };
 export const rotulosParticipacao = {
   INDICADO: "Indicado",
@@ -111,7 +111,7 @@ export function FalhaEmpresa({ mensagem, tentar }) {
 export function PaginacaoEmpresa({ pagina, total, tamanho = 25, alterar }) {
   const paginas = Math.max(1, Math.ceil(total / tamanho));
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 text-xs text-slate-500">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 text-xs text-slate-500">
       <span>
         {total} {total === 1 ? "registro" : "registros"} · Página {pagina} de{" "}
         {paginas}

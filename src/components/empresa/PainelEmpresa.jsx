@@ -100,7 +100,7 @@ export default function PainelEmpresa() {
   return (
     <div className="min-h-screen bg-[#faf9f7] text-slate-900">
       <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-3 pt-4 sm:px-6">
-        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-orange-200/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl">
+        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-orange-300/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl">
           <div
             role="tablist"
             aria-label="Seções do painel"
@@ -158,7 +158,7 @@ export default function PainelEmpresa() {
                 type="button"
                 key={chave}
                 onClick={acao}
-                className={`${estilosEmpresa.superficie} group relative p-4 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 motion-reduce:transform-none motion-reduce:transition-none sm:p-5`}
+                className={`${estilosEmpresa.superficie} group relative p-4 text-left hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 motion-reduce:transform-none sm:p-5`}
               >
                 <div className="mb-4 flex items-center justify-between gap-2">
                   <span className="rounded-xl bg-orange-50 p-2 text-orange-600">

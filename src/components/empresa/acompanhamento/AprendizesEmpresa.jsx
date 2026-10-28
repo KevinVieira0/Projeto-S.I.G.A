@@ -30,7 +30,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
         className={estilosEmpresa.superficie}
         aria-labelledby="titulo-aprendizes"
       >
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 p-5 sm:p-6">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 p-5 sm:p-6">
           <div>
             <h2
               id="titulo-aprendizes"
@@ -91,7 +91,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
         ) : (
           <div className="relative overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="border-y border-slate-100 bg-slate-50 text-xs text-slate-500">
+              <thead className="border-y border-slate-200 bg-slate-50 text-xs text-slate-500">
                 <tr>
                   {["Aprendiz", "Curso e turma", "Turno", "Situação", ""].map(
                     (coluna, i) => (
@@ -102,7 +102,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {carregando ? (
                   <tr>
                     <td
