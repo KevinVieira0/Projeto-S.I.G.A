@@ -12,6 +12,7 @@ import { SolicitacaoDetalhes } from "@/components/dashboard/SolicitacaoDetalhes"
 import { SolicitacoesAnalytics } from "@/components/dashboard/SolicitacoesAnalytics";
 import { apiClient } from "@/lib/api/axiosClient";
 import { contarPorSituacao } from "@/lib/dashboard/solicitacoesResumo";
+import AtualizacoesEmpresas from "@/components/dashboard/AtualizacoesEmpresas";
 
 export default function AdminSolicitacoesPage() {
   const [dados, setDados] = useState(null);
@@ -103,6 +104,10 @@ export default function AdminSolicitacoesPage() {
           dadosMensais={dados?.analytics?.monthlyData}
         />
       )}
+      <AtualizacoesEmpresas
+        abrirSolicitacao={setSelecionadaId}
+        atualizar={() => setVersao((v) => v + 1)}
+      />
       <DashboardCard aria-labelledby="solicitacoes-titulo">
         <DashboardCardHeader
           headingId="solicitacoes-titulo"

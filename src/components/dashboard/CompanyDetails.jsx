@@ -240,8 +240,8 @@ export default function CompanyDetails({ empresaId, onClose, onEdit }) {
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <p className="text-sm font-medium">
-                                {solicitacao.quantidadeAlunos}{" "}
-                                {solicitacao.quantidadeAlunos === 1
+                                {solicitacao.quantidadeVagas}{" "}
+                                {solicitacao.quantidadeVagas === 1
                                   ? "aluno solicitado"
                                   : "alunos solicitados"}
                               </p>

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { documentoValido } from "../importacao/baseAcademica";
 import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
 import { calcularIdade } from "./dadosPessoais";
+import { conciliarParticipacoesAluno } from "../solicitacoes/participacoes";
 
 export const STATUS_ALUNOS = {
   DISPONIVEL: "Disponível",
@@ -22,21 +23,18 @@ const documento = (tipo, maximo) =>
   z
     .string()
     .transform((valor) => valor.replace(/\D/g, ""))
-    .refine(
-      (valor) => {
-        // Somente o cadastro interno em desenvolvimento pode aceitar CPF fictício.
-        // Sem a variável, ou em produção, os dígitos verificadores são obrigatórios.
-        const permitirCpfFicticio =
-          tipo === "CPF" &&
-          process.env.NODE_ENV === "development" &&
-          process.env.VALIDAR_CPF === "false";
-        return (
-          valor.length === maximo &&
-          (permitirCpfFicticio || documentoValido(valor, tipo))
-        );
-      },
-      "CPF inválido.",
-    );
+    .refine((valor) => {
+      // Somente o cadastro interno em desenvolvimento pode aceitar CPF fictício.
+      // Sem a variável, ou em produção, os dígitos verificadores são obrigatórios.
+      const permitirCpfFicticio =
+        tipo === "CPF" &&
+        process.env.NODE_ENV === "development" &&
+        process.env.VALIDAR_CPF === "false";
+      return (
+        valor.length === maximo &&
+        (permitirCpfFicticio || documentoValido(valor, tipo))
+      );
+    }, "CPF inválido.");
 
 export const alunoSchema = z
   .object({
@@ -58,9 +56,7 @@ export const alunoSchema = z
       .string()
       .transform((valor) => valor.replace(/\D/g, ""))
       .refine((valor) => /^\d{10,13}$/.test(valor), "Celular inválido."),
-    genero: z
-      .enum(["", "Masculino", "Feminino"])
-      .default(""),
+    genero: z.enum(["", "Masculino", "Feminino"]).default(""),
     telefone: textoOpcional(30)
       .transform((valor) => valor.replace(/\D/g, ""))
       .refine(
@@ -302,6 +298,7 @@ export async function salvarAluno(
           where: { id: aluno.id },
           select: selectAluno,
         });
+        await conciliarParticipacoesAluno(transacao, aluno.id, administradorId);
         await transacao.auditoriaAluno.create({
           data: {
             alunoId: aluno.id,
@@ -335,6 +332,7 @@ export async function excluirAluno(prisma, administradorId, id, versao) {
         data: { arquivadoEm: new Date() },
         select: selectAluno,
       });
+      await conciliarParticipacoesAluno(transacao, id, administradorId);
       await transacao.auditoriaAluno.create({
         data: {
           alunoId: id,

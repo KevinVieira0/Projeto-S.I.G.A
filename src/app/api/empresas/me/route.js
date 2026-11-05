@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { authorize } from "@/lib/auth/authorize";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(requisicao) {
   try {
     const resultado = await authorize(requisicao, "empresa");
@@ -12,9 +14,10 @@ export async function GET(requisicao) {
 
     const empresa = resultado.session.dados;
 
-    return NextResponse.json({
-      nome: empresa.nomeFantasia || empresa.razaoSocial,
-    });
+    return NextResponse.json(
+      { nome: empresa.nomeFantasia || empresa.razaoSocial },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (erro) {
     console.error("Erro ao buscar empresa autenticada.");
 

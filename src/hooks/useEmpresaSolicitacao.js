@@ -24,12 +24,17 @@ function primeirasMensagens(erros) {
   );
 }
 
-export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) {
+export function useEmpresaSolicitacao({
+  cursos,
+  carregandoCursos,
+  erroCursos,
+}) {
   const { session: sessao, isLoading: carregandoSessao } = useAuth();
   const [formulario, setFormulario] = useState({ ...FORMULARIO_INICIAL });
   const [erros, setErros] = useState({});
   const [erroApi, setErroApi] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState(false);
+  const [solicitacaoCriada, setSolicitacaoCriada] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [sessaoExpirada, setSessaoExpirada] = useState(false);
   const enviandoRef = useRef(false);
@@ -40,7 +45,8 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
         ...anterior,
         [nomeCampo]: tipo === "number" && valor !== "" ? Number(valor) : valor,
       };
-      if (nomeCampo === "pratica" && valor !== "com") proximo.periodoPratica = "";
+      if (nomeCampo === "pratica" && valor !== "com")
+        proximo.periodoPratica = "";
       return proximo;
     });
     setMensagemSucesso(false);
@@ -102,7 +108,9 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
     enviandoRef.current = true;
     setCarregando(true);
     try {
-      await createSolicitacao(resultado.data);
+      const resposta = await createSolicitacao(resultado.data);
+      setSolicitacaoCriada(resposta.solicitacao);
+      window.dispatchEvent(new Event("empresa:atualizada"));
       setFormulario({ ...FORMULARIO_INICIAL });
       setMensagemSucesso(true);
       setSessaoExpirada(false);
@@ -110,7 +118,7 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
       const dados = erroCapturado.response?.data;
       setErroApi(
         dados?.message ||
-        "Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.",
+          "Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.",
       );
       const errosCampos = dados?.errors?.fieldErrors || {};
       setErros(primeirasMensagens(errosCampos));
@@ -125,6 +133,7 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
     erros,
     apiError: erroApi,
     mensagemSucesso,
+    solicitacaoCriada,
     isLoading: carregando,
     carregandoSessao,
     sessaoExpirada,

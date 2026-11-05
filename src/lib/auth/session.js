@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const SESSION_COOKIE = "siga_session";
+export const SESSION_COOKIES = {
+  admin: "siga_admin_session",
+  empresa: "siga_empresa_session",
+};
 
 export const SESSION_SECONDS = 8 * 60 * 60;
 
@@ -37,10 +41,15 @@ export function verifySessionToken(token, agora = Date.now()) {
   const [conteudoToken, assinatura] = partes;
   const esperado = Buffer.from(assinar(conteudoToken));
   const recebido = Buffer.from(assinatura);
-  if (recebido.length !== esperado.length || !timingSafeEqual(recebido, esperado))
+  if (
+    recebido.length !== esperado.length ||
+    !timingSafeEqual(recebido, esperado)
+  )
     return null;
   try {
-    const dados = JSON.parse(Buffer.from(conteudoToken, "base64url").toString("utf8"));
+    const dados = JSON.parse(
+      Buffer.from(conteudoToken, "base64url").toString("utf8"),
+    );
     if (
       dados.v !== 1 ||
       !["admin", "empresa"].includes(dados.tipo) ||
@@ -72,8 +81,10 @@ export function sessionCookieOptions() {
 }
 
 export function setSessionCookie(resposta, tipo, usuario) {
+  if (typeof SESSION_COOKIES[tipo] !== "string")
+    throw new Error("Perfil de sessão inválido.");
   resposta.cookies.set(
-    SESSION_COOKIE,
+    SESSION_COOKIES[tipo],
     createSessionToken(tipo, usuario),
     sessionCookieOptions(),
   );

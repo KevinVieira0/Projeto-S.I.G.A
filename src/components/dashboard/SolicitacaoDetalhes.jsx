@@ -67,7 +67,7 @@ export function SolicitacaoDetalhes({ solicitacao, onClose, onUpdated }) {
     ["E-mail", solicitacao.empresa?.email],
     ["Telefone", solicitacao.empresa?.telefone],
     ["Curso", solicitacao.cursos],
-    ["Vagas solicitadas", solicitacao.quantidadeAlunos],
+    ["Vagas solicitadas", solicitacao.quantidadeVagas],
     [
       "Faixa etária",
       formatarFaixaEtaria(solicitacao.idadeMinima, solicitacao.idadeMaxima),
