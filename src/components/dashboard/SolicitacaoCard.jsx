@@ -42,8 +42,8 @@ export function SolicitacaoCard({ solicitacao, onSelect }) {
       </p>
       <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-600">
         <Users className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-        {solicitacao.quantidadeAlunos}{" "}
-        {solicitacao.quantidadeAlunos === 1
+        {solicitacao.quantidadeVagas}{" "}
+        {solicitacao.quantidadeVagas === 1
           ? "vaga solicitada"
           : "vagas solicitadas"}
       </p>

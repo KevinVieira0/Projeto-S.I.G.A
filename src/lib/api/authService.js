@@ -2,7 +2,10 @@ import { apiClient } from "./axiosClient";
 import { onlyDigits } from "@/lib/validations/cnpjUtils";
 
 export async function loginAdmin({ email, senha }) {
-  const { data: dados } = await apiClient.post("/auth/admin/login", { email, senha });
+  const { data: dados } = await apiClient.post("/auth/admin/login", {
+    email,
+    senha,
+  });
   return dados;
 }
 
@@ -14,11 +17,14 @@ export async function loginEmpresa({ cnpj, senha }) {
   return dados;
 }
 
-export async function obterSessao() {
-  const { data: dados } = await apiClient.get("/auth/session");
+export async function obterSessao(perfil, opcoes = {}) {
+  const { data: dados } = await apiClient.get("/auth/session", {
+    ...opcoes,
+    params: { perfil },
+  });
   return dados;
 }
 
-export async function encerrarSessao() {
-  await apiClient.post("/auth/logout", {});
+export async function encerrarSessao(perfil) {
+  await apiClient.post("/auth/logout", { perfil });
 }

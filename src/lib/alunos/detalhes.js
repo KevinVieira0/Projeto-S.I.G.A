@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { selectAluno, ErroGestaoAluno } from "./gestao";
+import { camposComprovante } from "../contratos/comprovantes";
 
 const camposEmpresa = {
   id: true,
@@ -99,7 +100,7 @@ export async function obterDetalhesAluno(prisma, id) {
               criadoEm: true,
               inicio: true,
               fim: true,
-              quantidadeAlunos: true,
+              quantidadeVagas: true,
               pratica: true,
               empresa: { select: camposEmpresa },
               eventosAcompanhamento: {
@@ -121,6 +122,12 @@ export async function obterDetalhesAluno(prisma, id) {
         totalHistorico,
         solicitacoes,
         totalSolicitacoes,
+        comprovantes: await transacao.comprovanteContrato.findMany({
+          where: { alunoId: id },
+          orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+          take: 30,
+          select: camposComprovante,
+        }),
       };
     },
     { isolationLevel: "RepeatableRead", timeout: 30000 },
@@ -164,6 +171,19 @@ export async function confirmarContratoAluno(
       if (matricula.atualizadoEm.toISOString() !== dados.versao)
         throw new ErroGestaoAluno(
           "O vínculo mudou. Reabra os detalhes antes de salvar o contrato.",
+          409,
+        );
+      if (
+        !dados.confirmado &&
+        (await transacao.comprovanteContrato.count({
+          where: {
+            matriculaId: matricula.id,
+            empresaId: matricula.empresaAtualId,
+          },
+        }))
+      )
+        throw new ErroGestaoAluno(
+          "Existe um comprovante anexado. Para corrigir o documento, solicite uma nova versão à empresa.",
           409,
         );
       if (matricula.contratoConfirmado === dados.confirmado)

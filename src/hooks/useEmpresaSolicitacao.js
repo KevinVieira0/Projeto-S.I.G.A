@@ -10,10 +10,11 @@ const FORMULARIO_INICIAL = {
   idadeMaxima: "16",
   sexo: "",
   pratica: "",
+  periodoPratica: "",
   cursos: "",
   inicio: "",
   fim: "",
-  quantidadeAlunos: "1",
+  quantidadeVagas: "1",
   observacoes: "",
 };
 
@@ -23,21 +24,31 @@ function primeirasMensagens(erros) {
   );
 }
 
-export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) {
+export function useEmpresaSolicitacao({
+  cursos,
+  carregandoCursos,
+  erroCursos,
+}) {
   const { session: sessao, isLoading: carregandoSessao } = useAuth();
   const [formulario, setFormulario] = useState({ ...FORMULARIO_INICIAL });
   const [erros, setErros] = useState({});
   const [erroApi, setErroApi] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState(false);
+  const [solicitacaoCriada, setSolicitacaoCriada] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [sessaoExpirada, setSessaoExpirada] = useState(false);
   const enviandoRef = useRef(false);
   function alterarCampo(evento) {
     const { name: nomeCampo, value: valor, type: tipo } = evento.target;
-    setFormulario((anterior) => ({
-      ...anterior,
-      [nomeCampo]: tipo === "number" && valor !== "" ? Number(valor) : valor,
-    }));
+    setFormulario((anterior) => {
+      const proximo = {
+        ...anterior,
+        [nomeCampo]: tipo === "number" && valor !== "" ? Number(valor) : valor,
+      };
+      if (nomeCampo === "pratica" && valor !== "com")
+        proximo.periodoPratica = "";
+      return proximo;
+    });
     setMensagemSucesso(false);
     setErroApi("");
     setErros((anterior) => {
@@ -76,17 +87,30 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
       cursos.map((curso) => curso.value),
     ).safeParse(formulario);
     if (!resultado.success) {
-      const errosCampos = resultado.error.flatten().fieldErrors;
-      setErros(primeirasMensagens(errosCampos));
-      const primeiroCampo = Object.keys(errosCampos)[0];
-      evento.currentTarget.elements.namedItem(primeiroCampo)?.focus();
+      const { fieldErrors, formErrors } = resultado.error.flatten();
+      console.warn("Validação falhou:", { fieldErrors, formErrors });
+
+      setErros(primeirasMensagens(fieldErrors));
+
+      if (formErrors.length > 0) {
+        setErroApi(formErrors[0]);
+      } else if (Object.keys(fieldErrors).length === 0) {
+        setErroApi("Não foi possível validar o formulário. Revise os campos.");
+      }
+
+      const primeiroCampo = Object.keys(fieldErrors)[0];
+      if (primeiroCampo) {
+        evento.currentTarget.elements.namedItem(primeiroCampo)?.focus();
+      }
       return;
     }
     setErros({});
     enviandoRef.current = true;
     setCarregando(true);
     try {
-      await createSolicitacao(resultado.data);
+      const resposta = await createSolicitacao(resultado.data);
+      setSolicitacaoCriada(resposta.solicitacao);
+      window.dispatchEvent(new Event("empresa:atualizada"));
       setFormulario({ ...FORMULARIO_INICIAL });
       setMensagemSucesso(true);
       setSessaoExpirada(false);
@@ -109,6 +133,7 @@ export function useEmpresaSolicitacao({ cursos, carregandoCursos, erroCursos }) 
     erros,
     apiError: erroApi,
     mensagemSucesso,
+    solicitacaoCriada,
     isLoading: carregando,
     carregandoSessao,
     sessaoExpirada,

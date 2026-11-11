@@ -4,7 +4,7 @@ import { ROUTES } from "@/constants/routes";
 import AdminShell from "@/components/dashboard/AdminShell";
 
 export default async function AdminLayout({ children }) {
-  const sessao = await getCurrentSession();
+  const sessao = await getCurrentSession("admin");
   if (sessao?.tipo !== "admin") redirect(ROUTES.LOGIN);
   return <AdminShell>{children}</AdminShell>;
 }
