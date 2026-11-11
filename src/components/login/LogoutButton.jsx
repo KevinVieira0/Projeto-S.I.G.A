@@ -33,7 +33,7 @@ export default function LogoutButton({ variante = "azul" }) {
         type="button"
         onClick={sair}
         disabled={carregando}
-        className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50 ${CORES[variante]}`}
+        className={`inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50 ${CORES[variante]}`}
       >
         {carregando ? "Saindo..." : "Sair"}
       </button>

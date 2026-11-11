@@ -114,7 +114,7 @@ export default function PainelEmpresa() {
   ];
   return (
     <div className="relative isolate min-h-screen bg-[#faf9f7] text-slate-900">
-      {naNovaSolicitacao && <FundoNovaSolicitacao />}
+    <FundoNovaSolicitacao/>
       <header
         className={`pointer-events-none z-40 flex justify-center px-3 pt-4 sm:px-6 ${naNovaSolicitacao ? "relative" : "sticky top-0"
           }`}
@@ -175,12 +175,6 @@ export default function PainelEmpresa() {
           </div>
         ) : (
           <div className="mb-7">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
-              Portal da empresa
-            </p>
-            <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Olá, {empresa?.nome || "sua empresa"}
-            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
               Acompanhe as indicações, as seleções em andamento e as
               contratações da sua empresa.
