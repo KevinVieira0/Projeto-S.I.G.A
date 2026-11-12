@@ -264,9 +264,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     {[
                       "",
                       "Masculino",
-                      "Feminino",
-                      "Outro",
-                      "Prefiro não informar",
+                      "Feminino"
                     ].map((valor) => (
                       <option key={valor} value={valor}>
                         {valor || "Não informado"}
