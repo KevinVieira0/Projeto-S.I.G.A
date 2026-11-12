@@ -242,6 +242,7 @@ function DetalhePedido({ pedidoId, voltar }) {
     </div>
   );
 }
+
 export default function SolicitacoesEmpresa({
   selecionadaId,
   selecionar,
@@ -259,21 +260,8 @@ export default function SolicitacoesEmpresa({
       />
     );
   return (
-    <section aria-labelledby="titulo-solicitacoes">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2
-            id="titulo-solicitacoes"
-            tabIndex={-1}
-            data-foco-acompanhamento
-            className="text-lg font-semibold text-slate-900"
-          >
-            Minhas solicitações
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Acompanhe as indicações e o preenchimento de cada pedido.
-          </p>
-        </div>
+    <section aria-label="Minhas solicitações">
+      <div className="mb-5 flex justify-end">
         <button
           type="button"
           className={estilosEmpresa.primario}

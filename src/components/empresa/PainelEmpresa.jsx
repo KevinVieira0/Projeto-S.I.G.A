@@ -24,6 +24,21 @@ const abas = [
   { id: "solicitacoes", rotulo: "Minhas solicitações" },
 ];
 
+const cabecalhos = {
+  alunos: {
+    titulo: "Aprendizes",
+    texto: "Acompanhe os alunos indicados à sua empresa.",
+  },
+  nova: {
+    titulo: "Nova solicitação",
+    texto: "Informe o perfil dos aprendizes que sua empresa procura.",
+  },
+  solicitacoes: {
+    titulo: "Minhas solicitações",
+    texto: "Acompanhe as indicações e o preenchimento de cada pedido.",
+  },
+};
+
 function FundoNovaSolicitacao() {
   return (
     <div
@@ -43,7 +58,7 @@ export default function PainelEmpresa() {
   const [situacaoAluno, setSituacaoAluno] = useState("todos");
   const { dados: empresa } = useDadosEmpresa("/empresas/me");
   const { dados, erro, recarregar } = useDadosEmpresa("/empresas/resumo");
-  const naNovaSolicitacao = aba === "nova";
+  const cabecalho = cabecalhos[aba];
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("solicitacao");
     if (id && /^[a-f\d-]{36}$/i.test(id)) {
@@ -114,11 +129,8 @@ export default function PainelEmpresa() {
   ];
   return (
     <div className="relative isolate min-h-screen bg-[#faf9f7] text-slate-900">
-    <FundoNovaSolicitacao/>
-      <header
-        className={`pointer-events-none z-40 flex justify-center px-3 pt-4 sm:px-6 ${naNovaSolicitacao ? "relative" : "sticky top-0"
-          }`}
-      >
+      <FundoNovaSolicitacao />
+      <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-3 pt-4 sm:px-6">
         <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-orange-300/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl">
           <div
             role="tablist"
@@ -151,36 +163,33 @@ export default function PainelEmpresa() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10">
-        {naNovaSolicitacao ? (
-          <div className="mb-8">
-            <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
+        <div className="mb-8">
+          <p className="mb-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
               <span
                 aria-hidden="true"
                 className="h-1.5 w-6 rounded-full bg-orange-500"
               />
               Portal da empresa
-              <span aria-hidden="true" className="text-orange-300">
-                /
-              </span>
-              <span className="break-words text-lg font-semibold normal-case tracking-tight text-slate-700 sm:text-xl">
-                {empresa?.nome || "sua empresa"}
-              </span>
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              Nova solicitação
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-              Informe o perfil dos aprendizes que sua empresa procura.
-            </p>
-          </div>
-        ) : (
-          <div className="mb-7">
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Acompanhe as indicações, as seleções em andamento e as
-              contratações da sua empresa.
-            </p>
-          </div>
-        )}
+            </span>
+            <span aria-hidden="true" className="text-orange-300">
+              /
+            </span>
+            <span className="break-words text-lg font-semibold tracking-tight text-slate-700 sm:text-xl">
+              {empresa?.nome || "sua empresa"}
+            </span>
+          </p>
+          <h1
+            data-foco-acompanhamento
+            tabIndex={-1}
+            className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"
+          >
+            {cabecalho.titulo}
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            {cabecalho.texto}
+          </p>
+        </div>
         <section
           role="tabpanel"
           id="painel-alunos"
