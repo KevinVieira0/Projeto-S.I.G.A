@@ -12,7 +12,7 @@ export async function PATCH(requisicao, { params }) {
     const solicitacao = await alterarEstadoSolicitacao(
       prisma,
       session.dados.id,
-      params.id,
+      (await params).id,
       await requisicao.json(),
     );
     return NextResponse.json({ solicitacao });

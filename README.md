@@ -1,5 +1,9 @@
 # S.I.G.A. — Sistema de Indicação e Gerenciamento do Aprendiz
 
+> Pacote de interface de 07/11/2026: comece pelo [guia de aplicação](COMECE-AQUI.md).
+> Esta entrega usa a base autorizada `49939db`, com correções essenciais reconstruídas.
+> Os arquivos movidos e as verificações desta versão estão em [docs/REFATORACAO-UI.md](docs/REFATORACAO-UI.md).
+
 Aplicação web para gerenciar alunos, empresas, matrículas, solicitações e o acompanhamento profissional dos aprendizes.
 
 O sistema possui dois perfis:

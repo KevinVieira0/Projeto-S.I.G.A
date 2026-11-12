@@ -29,7 +29,7 @@ export async function GET(requisicao, { params: parametros }) {
   const { error: erro } = await authorize(requisicao, "admin");
   if (erro) return erro;
   try {
-    return json({ empresa: await obterDetalhesEmpresa(prisma, parametros.id) });
+    return json({ empresa: await obterDetalhesEmpresa(prisma, (await parametros).id) });
   } catch (erroCapturado) {
     return responderErro(erroCapturado);
   }
@@ -42,7 +42,7 @@ export async function PATCH(requisicao, { params: parametros }) {
     const empresa = await editarEmpresa(
       prisma,
       sessao.dados.id,
-      parametros.id,
+      (await parametros).id,
       await requisicao.json(),
     );
     return json({ empresa, espelho: await tentarEspelharBase(prisma) });

@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { camposComprovante } from "../contratos/comprovantes";
+import { camposComprovante } from "@/lib/contratos/comprovantes";
+import { correspondeAoCadastro } from "@/lib/alunos/vinculoAtual";
 
 export const estadosEmAberto = [
   "INDICADO",
@@ -82,7 +83,9 @@ export async function conciliarParticipacoesAluno(
             ? "Vínculo atualizado pela coordenação."
             : null,
         encerradoEm: status === "CANCELADO" ? new Date() : null,
-        contratadoEm: status === "CONTRATADO" ? new Date() : null,
+        ...(status === "CONTRATADO" && !participacao.contratadoEm
+          ? { contratadoEm: new Date() }
+          : {}),
         eventos: {
           create: {
             statusAnterior: participacao.status,
@@ -208,6 +211,7 @@ function vinculoAtual(participacao) {
     participacao.status === "APROVADO" ? "EM_PROCESSO" : participacao.status;
   return (
     !aluno.arquivadoEm &&
+    correspondeAoCadastro(matricula, aluno) &&
     estadosEmAberto.includes(participacao.status) &&
     matricula.empresaAtualId === participacao.solicitacao.idEmpresa &&
     aluno.empresaId === participacao.solicitacao.idEmpresa &&

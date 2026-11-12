@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET(_requisicao, { params: parametros }) {
-  const cnpj = parametros.cnpj.replace(/\D/g, "");
+  const cnpj = (await parametros).cnpj.replace(/\D/g, "");
   if (!/^\d{14}$/.test(cnpj)) {
     return NextResponse.json(
       { beneficiaria: false, razaoSocial: null, message: "CNPJ inválido." },

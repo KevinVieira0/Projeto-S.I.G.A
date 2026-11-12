@@ -6,7 +6,7 @@ import {
   SESSION_COOKIES,
   verifySessionToken,
   matchesCredential,
-} from "./session";
+} from "@/lib/auth/session";
 
 export async function resolveSession(token) {
   const declaracoes = verifySessionToken(token);
@@ -67,8 +67,9 @@ async function sessoesAtivas(armazenamento) {
 }
 
 export async function getCurrentSession(perfil) {
-  if (perfil) return resolveProfileSession(cookies(), perfil);
-  const ativas = await sessoesAtivas(cookies());
+  const armazenamento = await cookies();
+  if (perfil) return resolveProfileSession(armazenamento, perfil);
+  const ativas = await sessoesAtivas(armazenamento);
   return ativas.length === 1 ? ativas[0] : null;
 }
 

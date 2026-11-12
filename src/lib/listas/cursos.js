@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+import { prisma } from "@/lib/prisma";
 
 // Somente o catálogo atual do banco; a lista antiga não alimenta as telas.
 // O formulário de solicitações e seu backend usam exatamente a mesma lista.

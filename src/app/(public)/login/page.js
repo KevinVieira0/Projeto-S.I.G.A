@@ -1,9 +1,7 @@
-import LoginCard from "@/components/login/LoginCard";
+import Tela from "@/features/autenticacao/screens/LoginScreen";
 
-export default function LoginPage() {
-  return (
-    <main>
-      <LoginCard />
-    </main>
-  );
+export const metadata = { title: "Login | Projeto S.I.G.A" };
+
+export default function Page() {
+  return <Tela />;
 }

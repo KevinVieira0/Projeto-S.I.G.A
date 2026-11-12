@@ -3,7 +3,7 @@ import {
   normalizar,
   normalizarTipoCurso,
   validarBaseAcademica,
-} from "./baseAcademica";
+} from "@/lib/importacao/baseAcademica";
 
 const dia = (valor) => (valor ? new Date(valor).toISOString().slice(0, 10) : null);
 const iguais = (a, b) => limpar(a) === limpar(b);

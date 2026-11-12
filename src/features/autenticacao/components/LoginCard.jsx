@@ -1,0 +1,69 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import LoginBackground from "@/features/autenticacao/components/LoginBackground";
+import LoginInstitutional from "@/features/autenticacao/components/LoginInstitutional";
+import LoginTabs from "@/features/autenticacao/components/LoginTabs";
+import AdminLoginForm from "@/features/autenticacao/components/AdminLoginForm";
+import EmpresaLoginForm from "@/features/autenticacao/components/EmpresaLoginForm";
+import styles from "@/features/autenticacao/components/Login.module.css";
+
+export default function LoginCard() {
+  const [abaAtiva, setAbaAtiva] = useState("admin");
+  return (
+    <div className={styles.page} data-profile={abaAtiva}>
+      <LoginBackground />
+      <div className={styles.pageSignature} aria-hidden="true">
+        EDUCAÇÃO
+        <br />
+        TRABALHO
+        <br />
+        INDÚSTRIA
+        <br />
+        FUTURO
+        <span />
+      </div>
+      <section className={styles.shell} aria-label="Acesso ao S.I.G.A.">
+        <LoginInstitutional activeTab={abaAtiva} />
+        {/* O mesmo cartão muda de posição; apenas o formulário é remontado. */}
+        <div className={styles.formCard}>
+          <header className={styles.formHeader}>
+            <h1>Acesse sua conta</h1>
+            <p>S.I.G.A. – Gestão de Aprendizes</p>
+          </header>
+          <LoginTabs activeTab={abaAtiva} onChange={setAbaAtiva} />
+          <div
+            key={abaAtiva}
+            className={styles.formContent}
+            aria-label={`Formulário de acesso: ${abaAtiva === "admin" ? "Administrador" : "Empresa"}`}
+          >
+            {abaAtiva === "admin" ? <AdminLoginForm /> : <EmpresaLoginForm />}
+          </div>
+          <footer className={styles.formFooter}>
+            Acesso restrito a usuários autorizados.
+          </footer>
+        </div>
+      </section>
+      <footer className={styles.pageFooter}>
+        <div className={styles.brandSignature}>
+          <Image
+            src="/images/Logo-SENAI.png"
+            alt="SENAI"
+            width={108}
+            height={32}
+            unoptimized
+          />
+          <span>
+            Pelo desenvolvimento
+            <br />
+            de pessoas e da indústria
+          </span>
+        </div>
+        <p>
+          S.I.G.A. <span aria-hidden="true">|</span> Gestão de Aprendizes
+        </p>
+      </footer>
+    </div>
+  );
+}

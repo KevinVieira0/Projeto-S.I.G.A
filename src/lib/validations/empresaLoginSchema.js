@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isValidCnpjFormat, onlyDigits } from "./cnpjUtils";
+import { isValidCnpjFormat, onlyDigits } from "@/lib/validations/cnpjUtils";
 
 export const empresaLoginSchema = z.object({
   cnpj: z

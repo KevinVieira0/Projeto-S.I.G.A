@@ -18,7 +18,7 @@ export async function GET(requisicao, { params: parametros }) {
   const { error: erroCapturado } = await authorize(requisicao, "admin");
   if (erroCapturado) return erroCapturado;
   try {
-    return json({ aluno: await obterDetalhesAluno(prisma, parametros.id) });
+    return json({ aluno: await obterDetalhesAluno(prisma, (await parametros).id) });
   } catch (erro) {
     return json(
       {
@@ -45,12 +45,12 @@ async function alterar(requisicao, parametros, excluir) {
     if (excluir && Object.keys(dados).length)
       return json({ mensagem: "Dados de exclusão inválidos." }, 400);
     const saida = excluir
-      ? await excluirAluno(prisma, sessao.dados.id, parametros.id, versao)
+      ? await excluirAluno(prisma, sessao.dados.id, (await parametros).id, versao)
       : await salvarAluno(
           prisma,
           sessao.dados.id,
           dados,
-          parametros.id,
+          (await parametros).id,
           versao,
         );
     return json({ ...saida, espelho: await tentarEspelharBase(prisma) });

@@ -1,4 +1,4 @@
-import { apiClient } from "./axiosClient";
+import { apiClient } from "@/lib/api/axiosClient";
 import { onlyDigits } from "@/lib/validations/cnpjUtils";
 
 export async function loginAdmin({ email, senha }) {

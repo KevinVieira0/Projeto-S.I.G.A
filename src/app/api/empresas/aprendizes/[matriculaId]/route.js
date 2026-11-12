@@ -6,26 +6,27 @@ import {
 } from "@/lib/solicitacoes/participacoes";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 import { camposComprovante } from "@/lib/contratos/comprovantes";
+import { correspondeAoCadastro } from "@/lib/alunos/vinculoAtual";
 
 export const dynamic = "force-dynamic";
 export async function GET(requisicao, { params }) {
   const { error, session } = await authorize(requisicao, "empresa");
   if (error) return error;
   try {
-    conferirUuid(params.matriculaId);
+    conferirUuid((await params).matriculaId);
     const matricula = await prisma.matricula.findFirst({
       where: {
-        id: params.matriculaId,
+        id: (await params).matriculaId,
         empresaAtualId: session.dados.id,
         status: { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] },
-        aluno: { arquivadoEm: null },
+        aluno: { arquivadoEm: null, empresaId: session.dados.id },
       },
       select: {
         status: true,
         termoAtual: true,
         contratoConfirmado: true,
         aluno: {
-          select: { nome: true, email: true, celular: true, telefone: true },
+          select: { nome: true, email: true, celular: true, telefone: true, turma: true, curso: true, periodo: true, arquivadoEm: true },
         },
         turma: {
           select: {
@@ -36,7 +37,7 @@ export async function GET(requisicao, { params }) {
         },
       },
     });
-    if (!matricula) throw new ErroParticipacao("Vínculo não encontrado.", 404);
+    if (!matricula || !correspondeAoCadastro(matricula)) throw new ErroParticipacao("Vínculo não encontrado.", 404);
     return jsonEmpresa({
       participacao: {
         id: null,
@@ -44,7 +45,7 @@ export async function GET(requisicao, { params }) {
         podeEnviarContrato: false,
         comprovantes: await prisma.comprovanteContrato.findMany({
           where: {
-            matriculaId: params.matriculaId,
+            matriculaId: (await params).matriculaId,
             empresaId: session.dados.id,
           },
           orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
@@ -57,7 +58,10 @@ export async function GET(requisicao, { params }) {
             ? matricula.contratoConfirmado
             : null,
         aluno: {
-          ...matricula.aluno,
+          nome: matricula.aluno.nome,
+          email: matricula.aluno.email,
+          celular: matricula.aluno.celular,
+          telefone: matricula.aluno.telefone,
           curso: matricula.turma.curso.nome,
           turma: matricula.turma.codigo,
           turno: matricula.turma.turno,

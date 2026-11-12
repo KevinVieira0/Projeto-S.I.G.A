@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --background: 214 40% 97%;
+    --foreground: 222 47% 11%;
   }
   .dark {
     --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
+    --foreground: 210 40% 98%;
   }
   body {
     @apply bg-background text-foreground;

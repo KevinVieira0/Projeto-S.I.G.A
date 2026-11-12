@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/authorize";
 import { ROUTES } from "@/constants/routes";
-import PerfilProtegido from "@/components/login/PerfilProtegido";
+import PerfilProtegido from "@/features/autenticacao/components/PerfilProtegido";
 
 export default async function EmpresaLayout({ children }) {
   const sessao = await getCurrentSession("empresa");

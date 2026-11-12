@@ -14,6 +14,7 @@ export async function GET(requisicao) {
           tx.aluno.count({
             where: {
               arquivadoEm: null,
+              empresaId,
               matriculas: { some: { empresaAtualId: empresaId, status } },
             },
           });

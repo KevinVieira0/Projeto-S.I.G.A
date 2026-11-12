@@ -1,14 +1,7 @@
-import CompaniesTable from "@/components/dashboard/CompaniesTable";
-import StudentIntakeStatus from "@/components/alunos/StudentIntakeStatus";
+import Tela from "@/features/empresas/screens/EmpresasScreen";
 
 export const metadata = { title: "Empresas | Projeto S.I.G.A" };
 
-export default function AdminEmpresasPage() {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
-      <StudentIntakeStatus tipo="EMPRESA" />
-      <CompaniesTable gestao />
-    </div>
-  );
+export default function Page() {
+  return <Tela />;
 }

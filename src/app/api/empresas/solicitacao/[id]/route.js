@@ -12,7 +12,7 @@ export async function GET(requisicao, { params }) {
       solicitacao: await obterPedidoEmpresa(
         prisma,
         session.dados.id,
-        params.id,
+        (await params).id,
         new URL(requisicao.url).searchParams.get("pagina") || 1,
       ),
     });

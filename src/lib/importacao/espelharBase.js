@@ -3,12 +3,12 @@ import {
   normalizar,
   normalizarTipoCurso,
   dataAcademica,
-} from "./baseAcademica";
-import { lerBaseAcademicaDaPlanilha } from "./googleSheetsAcademico";
+} from "@/lib/importacao/baseAcademica";
+import { lerBaseAcademicaDaPlanilha } from "@/lib/importacao/googleSheetsAcademico";
 import {
   criarAutenticacaoGoogle,
   mensagemErroGoogle,
-} from "./autenticacaoGoogle";
+} from "@/lib/importacao/autenticacaoGoogle";
 
 export class ErroEspelhoNaoConciliado extends Error {
   constructor(aba) {

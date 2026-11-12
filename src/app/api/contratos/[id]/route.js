@@ -12,10 +12,10 @@ export async function GET(requisicao, { params }) {
   const { error, session } = await authorize(requisicao, perfil || undefined);
   if (error) return error;
   try {
-    conferirUuid(params.id);
+    conferirUuid((await params).id);
     const documento = await prisma.comprovanteContrato.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         ...(session.tipo === "empresa" ? { empresaId: session.dados.id } : {}),
       },
       select: { conteudo: true, nome: true, tipo: true, tamanho: true },

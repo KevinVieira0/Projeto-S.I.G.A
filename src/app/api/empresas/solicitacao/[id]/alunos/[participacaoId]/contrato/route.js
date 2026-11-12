@@ -17,8 +17,8 @@ export async function POST(requisicao, { params }) {
     const resultado = await alterarParticipacaoEmpresa(
       prisma,
       session.dados.id,
-      params.id,
-      params.participacaoId,
+      (await params).id,
+      (await params).participacaoId,
       { acao: "CONTRATAR", versao, confirmado: true },
       comprovante,
     );

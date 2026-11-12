@@ -1,6 +1,6 @@
 import { google } from "googleapis";
-import { LIMITE_LINHAS } from "./baseAcademica";
-import { criarAutenticacaoGoogle } from "./autenticacaoGoogle";
+import { LIMITE_LINHAS } from "@/lib/importacao/baseAcademica";
+import { criarAutenticacaoGoogle } from "@/lib/importacao/autenticacaoGoogle";
 
 const COLUNAS = {
   Cursos: "C",

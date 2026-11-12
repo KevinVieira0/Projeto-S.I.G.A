@@ -1,6 +1,6 @@
-import { ABAS_ACADEMICAS, validarBaseAcademica } from "./baseAcademica";
-import { ErroRecebimento } from "./recebimentos";
-import { obterTurma } from "./processarRecebimento";
+import { ABAS_ACADEMICAS, validarBaseAcademica } from "@/lib/importacao/baseAcademica";
+import { ErroRecebimento } from "@/lib/importacao/recebimentos";
+import { obterTurma } from "@/lib/importacao/processarRecebimento";
 
 export async function sincronizarCatalogo(prisma, abas) {
   const entrada = Object.fromEntries(

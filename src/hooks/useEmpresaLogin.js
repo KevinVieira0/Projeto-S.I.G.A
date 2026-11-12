@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { empresaLoginSchema } from "@/lib/validations/empresaLoginSchema";
-import { useCnpjValidation } from "./useCnpjValidation";
+import { useCnpjValidation } from "@/hooks/useCnpjValidation";
 import { loginEmpresa } from "@/lib/api/authService";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";

@@ -1,8 +1,8 @@
-import { lerRecebimentosDaPlanilha } from "./googleSheetsAcademico";
-import { importarRecebimentos } from "./recebimentos";
-import { automatizarCadastros } from "./automatizarCadastros";
-import { tentarEspelharBase } from "./espelharBase";
-import { sincronizarCatalogo } from "./sincronizarCatalogo";
+import { lerRecebimentosDaPlanilha } from "@/lib/importacao/googleSheetsAcademico";
+import { importarRecebimentos } from "@/lib/importacao/recebimentos";
+import { automatizarCadastros } from "@/lib/importacao/automatizarCadastros";
+import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
+import { sincronizarCatalogo } from "@/lib/importacao/sincronizarCatalogo";
 
 export async function sincronizarRecebimentos(prisma) {
   const abas = await lerRecebimentosDaPlanilha();

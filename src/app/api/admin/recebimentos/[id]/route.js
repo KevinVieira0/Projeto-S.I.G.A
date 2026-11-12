@@ -15,7 +15,7 @@ export async function GET(requisicao, { params: parametros }) {
   if (erro) return erro;
   try {
     const registro = await prisma.recebimentoCadastro.findUnique({
-      where: { id: parametros.id },
+      where: { id: (await parametros).id },
       select: {
         id: true,
         tipo: true,

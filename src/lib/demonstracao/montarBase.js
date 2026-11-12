@@ -1,5 +1,5 @@
-import { normalizar, documentoValido } from "../importacao/baseAcademica";
-import { hashDados } from "../importacao/recebimentos";
+import { normalizar, documentoValido } from "@/lib/importacao/baseAcademica";
+import { hashDados } from "@/lib/importacao/recebimentos";
 
 const rotulos = {
   DISPONIVEL: "Disponível",

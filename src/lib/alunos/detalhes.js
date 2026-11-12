@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { selectAluno, ErroGestaoAluno } from "./gestao";
-import { camposComprovante } from "../contratos/comprovantes";
+import { selectAluno, ErroGestaoAluno } from "@/lib/alunos/gestao";
+import { camposComprovante } from "@/lib/contratos/comprovantes";
 
 const camposEmpresa = {
   id: true,

@@ -1,4 +1,4 @@
-import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
+import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
 
 export function calcularIdade(nascimento, hoje = todayInSaoPaulo()) {
   const anos = Number(hoje.slice(0, 4)) - Number(nascimento.slice(0, 4));

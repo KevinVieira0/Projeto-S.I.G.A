@@ -1,4 +1,4 @@
-import { apiClient } from "./axiosClient";
+import { apiClient } from "@/lib/api/axiosClient";
 
 export async function buscarAlunosPorCurso(opcoes = {}) {
   const { data: dados } = await apiClient.get("/admin/dashboard/alunos-por-curso", {

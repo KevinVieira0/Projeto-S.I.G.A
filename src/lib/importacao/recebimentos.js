@@ -5,8 +5,8 @@ import {
   documentoValido,
   dataAcademica,
   limpar,
-} from "./baseAcademica";
-import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
+} from "@/lib/importacao/baseAcademica";
+import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
 
 export const CABECALHOS_RECEBIMENTOS = {
   ALUNO: [

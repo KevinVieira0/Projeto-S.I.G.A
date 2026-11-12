@@ -1,4 +1,4 @@
-import { processarRecebimento } from "./processarRecebimento";
+import { processarRecebimento } from "@/lib/importacao/processarRecebimento";
 
 export async function automatizarCadastros(prisma, fonte, tipo) {
   const filtro = { fonte, tipo, estado: "PENDENTE" };

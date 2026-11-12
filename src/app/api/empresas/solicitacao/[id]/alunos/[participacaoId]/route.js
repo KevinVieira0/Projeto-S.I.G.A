@@ -16,8 +16,8 @@ export async function GET(requisicao, { params }) {
       participacao: await obterParticipacaoEmpresa(
         prisma,
         session.dados.id,
-        params.id,
-        params.participacaoId,
+        (await params).id,
+        (await params).participacaoId,
       ),
     });
   } catch (erro) {
@@ -31,8 +31,8 @@ export async function PATCH(requisicao, { params }) {
     const resultado = await alterarParticipacaoEmpresa(
       prisma,
       session.dados.id,
-      params.id,
-      params.participacaoId,
+      (await params).id,
+      (await params).participacaoId,
       await requisicao.json(),
     );
     return jsonEmpresa({

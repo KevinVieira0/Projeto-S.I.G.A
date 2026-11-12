@@ -27,7 +27,7 @@ export async function GET(requisicao, { params }) {
   try {
     const busca = new URL(requisicao.url).searchParams;
     return json(
-      await listarIndicacoes(prisma, params.id, {
+      await listarIndicacoes(prisma, (await params).id, {
         busca: busca.get("busca") || "",
         pagina: busca.get("pagina") || 1,
       }),
@@ -45,7 +45,7 @@ export async function POST(requisicao, { params }) {
       await indicarAlunos(
         prisma,
         session.dados.id,
-        params.id,
+        (await params).id,
         await requisicao.json(),
       ),
       201,

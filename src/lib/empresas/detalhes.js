@@ -1,4 +1,4 @@
-import { camposEmpresa, conferirIdEmpresa, ErroGestaoEmpresa } from "./gestao";
+import { camposEmpresa, conferirIdEmpresa, ErroGestaoEmpresa } from "@/lib/empresas/gestao";
 
 const limiteAlunos = 20;
 const limiteSolicitacoes = 10;

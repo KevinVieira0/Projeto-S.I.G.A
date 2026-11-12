@@ -1,4 +1,8 @@
 import "./globals.css";
+import "@/shared/styles/tokens.css";
+import "@/shared/styles/motion.css";
+import "@/layouts/admin/admin.css";
+import "@/layouts/empresa/empresa.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata = {

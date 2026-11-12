@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { documentoValido } from "../importacao/baseAcademica";
-import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
-import { calcularIdade } from "./dadosPessoais";
-import { conciliarParticipacoesAluno } from "../solicitacoes/participacoes";
+import { documentoValido } from "@/lib/importacao/baseAcademica";
+import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
+import { calcularIdade } from "@/lib/alunos/dadosPessoais";
+import { conciliarParticipacoesAluno } from "@/lib/solicitacoes/participacoes";
 
 export const STATUS_ALUNOS = {
   DISPONIVEL: "Disponível",
@@ -168,6 +168,27 @@ async function atualizarMatricula(
   dados,
   administradorId,
 ) {
+  const anteriores = await transacao.matricula.findMany({
+    where: {
+      alunoId,
+      turmaId: { not: turmaId },
+      OR: [{ status: { not: "DISPONIVEL" } }, { empresaAtualId: { not: null } }, { contratoConfirmado: true }],
+    },
+  });
+  // A transferência encerra o vínculo profissional, sem apagar matrícula, histórico ou comprovantes.
+  for (const antiga of anteriores) {
+    await transacao.matricula.update({
+      where: { id: antiga.id },
+      data: { status: "DISPONIVEL", empresaAtualId: null, contratoConfirmado: false, contratoAtualizadoEm: null },
+    });
+    await transacao.historicoAcompanhamento.create({
+      data: {
+        matriculaId: antiga.id, tipo: "ALTERACAO_STATUS", statusAnterior: antiga.status,
+        novoStatus: "DISPONIVEL", empresaId: antiga.empresaAtualId,
+        responsavelId: administradorId, origem: "TRANSFERENCIA_TURMA",
+      },
+    });
+  }
   const existentes = await transacao.matricula.findMany({
     where: { alunoId, turmaId },
   });

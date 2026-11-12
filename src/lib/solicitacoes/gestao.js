@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { selectAluno } from "@/lib/alunos/gestao";
-import { idadeAluno, matriculaCompativel } from "./requisitos";
+import { idadeAluno, matriculaCompativel } from "@/lib/solicitacoes/requisitos";
 import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
-import { registrarParticipacao } from "./participacoes";
+import { registrarParticipacao } from "@/lib/solicitacoes/participacoes";
 
 export class ErroGestaoSolicitacao extends Error {
   constructor(mensagem, status = 400) {

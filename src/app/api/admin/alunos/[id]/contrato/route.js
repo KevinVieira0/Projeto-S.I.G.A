@@ -19,7 +19,7 @@ export async function PATCH(requisicao, { params }) {
       await confirmarContratoAluno(
         prisma,
         sessao.dados.id,
-        params.id,
+        (await params).id,
         await requisicao.json(),
       ),
     );

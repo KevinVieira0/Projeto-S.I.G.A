@@ -1,4 +1,4 @@
-import { apiClient } from "./axiosClient";
+import { apiClient } from "@/lib/api/axiosClient";
 
 export async function createSolicitacao(valores) {
   // A empresa é identificada pelo cookie HttpOnly, nunca pelo formulário.

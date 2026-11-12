@@ -28,7 +28,7 @@ export async function GET(requisicao) {
       situacao === "todos"
         ? { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] }
         : situacao,
-    aluno: { arquivadoEm: null },
+    aluno: { arquivadoEm: null, empresaId },
     ...(busca
       ? {
           OR: [

@@ -1,6 +1,6 @@
-import { normalizar, normalizarTipoCurso } from "./baseAcademica";
-import { hashDados, ErroRecebimento } from "./recebimentos";
-import { calcularIdade } from "../alunos/dadosPessoais";
+import { normalizar, normalizarTipoCurso } from "@/lib/importacao/baseAcademica";
+import { hashDados, ErroRecebimento } from "@/lib/importacao/recebimentos";
+import { calcularIdade } from "@/lib/alunos/dadosPessoais";
 
 const dia = (valor) =>
   valor ? new Date(valor).toISOString().slice(0, 10) : null;
