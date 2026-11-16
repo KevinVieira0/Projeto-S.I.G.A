@@ -191,13 +191,10 @@ export default function Solicitacao() {
           z-10
           w-full
           max-w-3xl
-          rounded-3xl
-          border
-          border-slate-200
-          bg-white
-          p-8
-          shadow-2xl
-          lg:p-10
+          siga-card
+          siga-card-empresa
+          p-5
+          sm:p-7
         "
       >
         <div

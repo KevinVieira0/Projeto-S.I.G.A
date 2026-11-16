@@ -20,7 +20,7 @@ export default function ComprovantesContrato({
         {documentos.map((d) => (
           <li
             key={d.id}
-            className="rounded-xl border border-slate-200 bg-white/80 p-3"
+            className="siga-card siga-card-interativo bg-white/80 p-3"
           >
             <a
               href={`/api/contratos/${d.id}?perfil=${perfil}`}

@@ -4,8 +4,10 @@ import { dashboardStyles } from "./DashboardCard";
 import {
   formatarDataCivil,
   formatarDataCriacao,
+  formatarDataHora,
   obterSituacao,
   situacaoSolicitacao,
+  rotuloEncerramento,
 } from "@/lib/dashboard/solicitacoesResumo";
 
 export function SolicitacaoCard({ solicitacao, onSelect }) {
@@ -13,7 +15,7 @@ export function SolicitacaoCard({ solicitacao, onSelect }) {
   const empresa = solicitacao.empresa?.razaoSocial || "Empresa não informada";
 
   return (
-    <article className="flex min-w-0 flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-blue-200 motion-reduce:transition-none">
+    <article className="siga-card siga-card-interativo flex flex-col p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-gray-500">
           #{String(solicitacao.id).slice(0, 8)}
@@ -57,6 +59,16 @@ export function SolicitacaoCard({ solicitacao, onSelect }) {
           {formatarDataCivil(solicitacao.fim)}
         </span>
       </p>
+      {!solicitacao.ativa && (
+        <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
+          <p className="font-medium">
+            Encerramento · {formatarDataHora(solicitacao.encerradaEm)}
+          </p>
+          <p className="mt-1">
+            {rotuloEncerramento(solicitacao.motivoEncerramento)}
+          </p>
+        </div>
+      )}
       <div className="mt-auto pt-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
           <span className="text-xs text-gray-500">

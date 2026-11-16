@@ -153,7 +153,7 @@ function ModalSucesso({ aberto, onFechar, onAcompanhar, temAcompanhar }) {
         aria-modal="true"
         aria-labelledby="siga-modal-titulo"
         aria-describedby="siga-modal-descricao"
-        className="siga-modal relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl shadow-slate-900/20 sm:p-10"
+        className="siga-modal siga-card siga-card-empresa relative w-full max-w-md p-6 text-center sm:p-8"
       >
         <button
           type="button"
@@ -280,7 +280,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
     <>
       <style>{ESTILOS}</style>
 
-      <div className="w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 sm:p-8 lg:p-10">
+      <div className="siga-card siga-card-empresa w-full p-5 sm:p-7">
         {/* progresso */}
         <div className="mb-8">
           <div className="mb-3 flex items-center justify-between text-xs font-medium text-slate-500">

@@ -2,6 +2,8 @@
 
 import { Building2, GraduationCap } from "lucide-react";
 import { useRef, useState } from "react";
+import IndicadoresDaVisao from "./IndicadoresDaVisao";
+import { RecortesDaVisao } from "./RecortesDaVisao";
 
 const VISOES = [
   { id: "alunos", label: "Alunos", icon: GraduationCap },
@@ -10,7 +12,13 @@ const VISOES = [
 
 export default function DashboardOverview({ children, empresas }) {
   const [visao, setVisao] = useState("alunos");
+  const [visitouEmpresas, setVisitouEmpresas] = useState(false);
   const abasRef = useRef([]);
+  function selecionarVisao(id) {
+    if (id === "empresas") setVisitouEmpresas(true);
+    setVisao(id);
+  }
+
   function tratarTeclado(evento, indice) {
     let proximoIndice;
     if (evento.key === "ArrowRight") proximoIndice = (indice + 1) % VISOES.length;
@@ -20,11 +28,11 @@ export default function DashboardOverview({ children, empresas }) {
     else if (evento.key === "End") proximoIndice = VISOES.length - 1;
     else return;
     evento.preventDefault();
-    setVisao(VISOES[proximoIndice].id);
+    selecionarVisao(VISOES[proximoIndice].id);
     abasRef.current[proximoIndice]?.focus();
   }
   return (
-    <div className="p-5 sm:p-8">
+    <div className="p-3 sm:p-8">
       <header className="grid items-center gap-5 lg:grid-cols-[1fr_auto_1fr]">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Visão Geral</h1>
@@ -54,7 +62,7 @@ export default function DashboardOverview({ children, empresas }) {
               aria-selected={visao === id}
               aria-controls={`overview-${id}-panel`}
               tabIndex={visao === id ? 0 : -1}
-              onClick={() => setVisao(id)}
+              onClick={() => selecionarVisao(id)}
               onKeyDown={(evento) => tratarTeclado(evento, indice)}
               className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 motion-reduce:transition-none ${visao === id ? "text-white" : "text-gray-500 hover:text-gray-900"}`}
             >
@@ -73,7 +81,10 @@ export default function DashboardOverview({ children, empresas }) {
         hidden={visao !== "alunos"}
         className="overview-panel mt-6"
       >
-        {children}
+        <RecortesDaVisao visao="alunos">
+          {children}
+          <IndicadoresDaVisao visao="alunos" ativo={visao === "alunos"} />
+        </RecortesDaVisao>
       </section>
 
       <section
@@ -83,16 +94,11 @@ export default function DashboardOverview({ children, empresas }) {
         hidden={visao !== "empresas"}
         className="overview-panel mt-6"
       >
-        {empresas || (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center">
-            <Building2 className="h-8 w-8 text-[#0a3d7c]" aria-hidden="true" />
-            <h2 className="mt-4 text-lg font-semibold text-gray-900">
-              Visão geral das empresas
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Os indicadores desta visão serão disponibilizados em breve.
-            </p>
-          </div>
+        {visitouEmpresas && (
+          <RecortesDaVisao visao="empresas">
+            {empresas}
+            <IndicadoresDaVisao visao="empresas" ativo={visao === "empresas"} />
+          </RecortesDaVisao>
         )}
       </section>
 

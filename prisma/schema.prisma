@@ -105,11 +105,15 @@ model Solicitacao {
   observacoes      String?  @db.Text
   ativa            Boolean  @default(true)
   criadoEm         DateTime @default(now())
+  primeiraIndicacaoEm DateTime? @map("primeira_indicacao_em")
+  encerradaEm         DateTime? @map("encerrada_em")
+  motivoEncerramento  String?   @map("motivo_encerramento") @db.VarChar(30)
 
   empresa               Empresa                   @relation(fields: [idEmpresa], references: [id])
   eventosAcompanhamento HistoricoAcompanhamento[]
   participacoes ParticipacaoSolicitacao[]
 
+  @@index([ativa, primeiraIndicacaoEm], map: "solicitacoes_ativa_primeira_indicacao_idx")
   @@map("Solicitacoes")
 }
 

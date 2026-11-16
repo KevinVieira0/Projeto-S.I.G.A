@@ -2,6 +2,7 @@ import { z } from "zod";
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
+import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(requisicao) {
       situacao === "todos"
         ? { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] }
         : situacao,
-    aluno: { arquivadoEm: null },
+    aluno: { arquivadoEm: null, empresaId },
     ...(busca
       ? {
           OR: [
@@ -43,6 +44,7 @@ export async function GET(requisicao) {
       : {}),
   };
   try {
+    await encerrarSolicitacoesVencidas(prisma, { empresaId });
     const { total, matriculas } = await prisma.$transaction(
       async (tx) => ({
         total: await tx.matricula.count({ where }),

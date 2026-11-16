@@ -25,9 +25,12 @@ export default function AdminShell({ children }) {
     <div className="relative flex min-h-screen bg-gray-50">
       <Sidebar />
 
-      <main className="min-w-0 flex-1">{children}</main>
-
-      <StudentSyncNotification />
+      <main className="min-w-0 flex-1 max-sm:pl-[76px]">
+        <div className="flex justify-end px-3 pt-4 sm:px-8">
+          <StudentSyncNotification />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

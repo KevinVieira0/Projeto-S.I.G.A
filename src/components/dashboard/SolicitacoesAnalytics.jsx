@@ -15,7 +15,7 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
   const total = dadosStatus.reduce((soma, item) => soma + item.valor, 0);
 
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <div className="grid max-w-[86rem] grid-cols-1 items-start gap-4 xl:grid-cols-3">
       <DashboardCard
         aria-label="Volume mensal de solicitações"
         className="xl:col-span-2"
@@ -73,7 +73,7 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
         <DashboardCardHeader
           eyebrow="Acompanhamento"
           title="Situação das solicitações"
-          description="Ativas e finalizadas pela coordenação."
+          description="Solicitações ativas e encerradas."
           icon={PieChart}
         />
         <div className={`${dashboardStyles.body} flex-1`}>

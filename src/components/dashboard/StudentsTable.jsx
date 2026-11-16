@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Columns3,
-  Download,
   Filter,
   ListFilter,
   RefreshCw,
@@ -19,6 +18,11 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listarAlunos } from "@/lib/api/alunosService";
+import { baixarArquivo } from "@/lib/api/baixarArquivo";
+import {
+  filtrarAlunosDaTabela,
+  ordenarAlunosDaTabela,
+} from "@/lib/alunos/filtrosTabela";
 import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 import DashboardCard, {
   DashboardCardHeader,
@@ -27,6 +31,7 @@ import DashboardCard, {
 } from "./DashboardCard";
 import StudentEditor from "../alunos/StudentEditor";
 import StudentDetails from "../alunos/StudentDetails";
+import MenuExportar from "./MenuExportar";
 
 const TAMANHOS_PAGINA = [5, 10, 25, 50];
 const COLUNAS = [
@@ -106,33 +111,14 @@ export default function StudentsTable({ gestao = false }) {
       a.localeCompare(b, "pt-BR"),
     );
   }, [alunos]);
-  const alunosFiltrados = useMemo(() => {
-    const termoBusca = busca.trim().toLocaleLowerCase("pt-BR");
-    return alunos.filter((aluno) => {
-      const combinaBusca =
-        !termoBusca ||
-        [aluno.nome, aluno.email, aluno.curso, aluno.turma, aluno.cpf]
-          .filter(Boolean)
-          .some((valor) =>
-            String(valor).toLocaleLowerCase("pt-BR").includes(termoBusca),
-          );
-      const combinaStatus =
-        statusSelecionados.length === 0 ||
-        statusSelecionados.includes(aluno.statusIndicacao || "Sem status");
-      return combinaBusca && combinaStatus;
-    });
-  }, [alunos, busca, statusSelecionados]);
-  const alunosOrdenados = useMemo(() => {
-    return [...alunosFiltrados].sort((a, b) => {
-      const valorA = a[ordenacao.key] ?? "";
-      const valorB = b[ordenacao.key] ?? "";
-      const resultado = String(valorA).localeCompare(String(valorB), "pt-BR", {
-        numeric: true,
-        sensitivity: "base",
-      });
-      return ordenacao.direction === "asc" ? resultado : -resultado;
-    });
-  }, [alunosFiltrados, ordenacao]);
+  const alunosFiltrados = useMemo(
+    () => filtrarAlunosDaTabela(alunos, busca, statusSelecionados),
+    [alunos, busca, statusSelecionados],
+  );
+  const alunosOrdenados = useMemo(
+    () => ordenarAlunosDaTabela(alunosFiltrados, ordenacao),
+    [alunosFiltrados, ordenacao],
+  );
   const totalPaginas = Math.max(
     1,
     Math.ceil(alunosOrdenados.length / tamanhoPagina),
@@ -210,12 +196,13 @@ export default function StudentsTable({ gestao = false }) {
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative min-w-[240px] flex-1 sm:max-w-sm">
+            <div className="relative min-w-0 basis-full sm:min-w-[180px] sm:max-w-sm sm:flex-1">
               <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 value={busca}
                 onChange={(evento) => setBusca(evento.target.value)}
                 placeholder="Filtrar por nome, e-mail, CPF, curso..."
+                maxLength={255}
                 className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               />
               {busca && (
@@ -317,34 +304,16 @@ export default function StudentsTable({ gestao = false }) {
               Novo aluno
             </button>
           )}
-          <details className="relative self-start xl:self-auto">
-            <summary
-              className={`cursor-pointer list-none ${dashboardStyles.primaryAction}`}
-            >
-              <Download className="h-4 w-4" />
-              Exportar
-            </summary>
-            <div className="absolute right-0 z-30 mt-2 min-w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-              <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Formato do arquivo
-              </p>
-              <ExportOption
-                label="CSV (.csv)"
-                onClick={() => exportar("csv")}
-              />
-              <ExportOption
-                label="Excel (.xls)"
-                onClick={() => exportar("xls")}
-              />
-              <ExportOption
-                label="JSON (.json)"
-                onClick={() => exportar("json")}
-              />
-              <p className="mt-2 border-t border-gray-100 px-2 pt-2 text-[11px] leading-4 text-gray-400">
-                Exporta todos os registros que correspondem aos filtros atuais.
-              </p>
-            </div>
-          </details>
+          <MenuExportar
+            visao="alunos"
+            filtro={{ busca, status: statusSelecionados, ordenacao }}
+            desabilitado={carregando || Boolean(erro)}
+            opcoes={[
+              { rotulo: "CSV (.csv)", acao: () => exportar("csv") },
+              { rotulo: "Excel (.xls)", acao: () => exportar("xls") },
+              { rotulo: "JSON (.json)", acao: () => exportar("json") },
+            ]}
+          />
         </div>
 
         {mensagem && (
@@ -632,19 +601,6 @@ function PaginationButton({ children, label: rotulo, disabled, onClick }) {
   );
 }
 
-function ExportOption({ label: rotulo, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-    >
-      <Download className="h-4 w-4 text-gray-400" />
-      {rotulo}
-    </button>
-  );
-}
-
 function normalizarAlunoParaExportacao(aluno) {
   const formatarData = (valor) => {
     if (!valor) return "";
@@ -740,16 +696,4 @@ function escaparXml(valor) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
-}
-
-function baixarArquivo(nomeArquivo, conteudo, tipoArquivo) {
-  const blob = new Blob([conteudo], { type: tipoArquivo });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = nomeArquivo;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }

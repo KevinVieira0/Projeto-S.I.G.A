@@ -5,7 +5,7 @@ import { apiClient } from "@/lib/api/axiosClient";
 
 export const estilosEmpresa = {
   superficie:
-    "min-w-0 rounded-2xl border border-slate-300 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:border-orange-400 hover:shadow-[0_0_0_1px_rgba(249,115,22,0.12),0_8px_24px_-8px_rgba(249,115,22,0.24)] motion-reduce:transition-none",
+    "siga-card siga-card-empresa siga-card-interativo",
   primario:
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   secundario:

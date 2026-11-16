@@ -144,14 +144,14 @@ function DetalhePedido({ pedidoId, voltar }) {
               <ProgressoVagas pedido={p} />
             </div>
           </section>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="siga-grade-compacta [--siga-coluna-card:9rem]">
             {[
               ["Indicados", p.resumo.indicados],
               ["Em processo", p.resumo.emProcesso],
               ["Contratados", p.resumo.contratados],
               ["Participações encerradas", p.resumo.encerrados],
             ].map(([rotulo, valor]) => (
-              <div key={rotulo} className={`${estilosEmpresa.superficie} p-4`}>
+              <div key={rotulo} className={`${estilosEmpresa.superficie} p-3.5`}>
                 <p className="text-xs text-slate-500">{rotulo}</p>
                 <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">
                   {valor}
@@ -289,7 +289,7 @@ export default function SolicitacoesEmpresa({
           </p>
         </div>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="grid max-w-5xl items-start gap-3 md:grid-cols-2">
           {dados.solicitacoes.map((p) => (
             <li
               key={p.id}

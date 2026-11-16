@@ -236,7 +236,7 @@ http://localhost:3000/login
 - Selecione a opção de empresa.
 - CNPJ: `11222333000181`.
 - Senha: valor de `EMPRESA_TEST_PASSWORD`.
-- Após o login, o sistema abre `/empresa/solicitacao`.
+- Após o login, o sistema abre `/empresa/homepage`. Use a aba **Nova solicitação** para enviar um pedido.
 
 O Prisma Studio é opcional. Para inspecionar o banco visualmente, abra outro terminal e execute:
 
@@ -399,6 +399,31 @@ Também é possível entrar como administrador e usar **Sincronizar cadastros**.
 
 Dados inválidos não são cadastrados. Corrija as informações e faça um novo envio do formulário.
 
+O campo **Gênero** dos novos cadastros exige **Feminino** ou **Masculino**.
+Em um Google Forms de alunos V2 já instalado, atualize o arquivo
+`FormularioAlunosV2.gs` no projeto de Apps Script e execute
+`atualizarFluxoAutomaticoAlunosV2` para aplicar as opções ao mesmo formulário.
+
+### Solicitações e histórico
+
+Na primeira indicação de um pedido começa o prazo de cinco dias corridos.
+Uma contratação ou uma atualização registrada pela empresa no próprio
+pedido até o fim do prazo mantém a solicitação no fluxo normal. As consultas
+e operações de acompanhamento conferem o vencimento e guardam os pedidos
+encerrados no **Histórico de solicitações**, com a data, o motivo e as
+indicações anteriores.
+
+A migração `20261116120000_encerramento_solicitacoes` usa o primeiro registro
+de indicação que já exista no histórico ou nos eventos. Após aplicá-la,
+solicitações antigas sem retorno no prazo também podem ser encerradas na
+primeira conferência.
+
+Para processar os vencimentos mesmo com o portal sem acessos, agende
+`npm.cmd run db:encerrar-solicitacoes` no Windows ou
+`npm run db:encerrar-solicitacoes` no servidor. O comando usa o banco da
+aplicação e pode ser repetido a cada minuto ou no intervalo disponível no
+ambiente.
+
 ## 10. Validação antes do commit
 
 ```powershell
@@ -410,7 +435,7 @@ git status --short
 git check-ignore -v .env
 ```
 
-`npm.cmd test` executa os testes de detalhes e contratos. Eles precisam de um banco isolado chamado `siga_test` em `localhost` ou `127.0.0.1`, com as migrations aplicadas. Configure `TEST_DATABASE_URL`, `DATABASE_URL` e `DIRECT_URL` com a mesma conexão de teste somente no terminal dessa execução; mantenha o `.env` da aplicação apontando para a base habitual. Sem essa configuração, a suíte informa que os testes foram ignorados. Os registros fictícios criados pela suíte são removidos ao terminar.
+`npm.cmd test` executa as suítes de formulários, cadastros, detalhes, solicitações, contratos e sessões. Os testes de integração usam um PostgreSQL isolado chamado `siga_test` ou `siga_test_<sufixo>`, em `localhost` ou `127.0.0.1`. Configure `TEST_DATABASE_URL`, `DATABASE_URL` e `DIRECT_URL` com a mesma conexão em um terminal exclusivo, execute `npx.cmd prisma migrate deploy` e gere o cliente com `npx.cmd prisma generate`. Mantenha o `.env` da aplicação apontando para a base habitual. Sem `TEST_DATABASE_URL`, rodam somente os testes que dispensam banco. As suítes removem ou revertem suas fixtures fictícias.
 
 Na tela Alunos, clique no nome ou em uma célula da linha para abrir os detalhes. A confirmação de contrato é salva no PostgreSQL por matrícula e empresa; não há envio de arquivos. Ao mudar a empresa ou retirar o status de empregado, a confirmação é limpa. As solicitações exibidas dependem de vínculos explícitos registrados em `HistoricoAcompanhamento.solicitacaoId`, sem inferir indicações por curso ou empresa. O card mostra até 50 solicitações e 100 eventos recentes, informando o total quando houver mais.
 

@@ -7,10 +7,12 @@ import {
   Filter,
   ListFilter,
   Pencil,
+  Plus,
   X,
 } from "lucide-react";
 import CompanyDetails, { formatarCnpj } from "./CompanyDetails";
 import CompanyEditor from "./CompanyEditor";
+import MenuExportar from "./MenuExportar";
 import { apiClient } from "@/lib/api/axiosClient";
 import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 import DashboardCard, {
@@ -34,7 +36,7 @@ export default function CompaniesTable({ gestao = false }) {
   const [painel, setPainel] = useState(null);
   const [mensagem, setMensagem] = useState("");
   function fecharPainel() {
-    focoEmpresaRef.current = painel.id;
+    focoEmpresaRef.current = painel?.id;
     setPainel(null);
   }
   useEffect(() => {
@@ -97,11 +99,25 @@ export default function CompaniesTable({ gestao = false }) {
             ? "Clique em uma empresa para ver os detalhes, alunos vinculados e solicitações."
             : "Consulte as empresas cadastradas e sua situação cadastral."
         }
-      />
+      >
+        {gestao && (
+          <button
+            type="button"
+            onClick={() => {
+              setMensagem("");
+              setPainel({ modo: "criar" });
+            }}
+            className={dashboardStyles.primaryAction}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Criar empresa
+          </button>
+        )}
+      </DashboardCardHeader>
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative min-w-0 flex-1 sm:max-w-sm">
+            <div className="relative min-w-0 basis-full sm:max-w-sm sm:flex-1">
               <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 ref={buscaRef}
@@ -146,6 +162,7 @@ export default function CompaniesTable({ gestao = false }) {
               </select>
             </div>
           </div>
+          <MenuExportar visao="empresas" filtro={{ busca, status }} />
         </div>
         {gestao && mensagem && (
           <p
@@ -365,14 +382,19 @@ export default function CompaniesTable({ gestao = false }) {
           }}
         />
       )}
-      {gestao && painel?.modo === "editar" && (
+      {gestao && ["editar", "criar"].includes(painel?.modo) && (
         <CompanyEditor
-          key={`editar-${painel.id}`}
+          key={painel.id || "criar"}
           empresaId={painel.id}
           onClose={fecharPainel}
-          onSaved={(texto) => {
+          onSaved={(texto, criada) => {
             fecharPainel();
             setMensagem(texto);
+            if (criada) {
+              setStatus("todos");
+              setPagina(1);
+              setBusca(criada.cnpj);
+            }
           }}
         />
       )}

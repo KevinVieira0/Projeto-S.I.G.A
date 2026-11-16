@@ -13,8 +13,8 @@ export default function AtualizacoesEmpresas({ abrirSolicitacao, atualizar }) {
   );
   const eventos = dados?.atualizacoes || [];
   return (
-    <details className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-5 py-4 text-sm font-semibold text-gray-800">
+    <details className="siga-card siga-card-interativo max-w-3xl">
+      <summary className="flex min-h-12 cursor-pointer items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-800">
         <Bell className="h-4 w-4 text-[#0a3d7c]" />
         Atualizações das empresas
         <span className="ml-auto rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-800">

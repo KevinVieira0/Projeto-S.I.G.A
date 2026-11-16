@@ -4,12 +4,13 @@ import { useEffect, useRef } from "react";
 
 // Releitura do banco oficial. Não importa nem aprova respostas dos formulários.
 
-export function useAtualizacaoDashboard(atualizar) {
+export function useAtualizacaoDashboard(atualizar, habilitado = true) {
   const aoAtualizar = useRef(atualizar);
   useEffect(() => {
     aoAtualizar.current = atualizar;
   }, [atualizar]);
   useEffect(() => {
+    if (!habilitado) return;
     const executar = () => {
       if (document.visibilityState === "visible") aoAtualizar.current();
     };
@@ -26,5 +27,5 @@ export function useAtualizacaoDashboard(atualizar) {
       document.removeEventListener("visibilitychange", executar);
       window.clearInterval(intervalo);
     };
-  }, []);
+  }, [habilitado]);
 }

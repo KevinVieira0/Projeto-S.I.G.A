@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { camposComprovante } from "../contratos/comprovantes";
+import {
+  encerrarSeVencida,
+  encerrarSolicitacoesVencidas,
+} from "./encerramento";
 
 export const estadosEmAberto = [
   "INDICADO",
@@ -82,7 +86,9 @@ export async function conciliarParticipacoesAluno(
             ? "Vínculo atualizado pela coordenação."
             : null,
         encerradoEm: status === "CANCELADO" ? new Date() : null,
-        contratadoEm: status === "CONTRATADO" ? new Date() : null,
+        ...(status === "CONTRATADO" && !participacao.contratadoEm
+          ? { contratadoEm: new Date() }
+          : {}),
         eventos: {
           create: {
             statusAnterior: participacao.status,
@@ -148,6 +154,7 @@ const vinculo = {
 };
 
 export async function listarPedidosEmpresa(prisma, empresaId) {
+  await encerrarSolicitacoesVencidas(prisma, { empresaId });
   const pedidos = await prisma.solicitacao.findMany({
     where: { idEmpresa: empresaId },
     orderBy: [{ criadoEm: "desc" }, { id: "asc" }],
@@ -168,6 +175,7 @@ export async function obterPedidoEmpresa(prisma, empresaId, id, pagina = 1) {
     .safeParse(pagina);
   if (!validacaoPagina.success) throw new ErroParticipacao("Página inválida.");
   pagina = validacaoPagina.data;
+  await encerrarSolicitacoesVencidas(prisma, { id, empresaId });
   const pedido = await prisma.solicitacao.findFirst({
     where: { id, idEmpresa: empresaId },
     select: { ...camposPedido, participacoes: { select: { status: true } } },
@@ -241,6 +249,7 @@ export async function obterParticipacaoEmpresa(
   pedidoId,
   id,
 ) {
+  await encerrarSolicitacoesVencidas(prisma, { id: pedidoId, empresaId });
   const p = await carregarParticipacao(prisma, empresaId, pedidoId, id);
   const aluno = p.matricula.aluno;
   const atual = vinculoAtual(p);
@@ -323,7 +332,7 @@ export async function alterarParticipacaoEmpresa(
     throw new ErroParticipacao("Confirme a operação antes de continuar.");
   if (dados.acao === "ENCERRAR" && !dados.motivo)
     throw new ErroParticipacao("Informe o motivo do encerramento.");
-  return prisma.$transaction(
+  const resultado = await prisma.$transaction(
     async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(741004)`;
       const empresa = await tx.empresa.findUnique({
@@ -351,6 +360,8 @@ export async function alterarParticipacaoEmpresa(
           return { id, status: p.status, jaAplicado: true };
         }
       }
+      const instante = new Date();
+      if (await encerrarSeVencida(tx, p.solicitacao, instante)) return null;
       const destino = {
         INICIAR: "EM_PROCESSO",
         APROVAR: "APROVADO",
@@ -433,7 +444,7 @@ export async function alterarParticipacaoEmpresa(
           409,
         );
       const agora = new Date(
-        Math.max(Date.now(), p.atualizadoEm.getTime() + 1),
+        Math.max(instante.getTime(), p.atualizadoEm.getTime() + 1),
       );
       const novoStatus = encerrada
         ? "DISPONIVEL"
@@ -522,4 +533,10 @@ export async function alterarParticipacaoEmpresa(
     },
     { timeout: 30000, maxWait: 10000 },
   );
+  if (!resultado)
+    throw new ErroParticipacao(
+      "Esta solicitação foi encerrada por falta de retorno.",
+      409,
+    );
+  return resultado;
 }

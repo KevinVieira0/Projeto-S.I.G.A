@@ -64,13 +64,10 @@ export default function StudentSyncNotification() {
   }
   return (
     <div
-      className="
-        absolute left-4 right-4 top-4 z-[70]
-        sm:left-auto sm:right-6 sm:w-[370px]
-      "
+      className="w-full max-w-[370px]"
       aria-live="polite"
     >
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg shadow-gray-900/10">
+      <div className="siga-card siga-card-interativo overflow-hidden">
         <button
           type="button"
           onClick={() => setAberta((valor) => !valor)}
@@ -114,7 +111,7 @@ export default function StudentSyncNotification() {
           </div>
 
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${aberta ? "rotate-180" : ""}`}
+            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150 motion-reduce:transition-none ${aberta ? "rotate-180" : ""}`}
             aria-hidden="true"
           />
         </button>

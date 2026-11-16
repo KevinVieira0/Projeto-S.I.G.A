@@ -61,6 +61,13 @@ export default function Sidebar() {
   const email = sessao?.dados?.email || "";
   const primeiroNome = nome.trim().split(/\s+/)[0];
   const [recolhida, setRecolhida] = useState(false);
+  useEffect(() => {
+    const consulta = window.matchMedia("(max-width: 639px)");
+    const adaptar = ({ matches }) => setRecolhida(matches);
+    adaptar(consulta);
+    consulta.addEventListener("change", adaptar);
+    return () => consulta.removeEventListener("change", adaptar);
+  }, []);
   const [menuAberto, setMenuAberto] = useState(false);
   const [saudacao, setSaudacao] = useState("Olá");
   const menuUsuarioRef = useRef(null);
@@ -115,12 +122,12 @@ export default function Sidebar() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [menuAberto]);
-  const labelClass = `overflow-hidden whitespace-nowrap transition-all duration-300 ${recolhida ? "w-0 opacity-0" : "w-auto opacity-100"}`;
+  const labelClass = `overflow-hidden whitespace-nowrap transition-opacity duration-150 motion-reduce:transition-none ${recolhida ? "w-0 opacity-0" : "w-auto opacity-100"}`;
   return (
     <aside
       aria-label="Menu lateral"
-      className={`sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r border-gray-100 bg-white
-        transition-[width] duration-300 ease-in-out ${recolhida ? "w-[76px]" : "w-64"}`}
+      className={`sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white max-sm:fixed max-sm:left-0 max-sm:z-40
+        transition-[width] duration-150 ease-out motion-reduce:transition-none ${recolhida ? "w-[76px]" : "w-64"}`}
     >
       <button
         type="button"
@@ -185,7 +192,7 @@ export default function Sidebar() {
         {menuAberto && (
           <div
             role="menu"
-            className={`absolute z-50 w-60 rounded-xl border border-gray-100 bg-white p-4 shadow-xl
+            className={`siga-card absolute z-50 w-60 p-3.5
               ${recolhida ? "bottom-3 left-full ml-3" : "bottom-full left-3 mb-2"}`}
           >
             <div className="flex items-center gap-3">

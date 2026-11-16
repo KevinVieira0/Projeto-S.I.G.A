@@ -3,20 +3,33 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Loader2, RefreshCw, X } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
+import { maskCnpj } from "@/lib/validations/cnpjUtils";
 import { dashboardStyles } from "./DashboardCard";
 import { formatarCnpj } from "./CompanyDetails";
 
 const classeCampo =
   "mt-1 min-h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50";
 
+const cadastroInicial = {
+  razaoSocial: "",
+  nomeFantasia: "",
+  cnpj: "",
+  email: "",
+  telefone: "",
+  contribuinte: "",
+};
+
 export default function CompanyEditor({ empresaId, onClose, onSaved }) {
+  const criando = !empresaId;
   const tituloId = useId();
   const dialogoRef = useRef(null);
   const montadoRef = useRef(false);
   const [empresa, setEmpresa] = useState(null);
-  const [formulario, setFormulario] = useState(null);
+  const [formulario, setFormulario] = useState(
+    criando ? cadastroInicial : null,
+  );
   const [versao, setVersao] = useState(0);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(!criando);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
   const [conflito, setConflito] = useState(false);
@@ -36,6 +49,11 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
   }, [empresaId]);
   useEffect(() => {
     montadoRef.current = true;
+    if (criando) {
+      return () => {
+        montadoRef.current = false;
+      };
+    }
     const controlador = new AbortController();
     setCarregando(true);
     setFormulario(null);
@@ -71,27 +89,34 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
       montadoRef.current = false;
       controlador.abort();
     };
-  }, [empresaId, versao]);
+  }, [criando, empresaId, versao]);
 
   async function salvar(evento) {
     evento.preventDefault();
-    if (carregando || salvando || conflito || !empresa) return;
-    if (senhaAcesso !== confirmacaoSenha) {
+    if (carregando || salvando || conflito || !formulario) return;
+    if (!criando && senhaAcesso !== confirmacaoSenha) {
       setErro("As senhas não coincidem.");
       return;
     }
     setSalvando(true);
     setErro("");
     try {
-      const { data } = await apiClient.patch(`/admin/empresas/${empresaId}`, {
-        ...formulario,
-        versao: empresa.versao,
-        ...(senhaAcesso ? { senhaAcesso } : {}),
-      });
+      const { data } = criando
+        ? await apiClient.post("/admin/empresas", formulario)
+        : await apiClient.patch(`/admin/empresas/${empresaId}`, {
+            ...formulario,
+            versao: empresa.versao,
+            ...(senhaAcesso ? { senhaAcesso } : {}),
+          });
       window.dispatchEvent(new Event("empresas:sincronizadas"));
       if (montadoRef.current)
         onSaved(
-          data.espelho?.falha ? data.espelho.mensagem : "Empresa atualizada.",
+          data.espelho?.falha
+            ? data.espelho.mensagem
+            : criando
+              ? "Empresa cadastrada."
+              : "Empresa atualizada.",
+          criando ? data.empresa : null,
         );
     } catch (erroCapturado) {
       if (montadoRef.current) {
@@ -99,7 +124,7 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
           erroCapturado.response?.data?.mensagem ||
             "Não foi possível salvar o cadastro.",
         );
-        setConflito(erroCapturado.response?.status === 409);
+        setConflito(!criando && erroCapturado.response?.status === 409);
         setSalvando(false);
       }
     }
@@ -114,7 +139,10 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
           onChange={(evento) =>
             setFormulario((anterior) => ({
               ...anterior,
-              [chave]: evento.target.value,
+              [chave]:
+                chave === "cnpj"
+                  ? maskCnpj(evento.target.value)
+                  : evento.target.value,
             }))
           }
           maxLength={255}
@@ -131,15 +159,17 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
         evento.preventDefault();
         if (!salvando) onClose();
       }}
-      className="fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-2xl border-0 bg-white p-0 shadow-2xl backdrop:bg-slate-950/40"
+      className="siga-card siga-card-admin fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
     >
       <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>
           <h2 id={tituloId} className="text-lg font-semibold text-gray-900">
-            Editar empresa
+            {criando ? "Criar empresa" : "Editar empresa"}
           </h2>
           <p className="mt-1 text-xs text-gray-500">
-            Atualize os dados da empresa beneficiária.
+            {criando
+              ? "Informe os dados da empresa beneficiária."
+              : "Atualize os dados da empresa beneficiária."}
           </p>
         </div>
         <button
@@ -171,107 +201,151 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {campo("razaoSocial", "Razão social", {
                     required: true,
-                    minLength: 2,
+                    minLength: criando ? 1 : 2,
                   })}
                   {campo("nomeFantasia", "Nome fantasia")}
-                  {campo("email", "E-mail", { type: "email" })}
+                  {campo("email", "E-mail", {
+                    type: "email",
+                    required: criando,
+                  })}
                   {campo("telefone", "Telefone com DDD", {
                     type: "tel",
                     maxLength: 20,
+                    required: criando,
                   })}
-                  <div>
-                    <p className="text-xs font-medium text-gray-600">CNPJ</p>
-                    <p
-                      className={`${classeCampo} flex items-center bg-gray-50`}
-                    >
-                      {formatarCnpj(empresa.cnpj)}
-                    </p>
-                    <p className="mt-2 text-xs leading-5 text-gray-500">
-                      O CNPJ identifica o cadastro e permanece o mesmo.
-                    </p>
-                  </div>
-                  <label className="text-xs font-medium text-gray-600">
-                    Situação cadastral
-                    <select
-                      className={classeCampo}
-                      value={formulario.ativa ? "ativa" : "inativa"}
-                      onChange={(evento) => {
-                        setFormulario((anterior) => ({
-                          ...anterior,
-                          ativa: evento.target.value === "ativa",
-                        }));
-                        setSenhaAcesso("");
-                        setConfirmacaoSenha("");
-                      }}
-                    >
-                      <option value="ativa">Ativa</option>
-                      <option value="inativa">Inativa</option>
-                    </select>
-                  </label>
+                  {criando ? (
+                    <>
+                      {campo("cnpj", "CNPJ", {
+                        required: true,
+                        inputMode: "numeric",
+                        maxLength: 18,
+                      })}
+                      <label className="text-xs font-medium text-gray-600">
+                        A empresa é contribuinte?
+                        <select
+                          className={classeCampo}
+                          aria-label="A empresa é contribuinte?"
+                          value={formulario.contribuinte}
+                          required
+                          onChange={(evento) =>
+                            setFormulario((anterior) => ({
+                              ...anterior,
+                              contribuinte: evento.target.value,
+                            }))
+                          }
+                        >
+                          <option value="" disabled hidden>
+                            Selecione
+                          </option>
+                          <option value="Sim">Sim</option>
+                          <option value="Não">Não</option>
+                          <option value="Não informado">Não informado</option>
+                        </select>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-xs font-medium text-gray-600">
+                          CNPJ
+                        </p>
+                        <p
+                          className={`${classeCampo} flex items-center bg-gray-50`}
+                        >
+                          {formatarCnpj(empresa.cnpj)}
+                        </p>
+                        <p className="mt-2 text-xs leading-5 text-gray-500">
+                          O CNPJ identifica o cadastro e permanece o mesmo.
+                        </p>
+                      </div>
+                      <label className="text-xs font-medium text-gray-600">
+                        Situação cadastral
+                        <select
+                          className={classeCampo}
+                          value={formulario.ativa ? "ativa" : "inativa"}
+                          onChange={(evento) => {
+                            setFormulario((anterior) => ({
+                              ...anterior,
+                              ativa: evento.target.value === "ativa",
+                            }));
+                            setSenhaAcesso("");
+                            setConfirmacaoSenha("");
+                          }}
+                        >
+                          <option value="ativa">Ativa</option>
+                          <option value="inativa">Inativa</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
                 </div>
-                <section
-                  aria-label="Acesso da empresa"
-                  className="space-y-4 rounded-xl border border-gray-200 p-4"
-                >
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      Acesso da empresa
-                    </h3>
-                    <p className="mt-1 text-xs leading-5 text-gray-500">
-                      {empresa.acessoConfigurado
-                        ? "Senha cadastrada. Preencha os campos somente se quiser alterá-la."
-                        : "Para entrar no sistema, a empresa precisa de uma senha. Defina-a abaixo e salve o cadastro."}
-                    </p>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block text-xs font-medium text-gray-600">
-                      {empresa.acessoConfigurado
-                        ? "Nova senha de acesso"
-                        : "Senha de acesso"}
-                      <input
-                        type="password"
-                        autoComplete="new-password"
-                        className={classeCampo}
-                        value={senhaAcesso}
-                        onChange={(evento) =>
-                          setSenhaAcesso(evento.target.value)
-                        }
-                        minLength={8}
-                        maxLength={72}
-                        disabled={!formulario.ativa}
-                      />
-                    </label>
-                    <label className="block text-xs font-medium text-gray-600">
-                      Confirmar senha de acesso
-                      <input
-                        type="password"
-                        autoComplete="new-password"
-                        className={classeCampo}
-                        value={confirmacaoSenha}
-                        onChange={(evento) =>
-                          setConfirmacaoSenha(evento.target.value)
-                        }
-                        minLength={8}
-                        maxLength={72}
-                        required={Boolean(senhaAcesso)}
-                        disabled={!formulario.ativa}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-xs leading-5 text-gray-500">
-                    {formulario.ativa
-                      ? "Use pelo menos 8 caracteres. Ao salvar a senha, o acesso fica habilitado com o CNPJ cadastrado. Alterá-la encerra as sessões anteriores."
-                      : "O acesso permanece bloqueado enquanto a empresa estiver inativa."}
-                  </p>
-                </section>
-                <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
-                  <p className="text-xs leading-5 text-gray-500">
-                    Inativar bloqueia o acesso da empresa ao sistema e novos
-                    vínculos de alunos. Os vínculos existentes e as solicitações
-                    são preservados. Ativar mantém as permissões de acesso já
-                    cadastradas.
-                  </p>
-                </div>
+                {!criando && (
+                  <>
+                    <section
+                      aria-label="Acesso da empresa"
+                      className="space-y-4 rounded-xl border border-gray-200 p-4"
+                    >
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          Acesso da empresa
+                        </h3>
+                        <p className="mt-1 text-xs leading-5 text-gray-500">
+                          {empresa.acessoConfigurado
+                            ? "Senha cadastrada. Preencha os campos somente se quiser alterá-la."
+                            : "Para entrar no sistema, a empresa precisa de uma senha. Defina-a abaixo e salve o cadastro."}
+                        </p>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="block text-xs font-medium text-gray-600">
+                          {empresa.acessoConfigurado
+                            ? "Nova senha de acesso"
+                            : "Senha de acesso"}
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            className={classeCampo}
+                            value={senhaAcesso}
+                            onChange={(evento) =>
+                              setSenhaAcesso(evento.target.value)
+                            }
+                            minLength={8}
+                            maxLength={72}
+                            disabled={!formulario.ativa}
+                          />
+                        </label>
+                        <label className="block text-xs font-medium text-gray-600">
+                          Confirmar senha de acesso
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            className={classeCampo}
+                            value={confirmacaoSenha}
+                            onChange={(evento) =>
+                              setConfirmacaoSenha(evento.target.value)
+                            }
+                            minLength={8}
+                            maxLength={72}
+                            required={Boolean(senhaAcesso)}
+                            disabled={!formulario.ativa}
+                          />
+                        </label>
+                      </div>
+                      <p className="text-xs leading-5 text-gray-500">
+                        {formulario.ativa
+                          ? "Use pelo menos 8 caracteres. Ao salvar a senha, o acesso fica habilitado com o CNPJ cadastrado. Alterá-la encerra as sessões anteriores."
+                          : "O acesso permanece bloqueado enquanto a empresa estiver inativa."}
+                      </p>
+                    </section>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+                      <p className="text-xs leading-5 text-gray-500">
+                        Inativar bloqueia o acesso da empresa ao sistema e novos
+                        vínculos de alunos. Os vínculos existentes e as
+                        solicitações são preservados. Ativar mantém as
+                        permissões de acesso já cadastradas.
+                      </p>
+                    </div>
+                  </>
+                )}
               </>
             )
           )}
@@ -313,6 +387,8 @@ export default function CompanyEditor({ empresaId, onClose, onSaved }) {
                 <Loader2 className="mr-2 inline h-4 w-4 animate-spin motion-reduce:animate-none" />
                 Salvando…
               </>
+            ) : criando ? (
+              "Cadastrar empresa"
             ) : (
               "Salvar alterações"
             )}

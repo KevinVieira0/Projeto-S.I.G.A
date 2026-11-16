@@ -3,7 +3,7 @@ import { PRATICAS, SEXOS } from "@/lib/validations/solicitacaoSchema";
 const FUSO = "America/Sao_Paulo";
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 
-// A coordenação controla a finalização pelo campo `ativa`, independentemente do período.
+// O período solicitado indica a vigência do aprendizado.
 export const SITUACOES = [
   {
     id: "ativa",
@@ -141,6 +141,22 @@ export function formatarDataCriacao(valor) {
   if (!partes) return "—";
   const dois = (numero) => String(numero).padStart(2, "0");
   return `${dois(partes.dia)}/${dois(partes.mes)}/${partes.ano}`;
+}
+
+export function formatarDataHora(valor) {
+  if (!valor) return "Não registrada";
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: FUSO,
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(valor));
+}
+
+export function rotuloEncerramento(motivo) {
+  if (motivo === "SEM_RETORNO")
+    return "Sem retorno ou contratação no prazo de cinco dias.";
+  if (motivo === "COORDENACAO") return "Finalizada pela coordenação.";
+  return "Motivo não registrado.";
 }
 
 export function formatarDuracao(inicio, fim) {

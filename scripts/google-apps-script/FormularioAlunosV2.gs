@@ -3,6 +3,7 @@ const SIGA_V2 = {
   PLANILHA: "1UqoayqnZTjNH6jaCmoMMcz5bgz_hQ2ysH2oAWH1W4Ms",
   PLANILHA_ANTIGA: "1MdoPEiTLZ3axcvvWLDdFqqocgCgl8CBvFM4gaqoBh5U",
   RECEBIMENTOS: "Recebimentos Alunos",
+  GENEROS: ["Feminino", "Masculino"],
   CABECALHOS: [
     "ID Envio",
     "Recebido em",
@@ -110,12 +111,7 @@ function instalarFormularioAlunosV2() {
       .setIncludesYear(true)
       .setRequired(true);
     ids.nascimento = String(nascimento.getId());
-    lista(
-      "genero",
-      "Gênero",
-      ["Masculino", "Feminino", "Outro", "Prefiro não informar"],
-      false,
-    );
+    lista("genero", "Gênero", SIGA_V2.GENEROS, true);
     formulario.addPageBreakItem().setTitle("Contato");
     texto(
       "celular",
@@ -302,6 +298,13 @@ function atualizarFluxoAutomaticoAlunosV2() {
   if (!id || propriedades.getProperty("SIGA_V2_INSTALADO") !== "SIM")
     throw new Error("Formulário ainda não instalado.");
   const formulario = FormApp.openById(id);
+  const itens = JSON.parse(propriedades.getProperty("SIGA_V2_ITENS") || "{}");
+  if (!itens.genero) throw new Error("Campo Gênero não encontrado.");
+  formulario
+    .getItemById(Number(itens.genero))
+    .asListItem()
+    .setChoiceValues(SIGA_V2.GENEROS)
+    .setRequired(true);
   formulario.setDescription(
     "Preencha seus dados para cadastro ou atualização automática pelo CPF. Confira o CPF, o curso e a turma antes de enviar. Status de indicação, contratação e vínculos com empresas são administrados pela coordenação.",
   );
@@ -516,6 +519,7 @@ function validarRespostaV2_(registro, ofertas) {
   const fail = (code) => resultado.erros.push(code);
   if (!resultado.nome || resultado.nome.length > 150) fail("NOME_INVALIDO");
   if (!documentoV2_(resultado.cpf, "CPF")) fail("CPF_INVALIDO");
+  if (!SIGA_V2.GENEROS.includes(resultado.genero)) fail("GENERO_INVALIDO");
   if (
     !resultado.nascimento ||
     resultado.nascimento >

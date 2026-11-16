@@ -22,6 +22,7 @@ export async function automatizarCadastros(prisma, fonte, tipo) {
     try {
       const saida = await processarRecebimento(prisma, registro.id);
       if (saida.repetido || saida.ignorado) resultado.ignorados++;
+      else if (saida.estado === "INVALIDO") resultado.invalidos++;
       else if (saida.operacao === "criado") resultado.criados++;
       else if (saida.operacao === "atualizado") resultado.atualizados++;
     } catch {

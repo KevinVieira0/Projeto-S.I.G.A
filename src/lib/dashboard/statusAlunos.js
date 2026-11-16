@@ -5,6 +5,13 @@ const grupos = {
   contratado: { id: "contratados", label: "Empregados" },
 };
 
+export const filtroAlunosDisponiveis = {
+  arquivadoEm: null,
+  empregado: false,
+  empresaId: null,
+  statusIndicacao: "Disponível",
+};
+
 export function consolidarStatusAlunos(linhas) {
   const totais = Object.fromEntries(Object.keys(grupos).map((chave) => [chave, 0]));
   for (const registro of linhas) {

@@ -30,6 +30,7 @@ export async function GET(requisicao, { params }) {
       await listarIndicacoes(prisma, params.id, {
         busca: busca.get("busca") || "",
         pagina: busca.get("pagina") || 1,
+        paginaDisponiveis: busca.get("paginaDisponiveis") || 1,
       }),
     );
   } catch (erro) {

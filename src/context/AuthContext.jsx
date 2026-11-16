@@ -48,11 +48,11 @@ export function AuthProvider({ children }) {
       const consulta = controlador;
       const versao = ++geracao.current;
       if (inicial)
-        setEstado((anterior) => ({
-          perfil,
-          sessao: anterior.perfil === perfil ? anterior.sessao : null,
-          carregando: true,
-        }));
+        setEstado((anterior) =>
+          anterior.perfil === perfil && anterior.sessao
+            ? anterior
+            : { perfil, sessao: null, carregando: true },
+        );
       try {
         const dados = await obterSessao(perfil, { signal: consulta.signal });
         if (ativo && geracao.current === versao)

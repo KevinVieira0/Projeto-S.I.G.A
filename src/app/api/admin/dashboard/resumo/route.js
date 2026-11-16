@@ -2,11 +2,11 @@ import { consolidarStatusAlunos } from "@/lib/dashboard/statusAlunos";
 import { authorize } from "@/lib/auth/authorize";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { inicioDoPanorama, periodosPanorama } from "@/lib/dashboard/periodoPanorama";
 
 export const runtime = "nodejs";
 
 export const dynamic = "force-dynamic";
-const PERIODOS_PERMITIDOS = new Set([7, 30, 90]);
 
 export async function GET(requisicao) {
   try {
@@ -16,14 +16,13 @@ export async function GET(requisicao) {
     const parametroPeriodo = parametrosBusca.get("periodo") || "30";
     const periodo = parametroPeriodo === "todos" ? "todos" : Number(parametroPeriodo);
     const todoPeriodo = periodo === "todos";
-    if (!todoPeriodo && !PERIODOS_PERMITIDOS.has(periodo)) {
+    if (!todoPeriodo && !periodosPanorama.includes(periodo)) {
       return NextResponse.json(
         { mensagem: "Período inválido. Utilize todos, 7, 30 ou 90 dias." },
         { status: 400 },
       );
     }
-    const inicioDoPeriodo = new Date();
-    if (!todoPeriodo) inicioDoPeriodo.setDate(inicioDoPeriodo.getDate() - periodo);
+    const inicioDoPeriodo = inicioDoPanorama(periodo);
 
     // Retrato dos cadastros atualizados no período.
     // Não representa o número de transições no histórico de matrículas.
@@ -32,34 +31,26 @@ export async function GET(requisicao) {
       : { arquivadoEm: null, ultimaAtualizacao: { gte: inicioDoPeriodo } };
     const filtroEmpresas = todoPeriodo ? {} : { atualizadoEm: { gte: inicioDoPeriodo } };
     const filtroSolicitacoes = todoPeriodo ? {} : { criadoEm: { gte: inicioDoPeriodo } };
-    const [
-      alunosPorStatus,
-      empresasAutorizadas,
-      empresasAguardando,
-      empresasInativas,
-      quantidadeSolicitacoes,
-      somaVagas,
-    ] = await Promise.all([
+    const [alunosPorStatus, empresasPorSituacao, solicitacoes] = await Promise.all([
       prisma.aluno.groupBy({
         by: ["statusIndicacao"],
         where: filtroAlunos,
         _count: { _all: true },
       }),
-      prisma.empresa.count({
-        where: { ...filtroEmpresas, autorizada: true, ativa: true },
+      prisma.empresa.groupBy({
+        by: ["ativa"],
+        where: filtroEmpresas,
+        _count: { _all: true },
       }),
-      prisma.empresa.count({
-        where: { ...filtroEmpresas, autorizada: false, ativa: true },
-      }),
-      prisma.empresa.count({ where: { ...filtroEmpresas, ativa: false } }),
-      prisma.solicitacao.count({ where: filtroSolicitacoes }),
       prisma.solicitacao.aggregate({
         where: filtroSolicitacoes,
+        _count: { _all: true },
         _sum: { quantidadeVagas: true },
       }),
     ]);
     const statusAlunos = consolidarStatusAlunos(alunosPorStatus);
-    const totalEmpresas = empresasAutorizadas + empresasAguardando + empresasInativas;
+    const empresasAtivas = empresasPorSituacao.find((grupo) => grupo.ativa)?._count._all ?? 0;
+    const empresasInativas = empresasPorSituacao.find((grupo) => !grupo.ativa)?._count._all ?? 0;
     return NextResponse.json(
       {
         periodo,
@@ -70,18 +61,18 @@ export async function GET(requisicao) {
         },
         alunos: statusAlunos,
         empresas: {
-          total: totalEmpresas,
+          total: empresasAtivas + empresasInativas,
           categorias: [
             {
               id: "ativas",
               label: "Ativas",
-              valor: empresasAutorizadas + empresasAguardando,
+              valor: empresasAtivas,
             },
             { id: "inativas", label: "Inativas", valor: empresasInativas },
           ],
           resumo: {
-            solicitacoes: quantidadeSolicitacoes,
-            vagas: somaVagas._sum.quantidadeVagas || 0,
+            solicitacoes: solicitacoes._count._all,
+            vagas: solicitacoes._sum.quantidadeVagas ?? 0,
           },
         },
       },

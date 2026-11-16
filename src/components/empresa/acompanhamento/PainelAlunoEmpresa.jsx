@@ -28,7 +28,7 @@ function Contato({ valor, rotulo, Icone }) {
     }
   }
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/80 p-3">
+    <div className="siga-card siga-card-empresa bg-white/80 p-3">
       <p className="mb-1 flex items-center gap-2 text-xs text-slate-500">
         <Icone className="h-3.5 w-3.5" />
         {rotulo}
@@ -143,7 +143,7 @@ export default function PainelAlunoEmpresa({ selecao, onClose, onChanged }) {
           {erro && <FalhaEmpresa mensagem={erro} tentar={recarregar} />}
           {p && !erro && (
             <>
-              <section className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4">
+              <section className="siga-card siga-card-empresa bg-orange-50/80 p-4">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wider text-orange-800">
                   Situação neste acompanhamento
                 </p>
@@ -289,7 +289,7 @@ export default function PainelAlunoEmpresa({ selecao, onClose, onChanged }) {
                     </div>
                   )}
                   {precisaConfirmar && (
-                    <div className="space-y-4 rounded-xl border border-orange-200 bg-white p-4">
+                    <div className="siga-card siga-card-empresa space-y-4 p-4">
                       <h4 className="text-sm font-semibold text-slate-900">
                         Encerrar participação
                       </h4>

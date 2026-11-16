@@ -27,7 +27,8 @@ export function useSincronizacaoAlunos({
       const dados = await sincronizarAlunosDaPlanilha();
       setResposta(dados);
       setUltimaSincronizacao(new Date());
-      window.dispatchEvent(new Event("alunos:sincronizados"));
+      if (!dados.desativada)
+        window.dispatchEvent(new Event("alunos:sincronizados"));
     } catch (erroCapturado) {
       const mensagem =
         erroCapturado.response?.data?.erro ||

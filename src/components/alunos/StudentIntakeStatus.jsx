@@ -13,7 +13,7 @@ export default function  StudentIntakeStatus({ tipo = "ALUNO" }) {
   const empresa = tipo === "EMPRESA";
   const registro = resposta?.recebimentos?.[empresa ? "empresas" : "alunos"];
   return (
-    <section className="my-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
+    <section className="siga-card my-4 flex max-w-3xl flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-3.5">
       <div>
         <p className="text-sm font-medium text-blue-950">
           Cadastro e atualização automática por {empresa ? "CNPJ" : "CPF"}

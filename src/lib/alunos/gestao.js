@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { documentoValido } from "../importacao/baseAcademica";
 import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
-import { calcularIdade } from "./dadosPessoais";
+import { calcularIdade, GENEROS_CADASTRO } from "./dadosPessoais";
 import { conciliarParticipacoesAluno } from "../solicitacoes/participacoes";
 
 export const STATUS_ALUNOS = {
@@ -56,7 +56,7 @@ export const alunoSchema = z
       .string()
       .transform((valor) => valor.replace(/\D/g, ""))
       .refine((valor) => /^\d{10,13}$/.test(valor), "Celular inválido."),
-    genero: z.enum(["", "Masculino", "Feminino"]).default(""),
+    genero: z.string().max(30).default(""),
     telefone: textoOpcional(30)
       .transform((valor) => valor.replace(/\D/g, ""))
       .refine(
@@ -220,6 +220,49 @@ async function atualizarMatricula(
   }
 }
 
+async function encerrarVinculosAnteriores(
+  transacao,
+  alunoId,
+  turmaId,
+  administradorId,
+) {
+  // A turma escolhida concentra a situação atual; as demais ficam no histórico.
+  const anteriores = await transacao.matricula.findMany({
+    where: {
+      alunoId,
+      turmaId: { not: turmaId },
+      OR: [
+        { status: { not: "DISPONIVEL" } },
+        { empresaAtualId: { not: null } },
+        { contratoConfirmado: true },
+      ],
+    },
+    select: { id: true, status: true, empresaAtualId: true },
+  });
+  if (!anteriores.length) return;
+
+  await transacao.matricula.updateMany({
+    where: { id: { in: anteriores.map((matricula) => matricula.id) } },
+    data: {
+      status: "DISPONIVEL",
+      empresaAtualId: null,
+      contratoConfirmado: false,
+      contratoAtualizadoEm: null,
+    },
+  });
+  await transacao.historicoAcompanhamento.createMany({
+    data: anteriores.map((matricula) => ({
+      matriculaId: matricula.id,
+      empresaId: matricula.empresaAtualId,
+      tipo: "ALTERACAO_STATUS",
+      statusAnterior: matricula.status,
+      novoStatus: "DISPONIVEL",
+      responsavelId: administradorId,
+      origem: "TRANSFERENCIA_TURMA",
+    })),
+  });
+}
+
 export async function salvarAluno(
   prisma,
   administradorId,
@@ -231,6 +274,8 @@ export async function salvarAluno(
   if (!validacao.success)
     throw new ErroGestaoAluno(validacao.error.issues[0].message);
   const dados = validacao.data;
+  if (!id && !GENEROS_CADASTRO.includes(dados.genero))
+    throw new ErroGestaoAluno("Selecione Feminino ou Masculino.");
   try {
     return await prisma.$transaction(
       async (transacao) => {
@@ -242,6 +287,16 @@ export async function salvarAluno(
             })
           : null;
         if (id) conferirVersao(anterior, versao);
+        // Valores de cadastros antigos podem ser conservados na edição.
+        if (
+          id &&
+          dados.genero &&
+          !GENEROS_CADASTRO.includes(dados.genero) &&
+          dados.genero !== anterior?.genero
+        )
+          throw new ErroGestaoAluno(
+            "Selecione um gênero disponível no cadastro.",
+          );
         const duplicado = await transacao.aluno.findUnique({
           where: { cpf: dados.cpf },
           select: { id: true, arquivadoEm: true },
@@ -294,6 +349,13 @@ export async function salvarAluno(
           dados,
           administradorId,
         );
+        if (anterior)
+          await encerrarVinculosAnteriores(
+            transacao,
+            aluno.id,
+            turma.id,
+            administradorId,
+          );
         const depois = await transacao.aluno.findUnique({
           where: { id: aluno.id },
           select: selectAluno,

@@ -1,6 +1,7 @@
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
+import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
 
 export const dynamic = "force-dynamic";
 export async function GET(requisicao) {
@@ -8,12 +9,14 @@ export async function GET(requisicao) {
   if (error) return error;
   const empresaId = session.dados.id;
   try {
+    await encerrarSolicitacoesVencidas(prisma, { empresaId });
     const resumo = await prisma.$transaction(
       async (tx) => {
         const contar = (status) =>
           tx.aluno.count({
             where: {
               arquivadoEm: null,
+              empresaId,
               matriculas: { some: { empresaAtualId: empresaId, status } },
             },
           });

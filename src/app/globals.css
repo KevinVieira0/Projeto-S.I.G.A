@@ -6,6 +6,7 @@
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
+    --siga-raio-card: 0.75rem;
   }
   .dark {
     --background: oklch(0.145 0 0);
@@ -16,5 +17,62 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .siga-card {
+    --siga-acento-card: #0a3d7c;
+    --siga-borda-card: #cfd9e6;
+    --siga-foco-card: #a8bdd7;
+    --siga-brilho-card: rgb(10 61 124 / 8%);
+    min-width: 0;
+    border: 1px solid var(--siga-borda-card);
+    border-radius: var(--siga-raio-card);
+    background: white;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 5%);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .siga-card-admin {
+    border-top: 2px solid var(--siga-acento-card);
+  }
+
+  .siga-card-empresa {
+    --siga-acento-card: #b65014;
+    --siga-borda-card: #d8d0c8;
+    --siga-foco-card: #f5a46d;
+    --siga-brilho-card: rgb(240 119 44 / 17%);
+  }
+
+  .siga-card-interativo:hover,
+  .siga-card-interativo:focus-within {
+    border-color: var(--siga-foco-card);
+    box-shadow:
+      0 0 0 1px var(--siga-brilho-card),
+      0 5px 16px var(--siga-brilho-card);
+  }
+
+  .siga-card-admin.siga-card-interativo:hover,
+  .siga-card-admin.siga-card-interativo:focus-within {
+    border-top-color: var(--siga-acento-card);
+  }
+
+  .siga-grade-compacta {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(100%, var(--siga-coluna-card, 14rem)), 1fr)
+    );
+    gap: 0.75rem;
+    max-width: 68rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .siga-card {
+      transition: none;
+    }
   }
 }

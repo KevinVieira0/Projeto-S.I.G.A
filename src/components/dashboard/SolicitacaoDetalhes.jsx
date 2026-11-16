@@ -9,8 +9,10 @@ import {
   formatarCnpj,
   formatarDataCivil,
   formatarDataCriacao,
+  formatarDataHora,
   formatarFaixaEtaria,
   obterSituacao,
+  rotuloEncerramento,
   rotuloPratica,
   rotuloSexo,
   situacaoSolicitacao,
@@ -78,6 +80,14 @@ export function SolicitacaoDetalhes({ solicitacao, onClose, onUpdated }) {
     ["Fim", formatarDataCivil(solicitacao.fim)],
     ["Recebida em", formatarDataCriacao(solicitacao.criadoEm)],
   ];
+  if (!solicitacao.ativa)
+    campos.push(
+      ["Encerrada em", formatarDataHora(solicitacao.encerradaEm)],
+      [
+        "Motivo do encerramento",
+        rotuloEncerramento(solicitacao.motivoEncerramento),
+      ],
+    );
 
   return (
     <dialog
@@ -87,7 +97,7 @@ export function SolicitacaoDetalhes({ solicitacao, onClose, onUpdated }) {
         evento.preventDefault();
         if (!ocupado) onClose();
       }}
-      className="fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-2xl border-0 border-t-[3px] border-t-[#0a3d7c] bg-white p-0 shadow-2xl backdrop:bg-slate-950/40"
+      className="siga-card siga-card-admin fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
     >
       <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>

@@ -7,6 +7,81 @@ import { dashboardStyles } from "./DashboardCard";
 
 const botao = dashboardStyles.secondaryAction;
 
+function ListaCandidatos({
+  alunos,
+  total,
+  pagina,
+  tamanhoPagina,
+  mudarPagina,
+  selecionados,
+  alternar,
+  ocupado,
+  mensagemVazia,
+}) {
+  const paginas = Math.ceil(total / tamanhoPagina);
+  const limiteAtingido = Object.keys(selecionados).length >= 50;
+  return (
+    <div className="space-y-2">
+      {alunos.length ? (
+        <div className="max-h-56 space-y-1.5 overflow-y-auto">
+          {alunos.map((aluno) => {
+            const selecionado = selecionados[aluno.alunoId];
+            const marcado = selecionado?.matriculaId === aluno.matriculaId;
+            const bloqueado =
+              !marcado && (limiteAtingido || Boolean(selecionado));
+            return (
+              <label
+                key={aluno.matriculaId}
+                className={`flex items-start gap-2 rounded-lg border bg-white px-3 py-2 ${marcado ? "border-blue-400" : "border-gray-200"} ${bloqueado ? "opacity-50" : "cursor-pointer"}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={marcado}
+                  disabled={ocupado || bloqueado}
+                  onChange={() => alternar(aluno)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-blue-700"
+                />
+                <span className="min-w-0 break-words text-xs text-gray-600">
+                  <span className="block font-semibold text-gray-900">
+                    {aluno.nome}
+                    {aluno.idade != null && ` · ${aluno.idade} anos`}
+                  </span>
+                  {aluno.curso} · {aluno.turma} · {aluno.periodo}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="py-2 text-xs text-gray-600">{mensagemVazia}</p>
+      )}
+      {paginas > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600">
+          <button
+            type="button"
+            className={botao}
+            disabled={ocupado || pagina <= 1}
+            onClick={() => mudarPagina(pagina - 1)}
+          >
+            Anterior
+          </button>
+          <span>
+            Página {pagina} de {paginas}
+          </span>
+          <button
+            type="button"
+            className={botao}
+            disabled={ocupado || pagina >= paginas}
+            onClick={() => mudarPagina(pagina + 1)}
+          >
+            Próxima
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SolicitacaoIndicacoes({
   solicitacao,
   disabled,
@@ -17,6 +92,8 @@ export function SolicitacaoIndicacoes({
   const [dados, setDados] = useState(null);
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
+  const [paginaDisponiveis, setPaginaDisponiveis] = useState(1);
+  const [mostrarDisponiveis, setMostrarDisponiveis] = useState(false);
   const [versao, setVersao] = useState(0);
   const [selecionados, setSelecionados] = useState({});
   const [carregando, setCarregando] = useState(true);
@@ -37,7 +114,7 @@ export function SolicitacaoIndicacoes({
         const { data } = await apiClient.get(
           `/admin/solicitacoes/${solicitacao.id}/indicacoes`,
           {
-            params: { busca, pagina },
+            params: { busca, pagina, paginaDisponiveis },
             signal: controlador.signal,
           },
         );
@@ -46,8 +123,21 @@ export function SolicitacaoIndicacoes({
             1,
             Math.ceil(data.total / data.tamanhoPagina),
           );
+          const ultimaDisponiveis = Math.max(
+            1,
+            Math.ceil(data.totalDisponiveis / data.tamanhoPagina),
+          );
           if (pagina > ultima) setPagina(ultima);
-          else setDados(data);
+          if (paginaDisponiveis > ultimaDisponiveis)
+            setPaginaDisponiveis(ultimaDisponiveis);
+          setDados(data);
+          if (!data.ativa && solicitacao.ativa)
+            onUpdated({
+              id: solicitacao.id,
+              ativa: false,
+              encerradaEm: data.encerradaEm,
+              motivoEncerramento: data.motivoEncerramento,
+            });
         }
       } catch (e) {
         if (!controlador.signal.aborted)
@@ -64,11 +154,33 @@ export function SolicitacaoIndicacoes({
       controlador.abort();
       window.clearTimeout(temporizador);
     };
-  }, [solicitacao.id, solicitacao.ativa, busca, pagina, versao]);
+  }, [
+    solicitacao.id,
+    solicitacao.ativa,
+    busca,
+    pagina,
+    paginaDisponiveis,
+    versao,
+    onUpdated,
+  ]);
 
   useEffect(() => {
     if (solicitacao.ativa === false) setSelecionados({});
   }, [solicitacao.ativa]);
+
+  function alternar(aluno) {
+    setSelecionados((anterior) => {
+      const novos = { ...anterior };
+      const selecionado = novos[aluno.alunoId];
+      if (selecionado?.matriculaId === aluno.matriculaId)
+        delete novos[aluno.alunoId];
+      else if (!selecionado && Object.keys(novos).length < 50)
+        novos[aluno.alunoId] = aluno;
+      return novos;
+    });
+    setErroEnvio("");
+    setSucesso("");
+  }
 
   async function indicar(evento) {
     evento.preventDefault();
@@ -88,7 +200,7 @@ export function SolicitacaoIndicacoes({
       const { data } = await apiClient.post(
         `/admin/solicitacoes/${solicitacao.id}/indicacoes`,
         {
-          matriculaIds: Object.keys(selecionados),
+          matriculaIds: selecionadosLista.map(({ matriculaId }) => matriculaId),
         },
       );
       setSucesso(
@@ -129,7 +241,7 @@ export function SolicitacaoIndicacoes({
         </p>
       )}
       {dados && (
-        <div className="rounded-xl border border-gray-200 p-3">
+        <div className="siga-card p-3">
           <h4 className="text-sm font-semibold text-gray-800">
             Alunos indicados ({dados.indicacoes.length})
           </h4>
@@ -145,7 +257,7 @@ export function SolicitacaoIndicacoes({
                   </p>
                   <p>
                     Indicado em {formatarDataCriacao(aluno.indicadoEm)} ·
-                    Situação atual: {aluno.status}
+                    Situação na solicitação: {aluno.status}
                   </p>
                 </li>
               ))}
@@ -197,11 +309,6 @@ export function SolicitacaoIndicacoes({
       )}
       {ativa && (
         <form onSubmit={indicar} className="space-y-3">
-          <p className="text-xs leading-5 text-gray-500">
-            A lista mostra alunos disponíveis do curso solicitado, dentro da
-            faixa etária e do sexo informados no pedido. Cada indicação vincula
-            o aluno à empresa e muda sua situação para Indicado.
-          </p>
           <label className="block text-xs font-medium text-gray-600">
             Buscar aluno, curso ou turma
             <input
@@ -211,6 +318,7 @@ export function SolicitacaoIndicacoes({
               onChange={(evento) => {
                 setBusca(evento.target.value);
                 setPagina(1);
+                setPaginaDisponiveis(1);
               }}
               className="mt-1 min-h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             />
@@ -220,94 +328,95 @@ export function SolicitacaoIndicacoes({
               Carregando alunos…
             </p>
           ) : (
-            !erroLeitura && (
+            !erroLeitura &&
+            dados && (
               <>
-                <fieldset disabled={ocupado}>
-                  <legend className="mb-2 text-xs font-semibold text-gray-600">
-                    Alunos compatíveis ({dados?.total || 0} matrículas)
-                  </legend>
-                  {dados?.alunos.length ? (
-                    <div className="max-h-72 space-y-2 overflow-y-auto">
-                      {dados.alunos.map((aluno) => {
-                        const marcado = Boolean(
-                          selecionados[aluno.matriculaId],
-                        );
-                        const bloqueado =
-                          !marcado &&
-                          (selecionadosLista.length >= 50 ||
-                            selecionadosLista.some(
-                              (item) => item.alunoId === aluno.alunoId,
-                            ));
-                        return (
-                          <label
-                            key={aluno.matriculaId}
-                            className={`flex items-start gap-3 rounded-lg border p-3 ${marcado ? "border-blue-300 bg-blue-50" : "border-gray-200"} ${bloqueado ? "opacity-50" : "cursor-pointer"}`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={marcado}
-                              disabled={bloqueado}
-                              onChange={() => {
-                                setSelecionados((anterior) => {
-                                  const novos = { ...anterior };
-                                  if (novos[aluno.matriculaId])
-                                    delete novos[aluno.matriculaId];
-                                  else novos[aluno.matriculaId] = aluno;
-                                  return novos;
-                                });
-                                setSucesso("");
-                                setErroEnvio("");
-                              }}
-                              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-700"
-                            />
-                            <span className="min-w-0 text-xs text-gray-500">
-                              <span className="block break-words font-semibold text-gray-900">
-                                {aluno.nome} · {aluno.idade} anos
-                              </span>
-                              <span className="block break-words">
-                                {aluno.curso} · {aluno.turma} · {aluno.periodo}
-                              </span>
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="py-3 text-xs text-gray-500">
-                      Nenhum aluno disponível atende aos requisitos e à busca
-                      informada.
-                    </p>
-                  )}
-                </fieldset>
-                {dados && dados.total > dados.tamanhoPagina && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-                    <button
-                      type="button"
-                      className={botao}
-                      disabled={ocupado || pagina <= 1}
-                      onClick={() => setPagina((valor) => valor - 1)}
-                    >
-                      Anterior
-                    </button>
-                    <span>
-                      Página {pagina} de{" "}
-                      {Math.ceil(dados.total / dados.tamanhoPagina)}
-                    </span>
-                    <button
-                      type="button"
-                      className={botao}
-                      disabled={
-                        ocupado ||
-                        pagina >= Math.ceil(dados.total / dados.tamanhoPagina)
-                      }
-                      onClick={() => setPagina((valor) => valor + 1)}
-                    >
-                      Próxima
-                    </button>
+                <section
+                  aria-label="Alunos recomendados"
+                  className="siga-card space-y-2 border-blue-200 bg-blue-50 p-3"
+                >
+                  <h4 className="text-sm font-semibold text-blue-900">
+                    Alunos recomendados ({dados.total})
+                  </h4>
+                  <p className="text-xs text-slate-600">
+                    Disponíveis que atendem ao curso, à faixa etária e ao perfil
+                    do pedido.
+                  </p>
+                  <ListaCandidatos
+                    alunos={dados.alunos}
+                    total={dados.total}
+                    pagina={pagina}
+                    tamanhoPagina={dados.tamanhoPagina}
+                    mudarPagina={setPagina}
+                    selecionados={selecionados}
+                    alternar={alternar}
+                    ocupado={ocupado}
+                    mensagemVazia="Nenhum aluno recomendado para esta busca."
+                  />
+                </section>
+                <section className="siga-card siga-card-interativo">
+                  <button
+                    type="button"
+                    aria-expanded={mostrarDisponiveis}
+                    aria-controls={`${tituloId}-disponiveis`}
+                    className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-900 hover:bg-gray-50 focus-visible:outline-blue-600"
+                    onClick={() => setMostrarDisponiveis((aberta) => !aberta)}
+                  >
+                    Todos os alunos disponíveis ({dados.totalDisponiveis})
+                  </button>
+                  <div
+                    id={`${tituloId}-disponiveis`}
+                    hidden={!mostrarDisponiveis}
+                    className="px-3 pb-3"
+                  >
+                    {mostrarDisponiveis && (
+                      <ListaCandidatos
+                        alunos={dados.disponiveis}
+                        total={dados.totalDisponiveis}
+                        pagina={paginaDisponiveis}
+                        tamanhoPagina={dados.tamanhoPagina}
+                        mudarPagina={setPaginaDisponiveis}
+                        selecionados={selecionados}
+                        alternar={alternar}
+                        ocupado={ocupado}
+                        mensagemVazia="Nenhum aluno disponível para esta busca."
+                      />
+                    )}
                   </div>
-                )}
+                </section>
               </>
             )
+          )}
+          {selecionadosLista.length > 0 && (
+            <div className="siga-card bg-gray-50 p-3">
+              <h4 className="text-sm font-semibold text-gray-900">
+                Revisar selecionados ({selecionadosLista.length})
+              </h4>
+              <ul className="mt-2 max-h-36 space-y-2 overflow-y-auto">
+                {selecionadosLista.map((aluno) => (
+                  <li
+                    key={aluno.alunoId}
+                    className="flex items-start justify-between gap-2 text-xs"
+                  >
+                    <p className="min-w-0 break-words text-gray-600">
+                      <strong className="block font-semibold text-gray-900">
+                        {aluno.nome}
+                      </strong>
+                      {aluno.curso} · {aluno.turma}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={ocupado}
+                      aria-label={`Remover ${aluno.nome} da seleção`}
+                      className="shrink-0 rounded px-2 py-1 font-medium text-blue-800 hover:bg-blue-100"
+                      onClick={() => alternar(aluno)}
+                    >
+                      Remover
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <div className="flex flex-wrap items-center gap-3">
             <button

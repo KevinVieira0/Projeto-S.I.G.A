@@ -198,13 +198,13 @@ export default function PainelEmpresa() {
           className="empresa-conteudo space-y-6"
         >
           {erro && <FalhaEmpresa mensagem={erro} tentar={recarregar} />}
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="siga-grade-compacta [--siga-coluna-card:9.5rem]">
             {indicadores.map(({ chave, titulo, descricao, Icone, acao }) => (
               <button
                 type="button"
                 key={chave}
                 onClick={acao}
-                className={`${estilosEmpresa.superficie} group relative p-4 text-left hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 motion-reduce:transform-none sm:p-5`}
+                className={`${estilosEmpresa.superficie} group relative p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:p-4`}
               >
                 <div className="mb-4 flex items-center justify-between gap-2">
                   <span className="rounded-xl bg-orange-50 p-2 text-orange-600">
