@@ -56,7 +56,7 @@ export async function POST(requisicao) {
       return NextResponse.json({ mensagem: "JSON inválido." }, { status: 400 });
     console.error("Falha no login. Verifique a configuração do servidor.");
     return NextResponse.json(
-      { mensagem: "Erro interno ao realizar login." },
+      { mensagem: "Erro interno ao realizar login.", details: erroCapturado.message },
       { status: 500 },
     );
   }
