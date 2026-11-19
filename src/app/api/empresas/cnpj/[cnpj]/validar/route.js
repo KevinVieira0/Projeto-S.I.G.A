@@ -1,63 +1,50 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Executada quando a rota recebe uma requisição GET
-export async function GET(request, { params }) {
-  // Obtém o CNPJ que foi enviado pela URL
-  const cnpj = params.cnpj.replace(/\D/g, "");
+export const dynamic = "force-dynamic";
 
-  // Confere se o CNPJ possui exatamente 14 números
+export async function GET(_requisicao, { params: parametros }) {
+  const cnpj = parametros.cnpj.replace(/\D/g, "");
   if (!/^\d{14}$/.test(cnpj)) {
     return NextResponse.json(
-      {
-        beneficiaria: false,
-        razaoSocial: null,
-        message: "CNPJ inválido.",
-      },
-      {
-        status: 400,
-      }
+      { beneficiaria: false, razaoSocial: null, message: "CNPJ inválido." },
+      { status: 400 },
     );
   }
-
   try {
-    // Procura o CNPJ na tabela empresas
     const empresa = await prisma.empresa.findUnique({
-      where: {
-        cnpj,
-      },
-
+      where: { cnpj },
       select: {
         razaoSocial: true,
         autorizada: true,
         ativa: true,
+        senhaHash: true,
       },
     });
 
-    // A empresa só é beneficiária se existir, estiver autorizada e ativa
-    const beneficiaria = Boolean(
-      empresa && empresa.autorizada && empresa.ativa
+    const beneficiaria = Boolean(empresa?.ativa);
+    return NextResponse.json(
+      {
+        beneficiaria,
+        acessoConfigurado: Boolean(
+          beneficiaria && empresa.autorizada && empresa.senhaHash,
+        ),
+        razaoSocial: beneficiaria ? empresa.razaoSocial : null,
+        message: beneficiaria
+          ? "Empresa beneficiária cadastrada."
+          : "Empresa não localizada ou inativa.",
+      },
+      { headers: { "Cache-Control": "no-store" } },
     );
-
-    return NextResponse.json({
-      beneficiaria,
-      razaoSocial: beneficiaria ? empresa.razaoSocial : null,
-      message: beneficiaria
-        ? "Empresa autorizada."
-        : "Empresa não localizada ou não autorizada.",
-    });
-  } catch (error) {
-    console.error("Erro ao consultar empresa:", error);
-
+  } catch (erroCapturado) {
+    console.error("Não foi possível consultar a empresa para validar o CNPJ.");
     return NextResponse.json(
       {
         beneficiaria: false,
         razaoSocial: null,
         message: "Erro interno ao validar o CNPJ.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 },
     );
   }
 }

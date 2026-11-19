@@ -1,0 +1,33 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { ROUTES } from "@/constants/routes";
+import Sidebar from "@/components/dashboard/Sidebar";
+import StudentSyncNotification from "@/components/dashboard/StudentSyncNotification";
+
+export default function AdminShell({ children }) {
+  const { session: sessao, isLoading: carregando } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!carregando && (!sessao || sessao.tipo !== "admin")) {
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [carregando, sessao, router]);
+
+  // Enquanto consulta a sessão no servidor ou redireciona, não renderiza
+  // o conteúdo protegido — evita "flash" da tela de admin sem estar logado.
+  if (carregando || !sessao || sessao.tipo !== "admin") {
+    return null;
+  }
+  return (
+    <div className="relative flex min-h-screen bg-gray-50">
+      <Sidebar />
+
+      <main className="min-w-0 flex-1">{children}</main>
+
+      <StudentSyncNotification />
+    </div>
+  );
+}

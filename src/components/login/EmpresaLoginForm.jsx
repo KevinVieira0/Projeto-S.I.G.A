@@ -1,71 +1,84 @@
 "use client";
 
-import { Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Controller } from "react-hook-form";
+import { Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
-import CnpjInput from "../ui/CnpjInput";
+import CnpjInput from "@/components/ui/CnpjInput";
 import Button from "@/components/ui/Button";
-import Input1 from "@/components/ui/Input";
+import Input from "@/components/ui/Input";
 
 export default function EmpresaLoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const {
     control,
     register,
-    onSubmit,
-    formState: { errors },
-    apiError,
-    isLoading,
+    onSubmit: enviarFormulario,
+    formState: { errors: errosCampos },
+    apiError: erroApi,
+    isLoading: carregando,
     cnpjStatus,
   } = useEmpresaLogin();
-
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-2">
+    <form onSubmit={enviarFormulario} noValidate className="mt-5">
       <Controller
         name="cnpj"
         control={control}
-        render={({ field }) => (
+        render={({ field: campo }) => (
           <CnpjInput
             label="CNPJ da empresa"
             name="cnpj"
-            ref={field.ref}
-            value={field.value}
-            onChange={field.onChange}
-            error={errors.cnpj?.message}
+            autoComplete="username"
+            ref={campo.ref}
+            value={campo.value}
+            onChange={campo.onChange}
+            error={errosCampos.cnpj?.message}
             status={cnpjStatus}
           />
         )}
       />
-      <Input1
-        name="senha"
-        type={showPassword ? "text" : "password"}
-        placeholder="••••••••"
-        icon={Lock}
-        color="amber"
-        error={errors.senha?.message}
-        rightElement={
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        }
-        {...register("senha")}
-      />
-      
-      {apiError && <p className="mb-4 mt-3 text-sm text-red-500">{apiError}</p>}
+
+      <div className="mt-4">
+        <Input
+          label="Senha"
+          name="senha"
+          autoComplete="current-password"
+          type={mostrarSenha ? "text" : "password"}
+          placeholder="••••••••"
+          icon={Lock}
+          color="amber"
+          error={errosCampos.senha?.message}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setMostrarSenha((valorAtual) => !valorAtual)}
+              className="rounded-md p-2 text-slate-400 outline-none hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-orange-500"
+              aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {mostrarSenha ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+          {...register("senha")}
+        />
+      </div>
+
+      {erroApi && (
+        <p role="alert" className="mb-4 text-sm text-red-600">
+          {erroApi}
+        </p>
+      )}
 
       <Button
         type="submit"
-        isLoading={isLoading}
+        isLoading={carregando}
         disabled={cnpjStatus !== "valid"}
-        color="amber"
+        color="orange"
         icon={<ArrowRight className="h-4 w-4" />}
-        className={apiError ? "" : "mt-4"}
+        className="mt-2"
       >
         Entrar como empresa
       </Button>
