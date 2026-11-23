@@ -119,7 +119,7 @@ export default function StudentsByCourseCard({ ativo = true }) {
             </p>
           </div>
         ) : (
-          <div className="min-w-0 py-1">
+          <div className="flex min-w-0 flex-1 flex-col justify-center py-1">
             <CourseChart cursos={dados.cursos} />
           </div>
         )}
@@ -156,7 +156,7 @@ function CourseChart({ cursos }) {
       <p className="mb-2 text-[11px] text-gray-500">Alunos</p>
       <div className="relative pl-9">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-32"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[var(--siga-altura-barras,8rem)]"
           aria-hidden="true"
         >
           {[4, 3, 2, 1, 0].map((nivel) => (
@@ -203,7 +203,7 @@ function CourseChart({ cursos }) {
               }}
               className="group min-w-0 rounded-md text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              <span className="flex h-32 items-end justify-center rounded-t-md transition-colors group-hover:bg-blue-50/60 group-focus-visible:bg-blue-50/60 motion-reduce:transition-none">
+              <span className="flex h-[var(--siga-altura-barras,8rem)] items-end justify-center rounded-t-md transition-colors group-hover:bg-blue-50/60 group-focus-visible:bg-blue-50/60 motion-reduce:transition-none">
                 <span
                   className={`course-bar block w-7 max-w-[65%] rounded-t-md transition-colors duration-200 motion-reduce:transition-none ${ativo === curso.curso ? "bg-[#0a3d7c]" : "bg-[#3678c7]"}`}
                   style={{

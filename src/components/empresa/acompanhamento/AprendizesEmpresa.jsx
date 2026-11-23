@@ -11,9 +11,13 @@ import {
 } from "./base";
 import PainelAlunoEmpresa from "./PainelAlunoEmpresa";
 
-export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
+export default function AprendizesEmpresa({
+  situacao,
+  alterarSituacao,
+  pagina,
+  alterarPagina,
+}) {
   const [busca, setBusca] = useState("");
-  const [pagina, setPagina] = useState(1);
   const [selecionado, setSelecionado] = useState(null);
   const { dados, carregando, erro, recarregar } = useDadosEmpresa(
     `/empresas/aprendizes?${new URLSearchParams({ situacao, pagina: String(pagina), busca })}`,
@@ -27,11 +31,12 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
   return (
     <>
       <section
+        id="lista-aprendizes-empresa"
         className={estilosEmpresa.superficie}
         aria-labelledby="titulo-aprendizes"
       >
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 p-5 sm:p-6">
-          <div>
+        <header className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 sm:gap-4 sm:p-6">
+          <div className="min-w-0">
             <h2
               id="titulo-aprendizes"
               data-foco-acompanhamento
@@ -44,8 +49,8 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
               Consulte os encaminhamentos e acompanhe cada contratação.
             </p>
           </div>
-          <span className="rounded-xl bg-orange-50 p-3 text-orange-600">
-            <Users className="h-5 w-5" />
+          <span className="shrink-0 rounded-lg bg-orange-50 p-2.5 text-orange-800">
+            <Users className="h-5 w-5" aria-hidden="true" />
           </span>
         </header>
         <div className="flex flex-wrap items-center justify-between gap-4 p-5">
@@ -59,10 +64,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
                 type="button"
                 key={valor}
                 aria-pressed={situacao === valor}
-                onClick={() => {
-                  alterarSituacao(valor);
-                  setPagina(1);
-                }}
+                onClick={() => alterarSituacao(valor)}
                 className={`min-h-9 rounded-lg px-3 text-sm transition-colors ${situacao === valor ? "bg-white font-semibold text-orange-800 shadow-sm" : "text-slate-600 hover:bg-white/70"}`}
               >
                 {rotulo}
@@ -76,7 +78,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
               value={busca}
               onChange={(e) => {
                 setBusca(e.target.value);
-                setPagina(1);
+                alterarPagina(1);
               }}
               maxLength={150}
               placeholder="Buscar por nome ou curso"
@@ -89,7 +91,12 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
             <FalhaEmpresa mensagem={erro} tentar={recarregar} />
           </div>
         ) : (
-          <div className="relative overflow-x-auto">
+          <div
+            className="siga-rolagem-tabela"
+            role="region"
+            aria-label="Tabela de aprendizes da empresa"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[620px] text-left text-sm">
               <thead className="border-y border-slate-200 bg-slate-50 text-xs text-slate-500">
                 <tr>
@@ -126,7 +133,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
                   dados.aprendizes.map((aluno) => (
                     <tr
                       key={aluno.matriculaId}
-                      className="group hover:bg-orange-50/40"
+                      className="group hover:bg-orange-50/40 motion-safe:transition-colors"
                     >
                       <td className="px-5 py-4">
                         <button
@@ -170,7 +177,7 @@ export default function AprendizesEmpresa({ situacao, alterarSituacao }) {
           <PaginacaoEmpresa
             pagina={pagina}
             total={dados.total}
-            alterar={setPagina}
+            alterar={alterarPagina}
           />
         )}
       </section>

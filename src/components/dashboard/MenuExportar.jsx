@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { ChevronDown, Download, FileText, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
 import { baixarArquivo } from "@/lib/api/baixarArquivo";
 import { recortesIniciais } from "@/lib/dashboard/series";
@@ -52,9 +52,9 @@ export default function MenuExportar({
 
   return (
     <div className="max-w-full self-start xl:self-auto">
-      <details className="relative">
+      <details className="siga-menu-expansivel relative">
         <summary
-          className={`cursor-pointer list-none ${dashboardStyles.primaryAction}`}
+          className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.primaryAction}`}
           aria-busy={carregando}
         >
           {carregando ? (
@@ -66,6 +66,7 @@ export default function MenuExportar({
             <Download className="h-4 w-4" aria-hidden="true" />
           )}
           {carregando ? "Gerando PDF…" : "Exportar"}
+          <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
         </summary>
         <div className="siga-card absolute left-0 z-30 mt-2 w-48 p-1.5 xl:left-auto xl:right-0">
           <button

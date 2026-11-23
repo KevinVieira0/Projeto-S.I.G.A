@@ -1,0 +1,145 @@
+.resumo {
+  container: indicadores / inline-size;
+}
+
+.graficos {
+  container: graficos / inline-size;
+}
+
+.linhaComPanorama {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@container graficos (min-width: 54rem) {
+  .linhaComPanorama {
+    --siga-altura-barras: clamp(12rem, 25vh, 18rem);
+    --siga-altura-linhas: clamp(12rem, 24vh, 17rem);
+    grid-template-columns: minmax(0, 3fr) minmax(13.25rem, 1fr);
+  }
+
+  @supports (grid-template-rows: subgrid) {
+    .linhaComPanorama {
+      row-gap: 0;
+    }
+
+    .linhaComPanorama > section {
+      display: grid;
+      grid-row: span 3;
+      grid-template-rows: subgrid;
+    }
+
+    .linhaComPanorama > section > footer {
+      margin-top: 0;
+    }
+  }
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem;
+}
+
+@container indicadores (min-width: 28rem) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grade > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@container indicadores (min-width: 44rem) {
+  .grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grade > :last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+}
+
+.grade .cartao {
+  --indicador-cor: #23558a;
+  --indicador-borda: #d4e0ed;
+  --indicador-tinta: #eff6ff;
+  border: 1px solid var(--indicador-borda);
+  background: linear-gradient(135deg, #fff 45%, var(--indicador-tinta));
+  transition:
+    transform 180ms ease-out,
+    box-shadow 180ms ease-out,
+    border-color 180ms ease-out;
+  animation: entrada 260ms ease-out backwards;
+}
+
+.cartao[data-tom="ambar"] {
+  --indicador-cor: #95601c;
+  --indicador-borda: #ebd8af;
+  --indicador-tinta: #fff8e8;
+}
+
+.cartao[data-tom="verde"] {
+  --indicador-cor: #177359;
+  --indicador-borda: #c8e4d9;
+  --indicador-tinta: #eef9f4;
+}
+
+.cartao[data-tom="violeta"] {
+  --indicador-cor: #694f91;
+  --indicador-borda: #dfd6ed;
+  --indicador-tinta: #f6f2fb;
+}
+
+.cartao[data-tom="neutro"] {
+  --indicador-cor: #4b5c72;
+  --indicador-borda: #d8e0e9;
+  --indicador-tinta: #f4f7fa;
+}
+
+.cartao:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.cartao:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.icone {
+  color: var(--indicador-cor);
+  border-color: var(--indicador-borda);
+  background-color: var(--indicador-tinta);
+}
+
+@keyframes entrada {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .grade .cartao:hover {
+    border-color: var(--siga-foco-card);
+    box-shadow: 0 6px 18px rgb(15 23 42 / 9%);
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grade .cartao {
+    animation: none;
+    transition: none;
+  }
+
+  .grade .cartao:hover {
+    transform: none;
+  }
+}

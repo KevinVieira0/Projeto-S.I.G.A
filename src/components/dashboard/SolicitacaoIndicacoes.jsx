@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useId, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
 import { formatarDataCriacao } from "@/lib/dashboard/solicitacoesResumo";
 import { dashboardStyles } from "./DashboardCard";
@@ -93,7 +94,6 @@ export function SolicitacaoIndicacoes({
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
   const [paginaDisponiveis, setPaginaDisponiveis] = useState(1);
-  const [mostrarDisponiveis, setMostrarDisponiveis] = useState(false);
   const [versao, setVersao] = useState(0);
   const [selecionados, setSelecionados] = useState({});
   const [carregando, setCarregando] = useState(true);
@@ -354,36 +354,28 @@ export function SolicitacaoIndicacoes({
                     mensagemVazia="Nenhum aluno recomendado para esta busca."
                   />
                 </section>
-                <section className="siga-card siga-card-interativo">
-                  <button
-                    type="button"
-                    aria-expanded={mostrarDisponiveis}
-                    aria-controls={`${tituloId}-disponiveis`}
-                    className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-900 hover:bg-gray-50 focus-visible:outline-blue-600"
-                    onClick={() => setMostrarDisponiveis((aberta) => !aberta)}
-                  >
+                <details className="siga-card siga-card-interativo siga-expansivel">
+                  <summary className="siga-cabecalho-expansivel flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-gray-900 hover:bg-gray-50 focus-visible:outline-blue-600">
                     Todos os alunos disponíveis ({dados.totalDisponiveis})
-                  </button>
-                  <div
-                    id={`${tituloId}-disponiveis`}
-                    hidden={!mostrarDisponiveis}
-                    className="px-3 pb-3"
-                  >
-                    {mostrarDisponiveis && (
-                      <ListaCandidatos
-                        alunos={dados.disponiveis}
-                        total={dados.totalDisponiveis}
-                        pagina={paginaDisponiveis}
-                        tamanhoPagina={dados.tamanhoPagina}
-                        mudarPagina={setPaginaDisponiveis}
-                        selecionados={selecionados}
-                        alternar={alternar}
-                        ocupado={ocupado}
-                        mensagemVazia="Nenhum aluno disponível para esta busca."
-                      />
-                    )}
+                    <ChevronDown
+                      className="siga-seta-expansao text-gray-500"
+                      aria-hidden="true"
+                    />
+                  </summary>
+                  <div className="px-3 pb-3">
+                    <ListaCandidatos
+                      alunos={dados.disponiveis}
+                      total={dados.totalDisponiveis}
+                      pagina={paginaDisponiveis}
+                      tamanhoPagina={dados.tamanhoPagina}
+                      mudarPagina={setPaginaDisponiveis}
+                      selecionados={selecionados}
+                      alternar={alternar}
+                      ocupado={ocupado}
+                      mensagemVazia="Nenhum aluno disponível para esta busca."
+                    />
                   </div>
-                </section>
+                </details>
               </>
             )
           )}

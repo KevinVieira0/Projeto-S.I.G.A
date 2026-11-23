@@ -64,13 +64,14 @@ const ESTILOS = `
 .siga-modal { animation: siga-modal-entrada 0.2s ease-out; }
 @media (prefers-reduced-motion: reduce) {
   .siga-modal { animation: none; }
+  .siga-campos .siga-campo :is(input, select, textarea, label) { transition: none; }
 }
 `;
 
 function CampoComErro({ children, erro, largo = false, campo }) {
   return (
     <div
-      className={`siga-campo flex flex-col ${largo ? "col-span-full" : ""}`}
+      className={`siga-campo flex min-w-0 flex-col ${largo ? "col-span-full" : ""}`}
       data-erro={erro ? "true" : undefined}
     >
       {children}
@@ -79,7 +80,7 @@ function CampoComErro({ children, erro, largo = false, campo }) {
         <p
           id={campo + "-erro"}
           role="alert"
-          className="mt-1.5 text-sm text-red-600"
+          className="siga-entrada mt-1.5 text-sm text-red-600"
         >
           {erro}
         </p>
@@ -90,11 +91,11 @@ function CampoComErro({ children, erro, largo = false, campo }) {
 
 function Secao({ titulo, children }) {
   return (
-    <section className="border-t border-slate-100 py-8 first:border-t-0 first:pt-0 last:pb-2">
-      <h3 className="mb-6 text-base font-semibold tracking-tight text-slate-900">
+    <section className="min-w-0 rounded-xl border border-stone-200 bg-stone-50/50 p-4 sm:p-5">
+      <h3 className="mb-5 text-base font-semibold tracking-tight text-slate-900">
         {titulo}
       </h3>
-      <div className="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2">
         {children}
       </div>
     </section>
@@ -280,7 +281,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
     <>
       <style>{ESTILOS}</style>
 
-      <div className="siga-card siga-card-empresa w-full p-5 sm:p-7">
+      <div className="siga-card siga-card-empresa w-full p-4 sm:p-6 xl:p-8">
         {/* progresso */}
         <div className="mb-8">
           <div className="mb-3 flex items-center justify-between text-xs font-medium text-slate-500">
@@ -323,7 +324,10 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
           noValidate
           aria-busy={carregando}
         >
-          <fieldset disabled={carregando} className="min-w-0">
+          <fieldset
+            disabled={carregando}
+            className="grid min-w-0 gap-4 lg:grid-cols-2 min-[1700px]:grid-cols-4"
+          >
             <Secao titulo="Perfil do aprendiz">
               <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
                 <Inputsolicitacao
@@ -482,14 +486,14 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
           <button
             type="submit"
             disabled={carregando || carregandoCursos || carregandoSessao}
-            className="group mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-0 bg-[#f97316] px-5 py-4 text-[15px] font-bold tracking-[0.12em] text-white shadow-lg shadow-orange-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ea580c] hover:shadow-xl hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 focus-visible:ring-offset-2 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 motion-reduce:transform-none"
+            className="siga-acao group mt-5 flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-orange-700 px-7 py-3.5 text-sm font-bold tracking-wide text-white shadow-md shadow-orange-500/20 hover:bg-orange-800 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto"
           >
             <span>{carregando ? "ENVIANDO..." : "CONFIRMAR"}</span>
             {!carregando && (
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
-                className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transform-none"
+                className="h-5 w-5 motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:translate-x-1"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"

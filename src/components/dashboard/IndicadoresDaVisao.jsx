@@ -21,6 +21,7 @@ import DashboardCard, {
 } from "./DashboardCard";
 import GraficoDeMovimentacao from "./GraficoDeMovimentacao";
 import OverviewStatusCard from "./OverviewStatusCard";
+import estilos from "./IndicadoresDaVisao.module.css";
 
 const numero = (valor) => valor.toLocaleString("pt-BR");
 const horario = new Intl.DateTimeFormat("pt-BR", {
@@ -29,7 +30,7 @@ const horario = new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
 });
 
-export default function IndicadoresDaVisao({ visao, ativo }) {
+export default function IndicadoresDaVisao({ visao, ativo, children }) {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState("");
   const [versao, setVersao] = useState(0);
@@ -52,11 +53,17 @@ export default function IndicadoresDaVisao({ visao, ativo }) {
   }, [ativo, visao, versao]);
   useAtualizacaoDashboard(() => setVersao((valor) => valor + 1), ativo);
 
+  const movimentacao = (
+    <GraficoDeMovimentacao
+      visao={visao}
+      dados={alunos ? dados?.semanas : dados?.meses}
+      erro={erro}
+    />
+  );
+
   return (
-    <section
-      aria-label={alunos ? "Indicadores de alunos" : "Indicadores de empresas"}
-      className="mt-6 space-y-5"
-    >
+    <div className="min-w-0 space-y-6">
+      {alunos && children}
       {erro && (
         <div
           role="alert"
@@ -74,77 +81,85 @@ export default function IndicadoresDaVisao({ visao, ativo }) {
           </button>
         </div>
       )}
-      {dados && (
-        <div className="space-y-2">
-          <ResumoIndicadores visao={visao} dados={dados} />
-          <p className="max-w-[68rem] text-right text-xs text-gray-500">
-            Indicadores atualizados às{" "}
-            <time dateTime={dados.atualizadoEm}>
-              {horario.format(new Date(dados.atualizadoEm))}
-            </time>
-          </p>
+      <section
+        aria-label={alunos ? "Resumo de alunos" : "Resumo de solicitações"}
+        className={estilos.resumo}
+      >
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 className="text-sm font-semibold text-slate-800">
+            {alunos
+              ? "Indicadores de alunos"
+              : "Acompanhamento de solicitações"}
+          </h2>
+          {dados && (
+            <p className="text-xs text-slate-600">
+              Atualizado às{" "}
+              <time dateTime={dados.atualizadoEm}>
+                {horario.format(new Date(dados.atualizadoEm))}
+              </time>
+            </p>
+          )}
         </div>
-      )}
-      <div className="grid max-w-[86rem] items-start gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)]">
-        <div className="min-w-0 max-w-xl xl:max-w-none">
+        <ResumoIndicadores visao={visao} dados={dados} />
+      </section>
+      {!alunos && children}
+      {alunos && movimentacao}
+      <div className={estilos.graficos}>
+        <div className={estilos.linhaComPanorama}>
+          {alunos ? <StudentsByCourseCard ativo={ativo} /> : movimentacao}
           <OverviewStatusCard
             showViewToggle={false}
             initialView={visao}
             ativo={ativo}
           />
         </div>
-        <GraficoDeMovimentacao
-          visao={visao}
-          dados={alunos ? dados?.semanas : dados?.meses}
-          erro={erro}
-        />
       </div>
-      <div className="max-w-5xl">
-        {alunos ? (
-          <StudentsByCourseCard ativo={ativo} />
-        ) : (
-          dados && <CursosMaisSolicitados cursos={dados.cursos} />
-        )}
-      </div>
-    </section>
+      {!alunos && dados && <CursosMaisSolicitados cursos={dados.cursos} />}
+    </div>
   );
 }
 
-const iconesDosIndicadores = {
-  comprovante: FileClock,
-  disponiveis: UsersRound,
-  contratacoes: ClipboardCheck,
-  prazo: Timer,
-  indicacao: Inbox,
-  encerradas: Archive,
+const aparenciaDosIndicadores = {
+  comprovante: { Icone: FileClock, tom: "ambar" },
+  disponiveis: { Icone: UsersRound, tom: "azul" },
+  contratacoes: { Icone: ClipboardCheck, tom: "verde" },
+  prazo: { Icone: Timer, tom: "ambar" },
+  indicacao: { Icone: Inbox, tom: "azul" },
+  encerradas: { Icone: Archive, tom: "violeta" },
 };
 
 function ResumoIndicadores({ visao, dados }) {
+  if (!dados) return null;
+
   return (
-    <div className="siga-grade-compacta">
+    <div className={estilos.grade}>
       {resumirIndicadores(visao, dados).map(
-        ({ id, titulo, valor, detalhe }) => {
-          const Icone = iconesDosIndicadores[id];
-          const atencao = valor > 0 && ["comprovante", "prazo"].includes(id);
+        ({ id, titulo, valor, detalhe, descricao }) => {
+          const { Icone, tom } = aparenciaDosIndicadores[id];
           return (
             <DashboardCard
               key={id}
-              className={`gap-1.5 px-3.5 py-3 ${atencao ? "!border-amber-200 !border-t-amber-500 !bg-amber-50/60" : ""}`}
+              className={`${estilos.cartao} gap-3 p-4 sm:p-5`}
+              data-tom={tom === "ambar" && valor === 0 ? "neutro" : tom}
             >
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="min-w-0 break-words text-sm font-semibold leading-5 text-gray-800">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="min-w-0 break-words text-sm font-semibold leading-5 text-slate-700">
                   {titulo}
-                </h2>
+                </h3>
                 <span
-                  className={`shrink-0 rounded-lg p-1.5 ${atencao ? "bg-amber-100 text-amber-800" : "bg-blue-50 text-[#0a3d7c]"}`}
+                  className={`${estilos.icone} grid h-9 w-9 shrink-0 place-items-center rounded-lg border`}
                 >
-                  <Icone className="h-4 w-4" aria-hidden="true" />
+                  <Icone className="h-[18px] w-[18px]" aria-hidden="true" />
                 </span>
               </div>
-              <p className="text-2xl font-bold leading-none tabular-nums text-gray-900">
-                {numero(valor)}
-              </p>
-              {detalhe && <p className="text-xs text-gray-500">{detalhe}</p>}
+              <div className="mt-auto">
+                <p className="break-words text-3xl font-semibold leading-none tracking-tight tabular-nums text-slate-950">
+                  {numero(valor)}
+                </p>
+                <p className="mt-2 text-xs leading-4 text-slate-600">
+                  {detalhe || descricao}
+                </p>
+              </div>
             </DashboardCard>
           );
         },
@@ -165,9 +180,14 @@ function CursosMaisSolicitados({ cursos }) {
         icon={ListOrdered}
       />
       {cursos.length > 0 ? (
-        <ol className={`${dashboardStyles.body} space-y-4`}>
+        <ol
+          className={`${dashboardStyles.body} siga-grade-compacta [--siga-coluna-card:13rem]`}
+        >
           {cursos.map(({ curso, solicitacoes, vagas }) => (
-            <li key={curso} className="space-y-1.5">
+            <li
+              key={curso}
+              className="min-w-0 space-y-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3"
+            >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
                 <span className="min-w-0 break-words font-medium text-gray-800">
                   {curso}

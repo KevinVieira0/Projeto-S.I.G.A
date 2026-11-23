@@ -26,8 +26,8 @@ const abas = [
 
 const cabecalhos = {
   alunos: {
-    titulo: "Aprendizes",
-    texto: "Acompanhe os alunos indicados à sua empresa.",
+    titulo: "Visão Geral",
+    texto: "Acompanhe suas solicitações e as etapas dos aprendizes.",
   },
   nova: {
     titulo: "Nova solicitação",
@@ -38,6 +38,90 @@ const cabecalhos = {
     texto: "Acompanhe as indicações e o preenchimento de cada pedido.",
   },
 };
+
+const etapas = [
+  { chave: "indicados", titulo: "Indicados", Icone: Users, filtro: "INDICADO" },
+  {
+    chave: "emProcesso",
+    titulo: "Em processo",
+    Icone: Workflow,
+    filtro: "EM_PROCESSO",
+  },
+  {
+    chave: "contratados",
+    titulo: "Contratados",
+    Icone: UserCheck,
+    filtro: "CONTRATADO",
+  },
+];
+
+function ResumoDoPortal({ resumo, situacao, filtrar, abrirSolicitacoes }) {
+  return (
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(15rem,24rem)_minmax(0,1fr)] 2xl:grid-cols-1">
+      <section
+        className={`${estilosEmpresa.superficie} flex h-full flex-col bg-gradient-to-br from-orange-50 to-white p-4 sm:p-5`}
+        aria-labelledby="titulo-solicitacoes-ativas"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2
+              id="titulo-solicitacoes-ativas"
+              className="text-sm font-semibold text-slate-800"
+            >
+              Solicitações ativas
+            </h2>
+            <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums text-slate-950">
+              {resumo?.solicitacoesAtivas?.toLocaleString("pt-BR") ?? "—"}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-lg border border-orange-200 bg-white p-2 text-orange-800">
+            <ClipboardList className="h-5 w-5" aria-hidden="true" />
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={abrirSolicitacoes}
+          className="siga-acao mt-3 inline-flex min-h-9 items-center gap-1.5 self-start rounded-md text-sm font-semibold text-orange-800 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
+        >
+          Ver solicitações
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </section>
+
+      <section
+        aria-labelledby="titulo-etapas-aprendizes"
+        className={`${estilosEmpresa.superficie} min-w-0 p-4 sm:p-5`}
+      >
+        <h2
+          id="titulo-etapas-aprendizes"
+          className="text-sm font-semibold text-slate-800"
+        >
+          Aprendizes por etapa
+        </h2>
+        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:gap-2.5">
+          {etapas.map(({ chave, titulo, Icone, filtro }) => (
+            <button
+              key={chave}
+              type="button"
+              aria-pressed={situacao === filtro}
+              aria-controls="lista-aprendizes-empresa"
+              onClick={() => filtrar(situacao === filtro ? "todos" : filtro)}
+              className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/60 px-1.5 py-2.5 text-left text-slate-800 transition-colors hover:border-orange-300 hover:bg-orange-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 aria-pressed:border-orange-400 aria-pressed:bg-orange-50 aria-pressed:text-orange-950 motion-reduce:transition-none sm:px-3"
+            >
+              <Icone className="h-4 w-4 text-orange-800" aria-hidden="true" />
+              <span className="mt-1.5 block text-2xl font-semibold leading-none tracking-tight tabular-nums">
+                {resumo?.[chave]?.toLocaleString("pt-BR") ?? "—"}
+              </span>
+              <span className="mt-1.5 block break-words text-xs font-medium">
+                {titulo}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function FundoNovaSolicitacao() {
   return (
@@ -56,6 +140,7 @@ export default function PainelEmpresa() {
   const [aba, setAba] = useState("alunos");
   const [pedidoId, setPedidoId] = useState(null);
   const [situacaoAluno, setSituacaoAluno] = useState("todos");
+  const [paginaAprendizes, setPaginaAprendizes] = useState(1);
   const { dados: empresa } = useDadosEmpresa("/empresas/me");
   const { dados, erro, recarregar } = useDadosEmpresa("/empresas/resumo");
   const cabecalho = cabecalhos[aba];
@@ -70,6 +155,10 @@ export default function PainelEmpresa() {
     setPedidoId(id);
     setAba("solicitacoes");
   }
+  function filtrarAprendizes(situacao) {
+    setSituacaoAluno(situacao);
+    setPaginaAprendizes(1);
+  }
   function navegarTeclado(evento, indice) {
     const proximo = {
       ArrowRight: (indice + 1) % abas.length,
@@ -82,60 +171,17 @@ export default function PainelEmpresa() {
     setAba(abas[proximo].id);
     evento.currentTarget.parentElement
       .querySelectorAll('[role="tab"]')
-    [proximo]?.focus();
+      [proximo]?.focus();
   }
-  const resumo = dados?.resumo;
-  const indicadores = [
-    {
-      chave: "solicitacoesAtivas",
-      titulo: "Solicitações ativas",
-      descricao: "Pedidos em acompanhamento",
-      Icone: ClipboardList,
-      acao: () => {
-        setPedidoId(null);
-        setAba("solicitacoes");
-      },
-    },
-    {
-      chave: "indicados",
-      titulo: "Alunos indicados",
-      descricao: "Encaminhados à sua empresa",
-      Icone: Users,
-      acao: () => {
-        setSituacaoAluno("INDICADO");
-        setAba("alunos");
-      },
-    },
-    {
-      chave: "emProcesso",
-      titulo: "Em processo",
-      descricao: "Seleção ou formalização",
-      Icone: Workflow,
-      acao: () => {
-        setSituacaoAluno("EM_PROCESSO");
-        setAba("alunos");
-      },
-    },
-    {
-      chave: "contratados",
-      titulo: "Contratados",
-      descricao: "Alunos com vínculo confirmado",
-      Icone: UserCheck,
-      acao: () => {
-        setSituacaoAluno("CONTRATADO");
-        setAba("alunos");
-      },
-    },
-  ];
   return (
     <div className="relative isolate min-h-screen bg-[#faf9f7] text-slate-900">
       <FundoNovaSolicitacao />
       <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-3 pt-4 sm:px-6">
-        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border border-orange-300/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl">
+        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-2xl border border-orange-300/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl sm:rounded-full">
           <div
             role="tablist"
             aria-label="Seções do painel"
-            className="flex min-w-0 gap-1 overflow-x-auto"
+            className="grid min-w-0 grid-cols-3 gap-1 sm:flex"
           >
             {abas.map((item, indice) => (
               <button
@@ -147,7 +193,7 @@ export default function PainelEmpresa() {
                 tabIndex={aba === item.id ? 0 : -1}
                 onKeyDown={(e) => navegarTeclado(e, indice)}
                 onClick={() => setAba(item.id)}
-                className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange-600 ${aba === item.id ? "bg-orange-100 text-orange-900" : "text-slate-600 hover:bg-orange-50"}`}
+                className={`siga-acao min-h-10 min-w-0 rounded-xl px-1 text-center text-[11px] font-semibold leading-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange-600 sm:shrink-0 sm:rounded-full sm:px-4 sm:text-sm ${aba === item.id ? "bg-orange-100 text-orange-900" : "text-slate-600 hover:bg-orange-50"}`}
               >
                 {item.rotulo}
               </button>
@@ -162,8 +208,8 @@ export default function PainelEmpresa() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10">
-        <div className="mb-8">
+      <main className="siga-pagina pb-12">
+        <div className="mb-6 sm:mb-8">
           <p className="mb-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
               <span
@@ -195,44 +241,30 @@ export default function PainelEmpresa() {
           id="painel-alunos"
           aria-labelledby="aba-alunos"
           hidden={aba !== "alunos"}
-          className="empresa-conteudo space-y-6"
+          className="siga-entrada space-y-5"
         >
           {erro && <FalhaEmpresa mensagem={erro} tentar={recarregar} />}
-          <div className="siga-grade-compacta [--siga-coluna-card:9.5rem]">
-            {indicadores.map(({ chave, titulo, descricao, Icone, acao }) => (
-              <button
-                type="button"
-                key={chave}
-                onClick={acao}
-                className={`${estilosEmpresa.superficie} group relative p-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:p-4`}
-              >
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <span className="rounded-xl bg-orange-50 p-2 text-orange-600">
-                    <Icone className="h-5 w-5" />
-                  </span>
-                  <ArrowUpRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-orange-600" />
-                </div>
-                <p className="text-xs font-medium text-slate-500">{titulo}</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-slate-900">
-                  {resumo ? resumo[chave].toLocaleString("pt-BR") : "—"}
-                </p>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  {descricao}
-                </p>
-              </button>
-            ))}
+          <div className="grid min-w-0 items-start gap-5 2xl:grid-cols-[minmax(19rem,23rem)_minmax(0,1fr)]">
+            <ResumoDoPortal
+              resumo={dados?.resumo}
+              situacao={situacaoAluno}
+              filtrar={filtrarAprendizes}
+              abrirSolicitacoes={() => acompanhar(null)}
+            />
+            <AprendizesEmpresa
+              situacao={situacaoAluno}
+              alterarSituacao={filtrarAprendizes}
+              pagina={paginaAprendizes}
+              alterarPagina={setPaginaAprendizes}
+            />
           </div>
-          <AprendizesEmpresa
-            situacao={situacaoAluno}
-            alterarSituacao={setSituacaoAluno}
-          />
         </section>
         <section
           role="tabpanel"
           id="painel-nova"
           aria-labelledby="aba-nova"
           hidden={aba !== "nova"}
-          className="empresa-conteudo"
+          className="siga-entrada"
         >
           <FormularioSolicitacao onAcompanhar={acompanhar} />
         </section>
@@ -241,7 +273,7 @@ export default function PainelEmpresa() {
           id="painel-solicitacoes"
           aria-labelledby="aba-solicitacoes"
           hidden={aba !== "solicitacoes"}
-          className="empresa-conteudo"
+          className="siga-entrada"
         >
           <SolicitacoesEmpresa
             selecionadaId={pedidoId}
@@ -250,26 +282,6 @@ export default function PainelEmpresa() {
           />
         </section>
       </main>
-      <style jsx>{`
-        .empresa-conteudo:not([hidden]) {
-          animation: conteudo-empresa 180ms ease-out;
-        }
-        @keyframes conteudo-empresa {
-          from {
-            opacity: 0;
-            transform: translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .empresa-conteudo:not([hidden]) {
-            animation: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

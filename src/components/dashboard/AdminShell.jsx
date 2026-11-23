@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import Sidebar from "@/components/dashboard/Sidebar";
 import StudentSyncNotification from "@/components/dashboard/StudentSyncNotification";
+import estilos from "./Sidebar.module.css";
 
 export default function AdminShell({ children }) {
   const { session: sessao, isLoading: carregando } = useAuth();
@@ -22,11 +23,11 @@ export default function AdminShell({ children }) {
     return null;
   }
   return (
-    <div className="relative flex min-h-screen bg-gray-50">
+    <div className={estilos.estrutura}>
       <Sidebar />
 
-      <main className="min-w-0 flex-1 max-sm:pl-[76px]">
-        <div className="flex justify-end px-3 pt-4 sm:px-8">
+      <main className={estilos.conteudo}>
+        <div className="flex justify-end px-[var(--siga-recuo-tela)] pt-4">
           <StudentSyncNotification />
         </div>
         {children}

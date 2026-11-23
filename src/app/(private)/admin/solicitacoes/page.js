@@ -98,7 +98,7 @@ export default function AdminSolicitacoesPage() {
   }, []);
 
   return (
-    <div className="space-y-6 p-5 sm:p-8" aria-busy={carregando}>
+    <div className="siga-pagina siga-entrada space-y-6" aria-busy={carregando}>
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Solicitações</h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -107,8 +107,8 @@ export default function AdminSolicitacoesPage() {
       </header>
       {dados && !erro && (
         <SolicitacoesAnalytics
-          dadosStatus={dados?.analytics?.statusData}
-          dadosMensais={dados?.analytics?.monthlyData}
+          dadosStatus={dados.analytics?.statusData}
+          dadosMensais={dados.analytics?.monthlyData}
         />
       )}
       <AtualizacoesEmpresas
@@ -125,11 +125,11 @@ export default function AdminSolicitacoesPage() {
           description="Consulte os pedidos, indique alunos e acompanhe a situação de cada solicitação."
           icon={Mail}
         />
-        <div className="flex flex-wrap gap-3 border-b border-gray-100 px-5 py-4">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-gray-100 px-4 py-4 sm:px-5">
           <div
             role="group"
             aria-label="Situação das solicitações"
-            className="flex w-full flex-wrap gap-2"
+            className="flex min-w-0 flex-wrap gap-2"
           >
             <button
               type="button"
@@ -156,7 +156,7 @@ export default function AdminSolicitacoesPage() {
               Histórico de solicitações
             </button>
           </div>
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-gray-500">
+          <label className="flex w-full min-w-0 max-w-md flex-col gap-1 text-xs text-gray-600 sm:flex-[1_1_16rem]">
             Buscar solicitação
             <input
               value={busca}
@@ -200,7 +200,7 @@ export default function AdminSolicitacoesPage() {
                   : "Nenhuma solicitação ativa."}
             </p>
           ) : (
-            <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 2xl:grid-cols-3">
+            <div className="siga-grade-cards">
               {visiveis.map((item) => (
                 <SolicitacaoCard
                   key={item.id}

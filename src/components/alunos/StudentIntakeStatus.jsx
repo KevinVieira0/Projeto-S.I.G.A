@@ -3,7 +3,7 @@
 import { useSincronizacaoAlunos } from "@/hooks/useSincronizacaoAlunos";
 import { dashboardStyles } from "../dashboard/DashboardCard";
 
-export default function  StudentIntakeStatus({ tipo = "ALUNO" }) {
+export default function StudentIntakeStatus({ tipo = "ALUNO" }) {
   const {
     sincronizar,
     isLoading: carregando,
@@ -13,8 +13,8 @@ export default function  StudentIntakeStatus({ tipo = "ALUNO" }) {
   const empresa = tipo === "EMPRESA";
   const registro = resposta?.recebimentos?.[empresa ? "empresas" : "alunos"];
   return (
-    <section className="siga-card my-4 flex max-w-3xl flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-3.5">
-      <div>
+    <section className="siga-card flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 px-4 py-3.5 sm:px-5">
+      <div className="min-w-0 max-w-prose break-words">
         <p className="text-sm font-medium text-blue-950">
           Cadastro e atualização automática por {empresa ? "CNPJ" : "CPF"}
         </p>

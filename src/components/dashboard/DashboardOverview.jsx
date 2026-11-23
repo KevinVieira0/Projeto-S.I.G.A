@@ -21,7 +21,8 @@ export default function DashboardOverview({ children, empresas }) {
 
   function tratarTeclado(evento, indice) {
     let proximoIndice;
-    if (evento.key === "ArrowRight") proximoIndice = (indice + 1) % VISOES.length;
+    if (evento.key === "ArrowRight")
+      proximoIndice = (indice + 1) % VISOES.length;
     else if (evento.key === "ArrowLeft") {
       proximoIndice = (indice + VISOES.length - 1) % VISOES.length;
     } else if (evento.key === "Home") proximoIndice = 0;
@@ -32,23 +33,25 @@ export default function DashboardOverview({ children, empresas }) {
     abasRef.current[proximoIndice]?.focus();
   }
   return (
-    <div className="p-3 sm:p-8">
-      <header className="grid items-center gap-5 lg:grid-cols-[1fr_auto_1fr]">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Visão Geral</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Acompanhe os principais dados de alunos, empresas e solicitações.
+    <div className="siga-pagina siga-visao-geral">
+      <header className="grid items-center gap-4 border-b border-slate-200 pb-5 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-[1.75rem]">
+            Visão Geral
+          </h1>
+          <p className="mt-1 text-sm leading-5 text-slate-600">
+            Alunos, empresas e acompanhamento das solicitações.
           </p>
         </div>
 
         <div
           role="tablist"
           aria-label="Visão geral de alunos ou empresas"
-          className="relative isolate mx-auto grid w-full max-w-[280px] grid-cols-2 rounded-full bg-gray-100 p-1"
+          className="relative isolate mx-auto grid w-full max-w-[280px] grid-cols-2 rounded-xl border border-slate-200 bg-white p-1 shadow-sm xl:w-72"
         >
           <span
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-full bg-[#0a3d7c] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${visao === "empresas" ? "translate-x-full" : "translate-x-0"}`}
+            className={`pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-lg bg-[#0a3d7c] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${visao === "empresas" ? "translate-x-full" : "translate-x-0"}`}
           />
           {VISOES.map(({ id, label: rotulo, icon: Icon }, indice) => (
             <button
@@ -64,7 +67,7 @@ export default function DashboardOverview({ children, empresas }) {
               tabIndex={visao === id ? 0 : -1}
               onClick={() => selecionarVisao(id)}
               onKeyDown={(evento) => tratarTeclado(evento, indice)}
-              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 motion-reduce:transition-none ${visao === id ? "text-white" : "text-gray-500 hover:text-gray-900"}`}
+              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 motion-reduce:transition-none sm:px-4 ${visao === id ? "text-white" : "text-slate-600 hover:text-slate-950"}`}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
               {rotulo}
@@ -79,11 +82,12 @@ export default function DashboardOverview({ children, empresas }) {
         role="tabpanel"
         aria-labelledby="overview-alunos-tab"
         hidden={visao !== "alunos"}
-        className="overview-panel mt-6"
+        className="siga-entrada mt-6"
       >
         <RecortesDaVisao visao="alunos">
-          {children}
-          <IndicadoresDaVisao visao="alunos" ativo={visao === "alunos"} />
+          <IndicadoresDaVisao visao="alunos" ativo={visao === "alunos"}>
+            {children}
+          </IndicadoresDaVisao>
         </RecortesDaVisao>
       </section>
 
@@ -92,30 +96,16 @@ export default function DashboardOverview({ children, empresas }) {
         role="tabpanel"
         aria-labelledby="overview-empresas-tab"
         hidden={visao !== "empresas"}
-        className="overview-panel mt-6"
+        className="siga-entrada mt-6"
       >
         {visitouEmpresas && (
           <RecortesDaVisao visao="empresas">
-            {empresas}
-            <IndicadoresDaVisao visao="empresas" ativo={visao === "empresas"} />
+            <IndicadoresDaVisao visao="empresas" ativo={visao === "empresas"}>
+              {empresas}
+            </IndicadoresDaVisao>
           </RecortesDaVisao>
         )}
       </section>
-
-      <style jsx>{`
-        .overview-panel:not([hidden]) {
-          animation: overview-enter 200ms ease-out;
-        }
-
-        @keyframes overview-enter {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .overview-panel:not([hidden]) { animation: none; }
-        }
-      `}</style>
     </div>
   );
 }

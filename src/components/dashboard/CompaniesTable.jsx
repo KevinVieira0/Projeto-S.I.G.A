@@ -187,7 +187,12 @@ export default function CompaniesTable({ gestao = false }) {
           aria-busy={carregando}
           className="mt-4 overflow-hidden rounded-lg border border-gray-200"
         >
-          <div className="overflow-x-auto">
+          <div
+            className="siga-rolagem-tabela"
+            role="region"
+            aria-label="Tabela de empresas"
+            tabIndex={0}
+          >
             <table
               ref={tabelaRef}
               className="min-w-full divide-y divide-gray-200 text-sm"

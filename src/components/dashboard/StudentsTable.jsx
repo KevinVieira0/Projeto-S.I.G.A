@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
@@ -16,7 +17,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { listarAlunos } from "@/lib/api/alunosService";
 import { baixarArquivo } from "@/lib/api/baixarArquivo";
 import {
@@ -68,6 +69,7 @@ const COLUNAS_EXPORTACAO = [
 ];
 
 export default function StudentsTable({ gestao = false }) {
+  const grupoDeFiltros = useId();
   const [editor, setEditor] = useState(null);
   const [alunoDetalhado, setAlunoDetalhado] = useState(null);
   const [mensagem, setMensagem] = useState("");
@@ -195,7 +197,7 @@ export default function StudentsTable({ gestao = false }) {
       />
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <div className="relative min-w-0 basis-full sm:min-w-[180px] sm:max-w-sm sm:flex-1">
               <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -217,19 +219,20 @@ export default function StudentsTable({ gestao = false }) {
               )}
             </div>
 
-            <details className="relative">
+            <details name={grupoDeFiltros} className="siga-menu-expansivel sm:relative">
               <summary
-                className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}
+                className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Filter className="h-4 w-4 text-gray-500" />
+                <Filter className="h-4 w-4 text-blue-200" aria-hidden="true" />
                 Status
                 {statusSelecionados.length > 0 && (
                   <span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-600">
                     {statusSelecionados.length}
                   </span>
                 )}
+                <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
               </summary>
-              <div className="absolute left-0 z-30 mt-2 min-w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+              <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:right-auto sm:min-w-52">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Filtrar status
                 </p>
@@ -261,14 +264,15 @@ export default function StudentsTable({ gestao = false }) {
               </div>
             </details>
 
-            <details className="relative">
+            <details name={grupoDeFiltros} className="siga-menu-expansivel sm:relative">
               <summary
-                className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}
+                className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Columns3 className="h-4 w-4 text-gray-500" />
+                <Columns3 className="h-4 w-4 text-blue-200" aria-hidden="true" />
                 Colunas
+                <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
               </summary>
-              <div className="absolute left-0 z-30 mt-2 min-w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+              <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:right-auto sm:min-w-48">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Exibir colunas
                 </p>
@@ -332,7 +336,12 @@ export default function StudentsTable({ gestao = false }) {
         )}
 
         <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
-          <div className="overflow-x-auto">
+          <div
+            className="siga-rolagem-tabela"
+            role="region"
+            aria-label="Tabela de alunos"
+            tabIndex={0}
+          >
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50">
                 <tr>

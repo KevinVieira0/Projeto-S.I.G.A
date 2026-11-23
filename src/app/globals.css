@@ -7,6 +7,7 @@
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --siga-raio-card: 0.75rem;
+    --siga-recuo-tela: clamp(0.75rem, 2.1vw, 2.5rem);
   }
   .dark {
     --background: oklch(0.145 0 0);
@@ -21,6 +22,23 @@
 }
 
 @layer components {
+  .siga-pagina {
+    min-width: 0;
+    padding: clamp(1.25rem, 2.2vw, 2.25rem) var(--siga-recuo-tela);
+  }
+
+  .siga-rolagem-tabela {
+    position: relative;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .siga-rolagem-tabela:focus-visible {
+    outline: 2px solid var(--siga-acento-card, #0a3d7c);
+    outline-offset: -2px;
+  }
+
   .siga-card {
     --siga-acento-card: #0a3d7c;
     --siga-borda-card: #cfd9e6;
@@ -38,6 +56,27 @@
 
   .siga-card-admin {
     border-top: 2px solid var(--siga-acento-card);
+  }
+
+  .siga-visao-geral .siga-card-admin {
+    border-top-width: 1px;
+  }
+
+  .siga-panorama-corpo {
+    container: panorama / inline-size;
+  }
+
+  @container graficos (min-width: 54rem) and (max-width: 64rem) {
+    .siga-panorama .siga-panorama-cabecalho {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @container panorama (min-width: 27rem) {
+    .siga-panorama-conteudo {
+      grid-template-columns: 7rem minmax(0, 1fr);
+    }
   }
 
   .siga-card-empresa {
@@ -67,12 +106,125 @@
       minmax(min(100%, var(--siga-coluna-card, 14rem)), 1fr)
     );
     gap: 0.75rem;
-    max-width: 68rem;
+  }
+
+  .siga-grade-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18.5rem), 1fr));
+    gap: 0.875rem;
+  }
+
+  .siga-cabecalho-expansivel {
+    list-style: none;
+  }
+
+  .siga-cabecalho-expansivel::-webkit-details-marker {
+    display: none;
+  }
+
+  .siga-seta-expansao {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  details[open] > summary .siga-seta-expansao,
+  button[aria-expanded="true"] > .siga-seta-expansao {
+    transform: rotate(180deg);
+  }
+
+  .siga-aviso-sync {
+    width: 100%;
+    max-inline-size: 23.125rem;
+  }
+
+  .siga-aviso-sync[open] {
+    max-inline-size: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .siga-entrada:not([hidden]),
+    .siga-expansivel[open] > :not(summary),
+    .siga-menu-expansivel[open] > :not(summary),
+    .siga-dialogo[open]::backdrop {
+      animation: siga-aparecer 180ms ease-out;
+    }
+
+    .siga-dialogo[open],
+    .siga-grade-cards > :nth-child(-n + 6) {
+      animation: siga-entrar 210ms ease-out backwards;
+    }
+
+    .siga-grade-cards > :nth-child(2n) {
+      animation-delay: 35ms;
+    }
+
+    .siga-acao {
+      transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 140ms ease;
+    }
+
+    .siga-acao:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .siga-seta-expansao {
+      transition: transform 200ms ease-out;
+    }
+
+    .siga-card.siga-aviso-sync {
+      transition:
+        max-inline-size 240ms ease-in-out,
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    @supports (interpolate-size: allow-keywords) and
+      selector(details::details-content) {
+      .siga-expansivel::details-content {
+        interpolate-size: allow-keywords;
+        overflow: clip;
+        contain: layout;
+        block-size: 0;
+        transition:
+          block-size 240ms ease-in-out,
+          content-visibility 240ms allow-discrete;
+      }
+
+      .siga-expansivel[open]::details-content {
+        block-size: auto;
+      }
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .siga-card {
       transition: none;
     }
+  }
+}
+
+@keyframes siga-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes siga-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -13,9 +13,9 @@ export const dashboardStyles = {
   footer:
     "mt-auto flex flex-wrap items-center gap-2 rounded-b-[calc(var(--siga-raio-card)-1px)] border-t border-slate-200/80 bg-slate-50/80 px-4 py-2.5 text-xs text-gray-600 sm:px-5",
   primaryAction:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none",
+    "siga-acao inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
   secondaryAction:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg  border border-gray-200 bg-[#0a3d7c] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a75dc] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+    "siga-acao inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-[#0a3d7c] px-3 py-2 text-sm font-medium text-white hover:bg-[#1a75dc] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   error:
     "rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700",
 };
@@ -42,10 +42,11 @@ export function DashboardCardHeader({
   eyebrow: categoria,
   description: descricao,
   icon: Icon,
+  className = "",
   children,
 }) {
   return (
-    <header className={dashboardStyles.header}>
+    <header className={`${dashboardStyles.header} ${className}`}>
       <div className="min-w-0">
         {categoria && <p className={dashboardStyles.eyebrow}>{categoria}</p>}
         <h2 id={idTitulo} className={dashboardStyles.title}>

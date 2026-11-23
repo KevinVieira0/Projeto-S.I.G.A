@@ -26,6 +26,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
   );
   const passo = Math.max(1, Math.ceil(maximo / 4));
   const posicaoY = (valor) => 6 + (1 - valor / (4 * passo)) * (altura - 12);
+  const posicaoPercentual = (valor) => `${(posicaoY(valor) / altura) * 100}%`;
 
   return (
     <DashboardCard aria-labelledby={idTitulo} lift>
@@ -55,7 +56,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
       </DashboardCardHeader>
       {maximo > 0 ? (
         <>
-          <div className="px-4 py-4 sm:px-5">
+          <div className="siga-entrada grid min-w-0 flex-1 content-center px-4 py-4 sm:px-5">
             <ul
               className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600"
               aria-label="Legenda"
@@ -73,15 +74,14 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
             </ul>
             <div className="relative pl-9">
               <div
-                className="pointer-events-none absolute left-0 top-0 w-8"
-                style={{ height: altura }}
+                className="pointer-events-none absolute left-0 top-0 h-[var(--siga-altura-linhas,150px)] w-8"
                 aria-hidden="true"
               >
                 {niveis.map((nivel) => (
                   <span
                     key={nivel}
                     className="absolute right-0 -translate-y-1/2 text-right text-[11px] tabular-nums text-gray-500"
-                    style={{ top: posicaoY(passo * nivel) }}
+                    style={{ top: posicaoPercentual(passo * nivel) }}
                   >
                     {formatarNumero(passo * nivel)}
                   </span>
@@ -89,7 +89,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
               </div>
               <svg
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 left-9 h-[150px] w-[calc(100%-2.25rem)]"
+                className="pointer-events-none absolute inset-y-0 left-9 h-[var(--siga-altura-linhas,150px)] w-[calc(100%-2.25rem)]"
                 viewBox={`0 0 ${largura} ${altura}`}
                 preserveAspectRatio="none"
               >
@@ -145,8 +145,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
                     className="min-w-0 rounded-md transition-colors hover:bg-blue-50/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 motion-reduce:transition-none"
                   >
                     <span
-                      className="relative block"
-                      style={{ height: altura }}
+                      className="relative block h-[var(--siga-altura-linhas,150px)]"
                       aria-hidden="true"
                     >
                       {detalhe.chave === linha.chave && (
@@ -157,7 +156,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
                           key={chave}
                           className={`absolute left-1/2 block h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 border-2 border-white ${serie === 0 ? "rounded-full" : "rotate-45 rounded-[2px]"} ${detalhe.chave === linha.chave ? "ring-1 ring-slate-300" : ""}`}
                           style={{
-                            top: posicaoY(linha[chave]),
+                            top: posicaoPercentual(linha[chave]),
                             backgroundColor: cor,
                           }}
                         />
