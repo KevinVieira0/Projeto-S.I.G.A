@@ -97,7 +97,7 @@ export function SolicitacaoDetalhes({ solicitacao, onClose, onUpdated }) {
         evento.preventDefault();
         if (!ocupado) onClose();
       }}
-      className="siga-dialogo siga-card siga-card-admin fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-5xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
+      className="siga-dialogo siga-card siga-card-admin siga-vidro-elevado fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-5xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
     >
       <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>

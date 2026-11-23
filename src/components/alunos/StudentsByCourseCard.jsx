@@ -54,7 +54,7 @@ export default function StudentsByCourseCard({ ativo = true }) {
         <div
           role="group"
           aria-label="Filtrar alunos no gráfico por curso"
-          className="inline-flex flex-wrap rounded-lg bg-gray-100 p-1"
+          className="siga-controle inline-flex flex-wrap rounded-lg p-1"
         >
           {Object.entries({ todos: "Todos", disponiveis: "Disponíveis" }).map(
             ([id, rotulo]) => (
@@ -63,7 +63,7 @@ export default function StudentsByCourseCard({ ativo = true }) {
                 type="button"
                 aria-pressed={status === id}
                 onClick={() => setStatus(id)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-blue-600 ${status === id ? "bg-white text-[#0a3d7c] shadow-sm" : "text-gray-600 hover:text-gray-900"}`}
+                className={`siga-acao rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-blue-600 ${status === id ? "bg-blue-50 text-[#0a3d7c] ring-1 ring-inset ring-blue-200" : "text-gray-600 hover:text-gray-900"}`}
               >
                 {rotulo}
               </button>
@@ -226,7 +226,7 @@ function CourseChart({ cursos }) {
           key={selecionado.curso}
           id={idTooltip}
           role="tooltip"
-          className="course-tooltip pointer-events-none absolute top-0 z-20 w-56 max-w-full rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-blue-950/10"
+          className="course-tooltip siga-card siga-vidro-elevado pointer-events-none absolute top-0 z-20 w-56 max-w-full p-3"
           style={{
             left: `max(0px, min(calc(${((indiceAtivo + 0.5) / cursos.length) * 100}% - 112px), calc(100% - 224px)))`,
           }}

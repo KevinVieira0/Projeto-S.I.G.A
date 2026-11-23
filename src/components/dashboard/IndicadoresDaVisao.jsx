@@ -139,6 +139,7 @@ function ResumoIndicadores({ visao, dados }) {
           return (
             <DashboardCard
               key={id}
+              lift
               className={`${estilos.cartao} gap-3 p-4 sm:p-5`}
               data-tom={tom === "ambar" && valor === 0 ? "neutro" : tom}
             >

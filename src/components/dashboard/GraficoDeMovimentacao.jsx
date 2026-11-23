@@ -39,7 +39,7 @@ export default function GraficoDeMovimentacao({ visao, dados, erro }) {
         <label className="text-xs font-medium text-gray-600">
           <span className="sr-only">Período de {titulo.toLowerCase()}</span>
           <select
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 focus:outline-blue-600"
+            className="siga-acao siga-controle rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-blue-600"
             value={periodo}
             onChange={(evento) => {
               setPeriodo(Number(evento.target.value));

@@ -66,12 +66,11 @@
   --indicador-cor: #23558a;
   --indicador-borda: #d4e0ed;
   --indicador-tinta: #eff6ff;
-  border: 1px solid var(--indicador-borda);
-  background: linear-gradient(135deg, #fff 45%, var(--indicador-tinta));
+  --siga-tinta-vidro: var(--indicador-vidro, 188 217 250);
+  border-color: var(--indicador-borda);
   transition:
     transform 180ms ease-out,
-    box-shadow 180ms ease-out,
-    border-color 180ms ease-out;
+    var(--siga-transicao-vidro);
   animation: entrada 260ms ease-out backwards;
 }
 
@@ -79,24 +78,28 @@
   --indicador-cor: #95601c;
   --indicador-borda: #ebd8af;
   --indicador-tinta: #fff8e8;
+  --indicador-vidro: 250 219 159;
 }
 
 .cartao[data-tom="verde"] {
   --indicador-cor: #177359;
   --indicador-borda: #c8e4d9;
   --indicador-tinta: #eef9f4;
+  --indicador-vidro: 170 228 201;
 }
 
 .cartao[data-tom="violeta"] {
   --indicador-cor: #694f91;
   --indicador-borda: #dfd6ed;
   --indicador-tinta: #f6f2fb;
+  --indicador-vidro: 218 196 244;
 }
 
 .cartao[data-tom="neutro"] {
   --indicador-cor: #4b5c72;
   --indicador-borda: #d8e0e9;
   --indicador-tinta: #f4f7fa;
+  --indicador-vidro: 215 225 239;
 }
 
 .cartao:nth-child(2) {

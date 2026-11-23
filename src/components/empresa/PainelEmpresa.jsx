@@ -59,7 +59,7 @@ function ResumoDoPortal({ resumo, situacao, filtrar, abrirSolicitacoes }) {
   return (
     <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(15rem,24rem)_minmax(0,1fr)] 2xl:grid-cols-1">
       <section
-        className={`${estilosEmpresa.superficie} flex h-full flex-col bg-gradient-to-br from-orange-50 to-white p-4 sm:p-5`}
+        className={`${estilosEmpresa.superficie} flex h-full flex-col p-4 sm:p-5`}
         aria-labelledby="titulo-solicitacoes-ativas"
       >
         <div className="flex items-start justify-between gap-3">
@@ -177,7 +177,7 @@ export default function PainelEmpresa() {
     <div className="relative isolate min-h-screen bg-[#faf9f7] text-slate-900">
       <FundoNovaSolicitacao />
       <header className="pointer-events-none sticky top-0 z-40 flex justify-center px-3 pt-4 sm:px-6">
-        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-2xl border border-orange-300/80 bg-white/90 p-1.5 shadow-lg shadow-orange-900/5 backdrop-blur-xl sm:rounded-full">
+        <div className="siga-vidro siga-vidro-elevado siga-card-empresa pointer-events-auto flex max-w-full items-center gap-1 rounded-2xl p-1.5 sm:rounded-full">
           <div
             role="tablist"
             aria-label="Seções do painel"

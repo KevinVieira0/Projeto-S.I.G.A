@@ -184,7 +184,10 @@ export default function StudentsTable({ gestao = false }) {
     alunosOrdenados.length,
   );
   return (
-    <DashboardCard aria-labelledby="alunos-tabela-titulo">
+    <DashboardCard
+      aria-labelledby="alunos-tabela-titulo"
+      className="siga-card-fosco"
+    >
       <DashboardCardHeader
         headingId="alunos-tabela-titulo"
         eyebrow="Cadastros"
@@ -201,11 +204,12 @@ export default function StudentsTable({ gestao = false }) {
             <div className="relative min-w-0 basis-full sm:min-w-[180px] sm:max-w-sm sm:flex-1">
               <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
+                aria-label="Buscar aluno"
                 value={busca}
                 onChange={(evento) => setBusca(evento.target.value)}
                 placeholder="Filtrar por nome, e-mail, CPF, curso..."
                 maxLength={255}
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                className={dashboardStyles.searchField}
               />
               {busca && (
                 <button
@@ -219,20 +223,26 @@ export default function StudentsTable({ gestao = false }) {
               )}
             </div>
 
-            <details name={grupoDeFiltros} className="siga-menu-expansivel sm:relative">
+            <details
+              name={grupoDeFiltros}
+              className="siga-menu-expansivel sm:relative"
+            >
               <summary
                 className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Filter className="h-4 w-4 text-blue-200" aria-hidden="true" />
+                <Filter className="h-4 w-4" aria-hidden="true" />
                 Status
                 {statusSelecionados.length > 0 && (
                   <span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-600">
                     {statusSelecionados.length}
                   </span>
                 )}
-                <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
+                <ChevronDown
+                  className="siga-seta-expansao"
+                  aria-hidden="true"
+                />
               </summary>
-              <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:right-auto sm:min-w-52">
+              <div className="siga-card siga-vidro-elevado absolute inset-x-0 top-full z-30 mt-2 p-2 sm:right-auto sm:min-w-52">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Filtrar status
                 </p>
@@ -264,15 +274,21 @@ export default function StudentsTable({ gestao = false }) {
               </div>
             </details>
 
-            <details name={grupoDeFiltros} className="siga-menu-expansivel sm:relative">
+            <details
+              name={grupoDeFiltros}
+              className="siga-menu-expansivel sm:relative"
+            >
               <summary
                 className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Columns3 className="h-4 w-4 text-blue-200" aria-hidden="true" />
+                <Columns3 className="h-4 w-4" aria-hidden="true" />
                 Colunas
-                <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
+                <ChevronDown
+                  className="siga-seta-expansao"
+                  aria-hidden="true"
+                />
               </summary>
-              <div className="absolute inset-x-0 top-full z-30 mt-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg sm:right-auto sm:min-w-48">
+              <div className="siga-card siga-vidro-elevado absolute inset-x-0 top-full z-30 mt-2 p-2 sm:right-auto sm:min-w-48">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Exibir colunas
                 </p>
@@ -335,26 +351,34 @@ export default function StudentsTable({ gestao = false }) {
           </div>
         )}
 
-        <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+        <div aria-busy={carregando} className="siga-moldura-tabela mt-4">
           <div
             className="siga-rolagem-tabela"
             role="region"
             aria-label="Tabela de alunos"
             tabIndex={0}
           >
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
+            <table className="siga-tabela min-w-full text-sm">
+              <thead>
                 <tr>
                   {colunasVisiveis.map((coluna) => (
                     <th
                       key={coluna.key}
-                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                      scope="col"
+                      aria-sort={
+                        ordenacao.key === coluna.key
+                          ? ordenacao.direction === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : undefined
+                      }
+                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
                     >
                       {coluna.sortable ? (
                         <button
                           type="button"
                           onClick={() => alternarOrdenacao(coluna.key)}
-                          className="inline-flex items-center gap-1.5 hover:text-gray-900"
+                          className="siga-acao inline-flex items-center gap-1.5 rounded-sm hover:text-[#0a3d7c] focus-visible:outline-blue-600"
                         >
                           {coluna.label}
                           {ordenacao.key === coluna.key &&
@@ -372,7 +396,7 @@ export default function StudentsTable({ gestao = false }) {
                   {gestao && (
                     <th
                       scope="col"
-                      className="sticky right-0 z-10 border-l border-gray-200 bg-gray-50 px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500"
+                      className="siga-tabela-acoes px-4 py-3 text-right text-xs font-semibold uppercase"
                     >
                       Ações
                     </th>
@@ -380,7 +404,7 @@ export default function StudentsTable({ gestao = false }) {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody>
                 {carregando ? (
                   <tr>
                     <td
@@ -394,7 +418,9 @@ export default function StudentsTable({ gestao = false }) {
                   alunosDaPagina.map((aluno) => (
                     <tr
                       key={aluno.id}
-                      className={`transition-colors motion-reduce:transition-none ${alunoDetalhado === aluno.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"} ${gestao ? "cursor-pointer" : ""}`}
+                      data-registro=""
+                      data-selecionado={alunoDetalhado === aluno.id}
+                      className={gestao ? "cursor-pointer" : undefined}
                       onClick={
                         gestao
                           ? (evento) => {
@@ -438,12 +464,12 @@ export default function StudentsTable({ gestao = false }) {
                         </td>
                       ))}
                       {gestao && (
-                        <td className="sticky right-0 border-l border-gray-100 bg-white px-4 py-3 text-right whitespace-nowrap">
+                        <td className="siga-tabela-acoes whitespace-nowrap px-4 py-3 text-right">
                           <button
                             type="button"
                             aria-label={`Editar ${aluno.nome}`}
                             title="Editar aluno"
-                            className="rounded-lg p-2 text-blue-700 hover:bg-blue-50"
+                            className="siga-acao rounded-lg p-2 text-blue-700 hover:bg-blue-100 focus-visible:outline-blue-600"
                             onClick={() => {
                               setMensagem("");
                               setEditor({ modo: "editar", alunoId: aluno.id });
@@ -455,7 +481,7 @@ export default function StudentsTable({ gestao = false }) {
                             type="button"
                             aria-label={`Excluir ${aluno.nome}`}
                             title="Excluir aluno"
-                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                            className="siga-acao rounded-lg p-2 text-red-600 hover:bg-red-50 focus-visible:outline-red-600"
                             onClick={() => {
                               setMensagem("");
                               setEditor({ modo: "excluir", alunoId: aluno.id });
@@ -488,7 +514,8 @@ export default function StudentsTable({ gestao = false }) {
           <select
             value={tamanhoPagina}
             onChange={(evento) => setTamanhoPagina(Number(evento.target.value))}
-            className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            aria-label="Linhas por página"
+            className="siga-controle siga-acao h-9 rounded-lg px-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
             {TAMANHOS_PAGINA.map((size) => (
               <option key={size} value={size}>
@@ -603,7 +630,7 @@ function PaginationButton({ children, label: rotulo, disabled, onClick }) {
       aria-label={rotulo}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+      className={dashboardStyles.pageAction}
     >
       {children}
     </button>

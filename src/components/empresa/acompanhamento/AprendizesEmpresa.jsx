@@ -32,10 +32,10 @@ export default function AprendizesEmpresa({
     <>
       <section
         id="lista-aprendizes-empresa"
-        className={estilosEmpresa.superficie}
+        className={`${estilosEmpresa.superficie} siga-card-fosco`}
         aria-labelledby="titulo-aprendizes"
       >
-        <header className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 sm:gap-4 sm:p-6">
+        <header className="siga-cabecalho-card flex items-start justify-between gap-3 rounded-t-[calc(var(--siga-raio-card)-1px)] border-b border-slate-200 p-4 sm:gap-4 sm:p-6">
           <div className="min-w-0">
             <h2
               id="titulo-aprendizes"
@@ -65,7 +65,7 @@ export default function AprendizesEmpresa({
                 key={valor}
                 aria-pressed={situacao === valor}
                 onClick={() => alterarSituacao(valor)}
-                className={`min-h-9 rounded-lg px-3 text-sm transition-colors ${situacao === valor ? "bg-white font-semibold text-orange-800 shadow-sm" : "text-slate-600 hover:bg-white/70"}`}
+                className={`siga-acao min-h-9 rounded-lg px-3 text-sm ${situacao === valor ? "bg-white font-semibold text-orange-800 shadow-sm" : "text-slate-600 hover:bg-white/70"}`}
               >
                 {rotulo}
               </button>
@@ -92,13 +92,14 @@ export default function AprendizesEmpresa({
           </div>
         ) : (
           <div
-            className="siga-rolagem-tabela"
+            className="siga-moldura-tabela siga-rolagem-tabela mx-5 mb-4"
             role="region"
             aria-label="Tabela de aprendizes da empresa"
+            aria-busy={carregando}
             tabIndex={0}
           >
-            <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="border-y border-slate-200 bg-slate-50 text-xs text-slate-500">
+            <table className="siga-tabela w-full min-w-[620px] text-left text-sm">
+              <thead className="text-xs">
                 <tr>
                   {["Aprendiz", "Curso e turma", "Turno", "Situação", ""].map(
                     (coluna, i) => (
@@ -109,7 +110,7 @@ export default function AprendizesEmpresa({
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody>
                 {carregando ? (
                   <tr>
                     <td
@@ -133,7 +134,10 @@ export default function AprendizesEmpresa({
                   dados.aprendizes.map((aluno) => (
                     <tr
                       key={aluno.matriculaId}
-                      className="group hover:bg-orange-50/40 motion-safe:transition-colors"
+                      data-registro=""
+                      data-selecionado={
+                        selecionado?.matriculaId === aluno.matriculaId
+                      }
                     >
                       <td className="px-5 py-4">
                         <button
@@ -161,7 +165,7 @@ export default function AprendizesEmpresa({
                           type="button"
                           aria-label={`Ver detalhes de ${aluno.nome}`}
                           onClick={() => setSelecionado(aluno)}
-                          className="rounded-lg p-2 text-slate-400 hover:bg-orange-100 hover:text-orange-800"
+                          className="siga-acao rounded-lg p-2 text-slate-500 hover:bg-orange-100 hover:text-orange-800"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </button>

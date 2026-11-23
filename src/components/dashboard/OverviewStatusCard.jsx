@@ -174,7 +174,7 @@ export default function OverviewStatusCard({
             <select
               value={periodo}
               onChange={selecionarPeriodo}
-              className="h-9 appearance-none rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-xs font-medium text-gray-700 outline-none transition hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="siga-acao siga-controle h-9 appearance-none rounded-lg py-1.5 pl-3 pr-8 text-xs font-medium text-gray-700 outline-none hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="todos">Todo o período</option>
               {periodosPanorama.map((quantidadeDeDias) => (

@@ -174,7 +174,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
         evento.preventDefault();
         if (!salvando) onClose();
       }}
-      className="siga-dialogo siga-card siga-card-admin fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
+      className="siga-dialogo siga-card siga-card-admin siga-vidro-elevado fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
     >
       <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>
@@ -210,7 +210,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
               role="status"
               className="flex items-center gap-2 text-sm text-gray-500"
             >
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />
               Carregando cadastro…
             </p>
           ) : excluir ? (
@@ -444,7 +444,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
           >
             {salvando ? (
               <>
-                <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 inline h-4 w-4 animate-spin motion-reduce:animate-none" />
                 Salvando…
               </>
             ) : excluir ? (

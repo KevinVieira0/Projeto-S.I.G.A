@@ -13,7 +13,7 @@
   justify-content: center;
   min-height: 100svh;
   overflow: hidden;
-  padding: 100px var(--siga-recuo-tela) 112px;
+  padding: 100px 40px 112px;
   background: #f7faff;
   color: #0c1840;
   font-family: "Segoe UI", Arial, Helvetica, sans-serif;
@@ -47,12 +47,12 @@
 .shell {
   position: relative;
   width: 100%;
+  max-width: 1040px;
   padding: 22px 0;
   border: 1px solid #d6e7fb;
   border-radius: calc(var(--siga-raio-card) + 6px);
   background: #e5eef9b3;
   box-shadow: 0 18px 65px -30px #194f965c, 0 0 0 6px #e6f0fc80;
-  animation: shellEnter 250ms ease-out;
 }
 
 /* 56% de painel + 54% de formulário criam a sobreposição central. */
@@ -77,11 +77,6 @@
 .institutionalContent { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; height: 100%; padding: 44px 24% 30px 44px; color: #fff; text-shadow: 0 1px 2px #00152b33; }
 .institutionalContent > * { flex-shrink: 0; }
 .empresaLayer .institutionalContent { padding: 44px 36px 30px 26%; }
-
-@media (min-width: 1001px) {
-  .institutionalContent { padding-left: clamp(44px, 5vw, 108px); }
-  .empresaLayer .institutionalContent { padding-right: clamp(36px, 5vw, 108px); }
-}
 
 /* A máscara reaproveita a transparência da logo original, sem outra imagem. */
 .whiteLogo {
@@ -120,11 +115,6 @@
 }
 /* O deslocamento percentual é relativo à largura do próprio formulário. */
 .page[data-profile="empresa"] .formCard { transform: translateX(-77.7778%); }
-.formCard > * {
-  width: 100%;
-  max-width: 29rem;
-  margin-inline: auto;
-}
 .formHeader { text-align: center; }
 .formHeader h1 { font-size: 29px; font-weight: 700; line-height: 1.3; letter-spacing: -.6px; margin: 0; }
 .formHeader p { margin: 8px 0 0; font-size: 16px; line-height: 1.5; color: #354e73; }
@@ -160,11 +150,6 @@
 .pageFooter > p { color: #405e86; font-size: 10px; font-weight: 600; line-height: 1.7; letter-spacing: 2.2px; text-transform: uppercase; }
 .pageFooter > p span { padding: 0 10px; }
 
-@keyframes shellEnter {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* O formulário novo aparece durante a segunda metade do movimento. */
 @keyframes contentEnter {
   0%, 30% { opacity: 0; transform: translateY(5px); }
@@ -188,7 +173,7 @@
 @media (max-width: 760px) {
   .page { justify-content: flex-start; padding: 28px 18px 24px; }
   .pageSignature { display: none; }
-  .shell { padding: 0 0 16px; }
+  .shell { max-width: 480px; padding: 0 0 16px; }
   .institutional { position: relative; inset: auto; width: 100%; height: 280px; border-radius: 26px 26px 0 0; }
   .page[data-profile="empresa"] .institutional { transform: none; }
   .institutionalContent, .empresaLayer .institutionalContent { padding: 25px 27px; }

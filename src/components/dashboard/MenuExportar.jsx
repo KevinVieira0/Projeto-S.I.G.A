@@ -68,7 +68,7 @@ export default function MenuExportar({
           {carregando ? "Gerando PDF…" : "Exportar"}
           <ChevronDown className="siga-seta-expansao" aria-hidden="true" />
         </summary>
-        <div className="siga-card absolute left-0 z-30 mt-2 w-48 p-1.5 xl:left-auto xl:right-0">
+        <div className="siga-card siga-vidro-elevado absolute left-0 z-30 mt-2 w-48 p-1.5 xl:left-auto xl:right-0">
           <button
             type="button"
             className={classeOpcao}

@@ -47,11 +47,11 @@ export default function DashboardOverview({ children, empresas }) {
         <div
           role="tablist"
           aria-label="Visão geral de alunos ou empresas"
-          className="relative isolate mx-auto grid w-full max-w-[280px] grid-cols-2 rounded-xl border border-slate-200 bg-white p-1 shadow-sm xl:w-72"
+          className="siga-vidro siga-vidro-elevado relative isolate mx-auto grid w-full max-w-[280px] grid-cols-2 rounded-xl p-1 xl:w-72"
         >
           <span
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-lg bg-[#0a3d7c] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${visao === "empresas" ? "translate-x-full" : "translate-x-0"}`}
+            className={`siga-acao-primaria pointer-events-none absolute inset-y-1 left-1 -z-10 w-[calc(50%-4px)] rounded-lg bg-[#0a3d7c] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.22,0.78,0.24,1)] ${visao === "empresas" ? "translate-x-full" : "translate-x-0"}`}
           />
           {VISOES.map(({ id, label: rotulo, icon: Icon }, indice) => (
             <button

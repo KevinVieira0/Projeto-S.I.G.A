@@ -89,7 +89,7 @@ export default function CompaniesTable({ gestao = false }) {
   const inicio = total === 0 ? 0 : (pagina - 1) * 25 + 1;
   const fim = Math.min(pagina * 25, total);
   return (
-    <DashboardCard aria-labelledby={idTitulo}>
+    <DashboardCard aria-labelledby={idTitulo} className="siga-card-fosco">
       <DashboardCardHeader
         headingId={idTitulo}
         eyebrow="Cadastros"
@@ -129,7 +129,7 @@ export default function CompaniesTable({ gestao = false }) {
                   setPagina(1);
                 }}
                 placeholder="Filtrar por razão social, nome, CNPJ..."
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                className={dashboardStyles.searchField}
               />
               {busca && (
                 <button
@@ -154,7 +154,7 @@ export default function CompaniesTable({ gestao = false }) {
                   setStatus(evento.target.value);
                   setPagina(1);
                 }}
-                className="h-10 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                className="siga-controle siga-acao h-10 rounded-lg pl-9 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="todos">Todas as situações</option>
                 <option value="ativas">Ativas</option>
@@ -183,21 +183,15 @@ export default function CompaniesTable({ gestao = false }) {
             </button>
           </div>
         )}
-        <div
-          aria-busy={carregando}
-          className="mt-4 overflow-hidden rounded-lg border border-gray-200"
-        >
+        <div aria-busy={carregando} className="siga-moldura-tabela mt-4">
           <div
             className="siga-rolagem-tabela"
             role="region"
             aria-label="Tabela de empresas"
             tabIndex={0}
           >
-            <table
-              ref={tabelaRef}
-              className="min-w-full divide-y divide-gray-200 text-sm"
-            >
-              <thead className="bg-gray-50">
+            <table ref={tabelaRef} className="siga-tabela min-w-full text-sm">
+              <thead>
                 <tr>
                   {[
                     "Razão social",
@@ -211,7 +205,7 @@ export default function CompaniesTable({ gestao = false }) {
                     <th
                       key={titulo}
                       scope="col"
-                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
                     >
                       {titulo}
                     </th>
@@ -219,14 +213,14 @@ export default function CompaniesTable({ gestao = false }) {
                   {gestao && (
                     <th
                       scope="col"
-                      className="sticky right-0 z-10 border-l border-gray-200 bg-gray-50 px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500"
+                      className="siga-tabela-acoes px-4 py-3 text-right text-xs font-semibold uppercase"
                     >
                       Ações
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody>
                 {carregando ? (
                   <tr>
                     <td
@@ -240,7 +234,9 @@ export default function CompaniesTable({ gestao = false }) {
                   dados.itens.map((empresa) => (
                     <tr
                       key={empresa.id}
-                      className={`transition-colors motion-reduce:transition-none ${gestao ? "cursor-pointer" : ""} ${gestao && painel?.id === empresa.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"}`}
+                      data-registro=""
+                      data-selecionado={gestao && painel?.id === empresa.id}
+                      className={gestao ? "cursor-pointer" : undefined}
                       onClick={
                         gestao
                           ? (evento) => {
@@ -307,14 +303,14 @@ export default function CompaniesTable({ gestao = false }) {
                         </span>
                       </td>
                       {gestao && (
-                        <td className="sticky right-0 whitespace-nowrap border-l border-gray-100 bg-white px-4 py-3 text-right">
+                        <td className="siga-tabela-acoes whitespace-nowrap px-4 py-3 text-right">
                           <button
                             type="button"
                             data-empresa-id={empresa.id}
                             aria-haspopup="dialog"
                             aria-label={`Editar empresa ${empresa.razaoSocial}`}
                             title="Editar empresa"
-                            className="rounded-lg p-2 text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            className="siga-acao rounded-lg p-2 text-blue-700 hover:bg-blue-100 focus-visible:outline-blue-600"
                             onClick={(evento) => {
                               evento.currentTarget.focus();
                               setMensagem("");
@@ -357,7 +353,7 @@ export default function CompaniesTable({ gestao = false }) {
             title="Página anterior"
             disabled={carregando || pagina <= 1}
             onClick={() => setPagina((valor) => valor - 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+            className={dashboardStyles.pageAction}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -370,7 +366,7 @@ export default function CompaniesTable({ gestao = false }) {
             title="Próxima página"
             disabled={carregando || pagina >= paginas}
             onClick={() => setPagina((valor) => valor + 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+            className={dashboardStyles.pageAction}
           >
             <ChevronRight className="h-4 w-4" />
           </button>

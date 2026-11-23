@@ -154,7 +154,7 @@ function ModalSucesso({ aberto, onFechar, onAcompanhar, temAcompanhar }) {
         aria-modal="true"
         aria-labelledby="siga-modal-titulo"
         aria-describedby="siga-modal-descricao"
-        className="siga-modal siga-card siga-card-empresa relative w-full max-w-md p-6 text-center sm:p-8"
+        className="siga-modal siga-card siga-card-empresa siga-vidro-elevado relative w-full max-w-md p-6 text-center sm:p-8"
       >
         <button
           type="button"

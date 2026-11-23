@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/axiosClient";
 
 export const estilosEmpresa = {
-  superficie:
-    "siga-card siga-card-empresa siga-card-interativo",
+  superficie: "siga-card siga-card-empresa siga-card-interativo",
   primario:
-    "siga-acao inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+    "siga-acao siga-acao-primaria inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   secundario:
-    "siga-acao inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
+    "siga-acao siga-controle inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
   campo:
-    "min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
+    "siga-acao siga-controle min-h-10 w-full rounded-xl px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
 };
 export const rotulosParticipacao = {
   INDICADO: "Indicado",
