@@ -209,11 +209,31 @@ export async function obterPedidoEmpresa(prisma, empresaId, id, pagina = 1) {
   };
 }
 
+function statusDaMatricula(status) {
+  return status === "APROVADO" ? "EM_PROCESSO" : status;
+}
+
+export function filtroParticipacaoPendente(empresaId, status) {
+  const esperado = statusDaMatricula(status);
+  return {
+    status,
+    solicitacao: { idEmpresa: empresaId, ativa: true },
+    matricula: {
+      empresaAtualId: empresaId,
+      status: esperado,
+      aluno: {
+        empresaId,
+        arquivadoEm: null,
+        statusIndicacao: rotulosAluno[esperado],
+      },
+    },
+  };
+}
+
 function vinculoAtual(participacao) {
   const matricula = participacao.matricula;
   const aluno = matricula.aluno;
-  const esperado =
-    participacao.status === "APROVADO" ? "EM_PROCESSO" : participacao.status;
+  const esperado = statusDaMatricula(participacao.status);
   return (
     !aluno.arquivadoEm &&
     estadosEmAberto.includes(participacao.status) &&

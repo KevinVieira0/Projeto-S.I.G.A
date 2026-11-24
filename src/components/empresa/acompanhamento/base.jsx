@@ -27,13 +27,34 @@ const cores = {
   APROVADO: "bg-violet-50 text-violet-800 ring-violet-600/15",
   CONTRATADO: "bg-emerald-50 text-emerald-800 ring-emerald-600/15",
 };
-export function SeloParticipacao({ status }) {
+export function SeloParticipacao({ status, rotulo }) {
   return (
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${cores[status] || "bg-slate-100 text-slate-600 ring-slate-500/15"}`}
     >
-      {rotulosParticipacao[status] || status}
+      {rotulo ?? (rotulosParticipacao[status] || status)}
     </span>
+  );
+}
+export function CartaoLateralEmpresa({ id, titulo, icone: Icone, children }) {
+  return (
+    <section
+      aria-labelledby={id}
+      className={`${estilosEmpresa.superficie} p-4 sm:px-5`}
+    >
+      <header className="mb-2.5 flex items-center justify-between gap-2.5">
+        <h2
+          id={id}
+          className="min-w-0 text-lg font-semibold leading-snug tracking-tight text-slate-950"
+        >
+          {titulo}
+        </h2>
+        <span className="shrink-0 rounded-lg border border-orange-200 bg-orange-50/80 p-2 text-orange-800">
+          <Icone className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </header>
+      {children}
+    </section>
   );
 }
 export function dataEmpresa(valor, hora = false) {
