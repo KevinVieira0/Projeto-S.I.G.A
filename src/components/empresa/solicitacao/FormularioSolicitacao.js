@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import Inputsolicitacao from "@/components/solicitacao/inputsolicitacao";
-import Selectsolicitacao from "@/components/solicitacao/selectsolicitacao";
-import { useCursos } from "@/hooks/useCursos";
-import { useEmpresaSolicitacao } from "@/hooks/useEmpresaSolicitacao";
+import CampoSolicitacao from "./CampoSolicitacao";
+import SeletorSolicitacao from "./SeletorSolicitacao";
+import { useCursos } from "./useCursos";
+import { useEmpresaSolicitacao } from "./useEmpresaSolicitacao";
 import {
   SEXOS,
   PRATICAS,
@@ -361,7 +361,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               colunas="grid-cols-1 gap-x-4 min-[360px]:grid-cols-2 lg:grid-cols-3 lg:gap-x-[clamp(2rem,4vw,3.5rem)]"
             >
               <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Idade Mínima"
                   name="idadeMinima"
                   erro={erros.idadeMinima}
@@ -376,7 +376,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               </CampoComErro>
 
               <CampoComErro campo="idadeMaxima" erro={erros.idadeMaxima}>
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Idade Máxima"
                   name="idadeMaxima"
                   erro={erros.idadeMaxima}
@@ -395,7 +395,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
                 erro={erros.sexo}
                 className="col-span-full lg:col-span-1"
               >
-                <Selectsolicitacao
+                <SeletorSolicitacao
                   label="Sexo"
                   name="sexo"
                   erro={erros.sexo}
@@ -416,7 +416,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               }`}
             >
               <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
-                <Selectsolicitacao
+                <SeletorSolicitacao
                   label="Cursos"
                   name="cursos"
                   erro={erros.cursos || erroCursos}
@@ -437,7 +437,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
                 campo="quantidadeVagas"
                 erro={erros.quantidadeVagas}
               >
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Quantidade"
                   name="quantidadeVagas"
                   erro={erros.quantidadeVagas}
@@ -452,7 +452,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               </CampoComErro>
 
               <CampoComErro campo="pratica" erro={erros.pratica}>
-                <Selectsolicitacao
+                <SeletorSolicitacao
                   label="Prática"
                   name="pratica"
                   erro={erros.pratica}
@@ -468,7 +468,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
                   campo="periodoPratica"
                   erro={erros.periodoPratica}
                 >
-                  <Selectsolicitacao
+                  <SeletorSolicitacao
                     label="Período da prática"
                     name="periodoPratica"
                     erro={erros.periodoPratica}
@@ -486,7 +486,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               colunas="grid-cols-1 gap-x-4 min-[360px]:grid-cols-2 lg:grid-cols-[repeat(2,minmax(0,20rem))] lg:justify-between lg:gap-x-10"
             >
               <CampoComErro campo="inicio" erro={erros.inicio}>
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Início"
                   name="inicio"
                   erro={erros.inicio}
@@ -499,7 +499,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
               </CampoComErro>
 
               <CampoComErro campo="fim" erro={erros.fim}>
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Fim"
                   name="fim"
                   erro={erros.fim}
@@ -514,7 +514,7 @@ export default function FormularioSolicitacao({ onAcompanhar }) {
 
             <Secao titulo="Detalhes" colunas="grid-cols-1">
               <CampoComErro campo="observacoes">
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Observações"
                   name="observacoes"
                   value={formulario.observacoes}

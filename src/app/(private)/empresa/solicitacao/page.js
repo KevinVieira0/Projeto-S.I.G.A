@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import Inputsolicitacao from "@/components/solicitacao/inputsolicitacao";
-import Selectsolicitacao from "@/components/solicitacao/selectsolicitacao";
+import CampoSolicitacao from "@/components/empresa/solicitacao/CampoSolicitacao";
+import SeletorSolicitacao from "@/components/empresa/solicitacao/SeletorSolicitacao";
 import LogoutButton from "@/components/login/LogoutButton";
-import { useCursos } from "@/hooks/useCursos";
-import { useEmpresaSolicitacao } from "@/hooks/useEmpresaSolicitacao";
+import { useCursos } from "@/components/empresa/solicitacao/useCursos";
+import { useEmpresaSolicitacao } from "@/components/empresa/solicitacao/useEmpresaSolicitacao";
 import {
   SEXOS,
   PRATICAS,
@@ -142,7 +142,7 @@ export default function Solicitacao() {
             <fieldset disabled={carregando} className="min-w-0">
               <div className="mb-6 grid min-w-0 gap-5 sm:grid-cols-2 min-[1650px]:grid-cols-3">
                 <CampoComErro campo="idadeMinima" erro={erros.idadeMinima}>
-                  <Inputsolicitacao
+                  <CampoSolicitacao
                     label="Idade Mínima"
                     name="idadeMinima"
                     erro={erros.idadeMinima}
@@ -157,7 +157,7 @@ export default function Solicitacao() {
                 </CampoComErro>
 
                 <CampoComErro campo="idadeMaxima" erro={erros.idadeMaxima}>
-                  <Inputsolicitacao
+                  <CampoSolicitacao
                     label="Idade Máxima"
                     name="idadeMaxima"
                     erro={erros.idadeMaxima}
@@ -172,7 +172,7 @@ export default function Solicitacao() {
                 </CampoComErro>
 
                 <CampoComErro campo="sexo" erro={erros.sexo}>
-                  <Selectsolicitacao
+                  <SeletorSolicitacao
                     label="Sexo"
                     name="sexo"
                     erro={erros.sexo}
@@ -184,7 +184,7 @@ export default function Solicitacao() {
                 </CampoComErro>
 
                 <CampoComErro campo="pratica" erro={erros.pratica}>
-                  <Selectsolicitacao
+                  <SeletorSolicitacao
                     label="Prática"
                     name="pratica"
                     erro={erros.pratica}
@@ -200,7 +200,7 @@ export default function Solicitacao() {
                     campo="periodoPratica"
                     erro={erros.periodoPratica}
                   >
-                    <Selectsolicitacao
+                    <SeletorSolicitacao
                       label="Período da prática"
                       name="periodoPratica"
                       erro={erros.periodoPratica}
@@ -213,7 +213,7 @@ export default function Solicitacao() {
                 )}
 
                 <CampoComErro campo="cursos" erro={erros.cursos || erroCursos}>
-                  <Selectsolicitacao
+                  <SeletorSolicitacao
                     label="Cursos"
                     name="cursos"
                     erro={erros.cursos || erroCursos}
@@ -231,7 +231,7 @@ export default function Solicitacao() {
                 </CampoComErro>
 
                 <CampoComErro campo="inicio" erro={erros.inicio}>
-                  <Inputsolicitacao
+                  <CampoSolicitacao
                     label="Início"
                     name="inicio"
                     erro={erros.inicio}
@@ -244,7 +244,7 @@ export default function Solicitacao() {
                 </CampoComErro>
 
                 <CampoComErro campo="fim" erro={erros.fim}>
-                  <Inputsolicitacao
+                  <CampoSolicitacao
                     label="Fim"
                     name="fim"
                     erro={erros.fim}
@@ -260,7 +260,7 @@ export default function Solicitacao() {
                   campo="quantidadeVagas"
                   erro={erros.quantidadeVagas}
                 >
-                  <Inputsolicitacao
+                  <CampoSolicitacao
                     label="Quantidade"
                     name="quantidadeVagas"
                     erro={erros.quantidadeVagas}
@@ -274,7 +274,7 @@ export default function Solicitacao() {
                   />
                 </CampoComErro>
 
-                <Inputsolicitacao
+                <CampoSolicitacao
                   label="Observações"
                   name="observacoes"
                   value={formulario.observacoes}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useAdminLogin } from "@/hooks/useAdminLogin";
+import { useAdminLogin } from "./useAdminLogin";
 
 export default function AdminLoginForm() {
   const [mostrarSenha, setMostrarSenha] = useState(false);

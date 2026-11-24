@@ -1,6 +1,6 @@
-import Tooltip from "./tutorialDeUso";
+import AjudaCampoSolicitacao from "./AjudaCampoSolicitacao";
 
-export default function Inputsolicitacao({
+export default function CampoSolicitacao({
   label: rotulo,
   name: nomeCampo,
   value: valor,
@@ -22,7 +22,7 @@ export default function Inputsolicitacao({
           {rotulo}
         </label>
 
-        {tooltip && <Tooltip text={tooltip} />}
+        {tooltip && <AjudaCampoSolicitacao text={tooltip} />}
       </div>
 
       {tipo === "textarea" ? (

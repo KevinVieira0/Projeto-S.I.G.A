@@ -9,7 +9,7 @@ import {
   Workflow,
 } from "lucide-react";
 import LogoutButton from "@/components/login/LogoutButton";
-import FormularioSolicitacao from "./FormularioSolicitacao";
+import FormularioSolicitacao from "./solicitacao/FormularioSolicitacao";
 import LateralAprendizesEmpresa from "./LateralAprendizesEmpresa";
 import AprendizesEmpresa from "./acompanhamento/AprendizesEmpresa";
 import PainelAlunoEmpresa from "./acompanhamento/PainelAlunoEmpresa";

@@ -1,6 +1,6 @@
-import Tooltip from "./tutorialDeUso";
+import AjudaCampoSolicitacao from "./AjudaCampoSolicitacao";
 
-export default function Selectsolicitacao({
+export default function SeletorSolicitacao({
   label: rotulo,
   name: nomeCampo,
   value: valor,
@@ -17,7 +17,7 @@ export default function Selectsolicitacao({
           {rotulo}
         </label>
 
-        {tooltip && <Tooltip text={tooltip} />}
+        {tooltip && <AjudaCampoSolicitacao text={tooltip} />}
       </div>
 
       <select
