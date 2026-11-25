@@ -29,10 +29,11 @@ export async function GET(requisicao, { params: parametros }) {
   const { error: erro } = await authorize(requisicao, "admin");
   if (erro) return erro;
   try {
-    return json({ empresa: await obterDetalhesEmpresa(prisma, parametros.id) });
-  } catch (erroCapturado) {
-    return responderErro(erroCapturado);
-  }
+  const { id } = await parametros;
+  return json({ empresa: await obterDetalhesEmpresa(prisma, id) });
+} catch (erroCapturado) {
+  return responderErro(erroCapturado);
+}
 }
 
 export async function PATCH(requisicao, { params: parametros }) {
