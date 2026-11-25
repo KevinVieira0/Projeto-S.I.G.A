@@ -68,7 +68,7 @@ export default function CompanyDrawer({
           fechar();
       }}
       data-fechando={fechando || undefined}
-      className="company-drawer fixed m-0 overflow-hidden border-0 p-0 text-gray-900"
+      className={`company-drawer siga-vidro siga-vidro-elevado fixed m-0 overflow-hidden p-0 text-gray-900${variante === "laranja" ? " siga-card-empresa" : ""}`}
     >
       <header
         className={`z-10 flex shrink-0 items-center justify-between gap-4 border-b border-gray-200/70 border-t-[3px] ${variante === "laranja" ? "border-t-orange-500" : "border-t-[#0a3d7c]"} bg-white/80 px-5 py-5 backdrop-blur-xl sm:px-7`}
@@ -129,19 +129,9 @@ export default function CompanyDrawer({
           height: 100dvh;
           max-height: 100dvh;
           flex-direction: column;
-          border-left: 1px solid rgba(255, 255, 255, 0.9);
+          border-width: 0 0 0 1px;
           border-radius: 24px 0 0 24px;
-          background: #f8fafc;
-          box-shadow: -16px 0 60px rgba(15, 23, 42, 0.16);
-        }
-        @supports (
-          (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-        ) {
-          .company-drawer {
-            background: rgba(248, 250, 252, 0.92);
-            backdrop-filter: blur(32px) saturate(115%);
-            -webkit-backdrop-filter: blur(32px) saturate(115%);
-          }
+          --siga-sombra-vidro: -16px 0 60px rgba(15, 23, 42, 0.16);
         }
         .company-drawer[open] {
           display: flex;
@@ -149,8 +139,6 @@ export default function CompanyDrawer({
         }
         .company-drawer::backdrop {
           background: rgba(15, 23, 42, 0.22);
-          backdrop-filter: blur(3px);
-          -webkit-backdrop-filter: blur(3px);
           animation: backdrop-enter 220ms ease-out both;
         }
         .company-drawer[data-fechando] {

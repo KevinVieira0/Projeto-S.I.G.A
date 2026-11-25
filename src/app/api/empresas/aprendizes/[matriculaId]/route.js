@@ -6,6 +6,7 @@ import {
 } from "@/lib/solicitacoes/participacoes";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 import { camposComprovante } from "@/lib/contratos/comprovantes";
+import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
 
 export const dynamic = "force-dynamic";
 export async function GET(requisicao, { params }) {
@@ -13,12 +14,13 @@ export async function GET(requisicao, { params }) {
   if (error) return error;
   try {
     conferirUuid(params.matriculaId);
+    await encerrarSolicitacoesVencidas(prisma, { empresaId: session.dados.id });
     const matricula = await prisma.matricula.findFirst({
       where: {
         id: params.matriculaId,
         empresaAtualId: session.dados.id,
         status: { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] },
-        aluno: { arquivadoEm: null },
+        aluno: { arquivadoEm: null, empresaId: session.dados.id },
       },
       select: {
         status: true,

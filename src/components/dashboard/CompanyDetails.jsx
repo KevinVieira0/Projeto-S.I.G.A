@@ -106,7 +106,7 @@ export default function CompanyDetails({ empresaId, onClose, onEdit }) {
                 <>
                   <section
                     aria-label="Situação cadastral"
-                    className="rounded-xl border border-blue-100/80 bg-blue-50/80 p-4 sm:p-5"
+                    className="siga-card border-blue-200 bg-blue-50/80 p-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -312,7 +312,7 @@ export default function CompanyDetails({ empresaId, onClose, onEdit }) {
 
 function Secao({ titulo, Icone, children }) {
   return (
-    <section className="min-w-0 rounded-xl border border-gray-200 p-4 sm:p-5">
+    <section className="siga-card bg-white/80 p-4">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
         <Icone className="h-4 w-4 shrink-0 text-[#0a3d7c]" />
         {titulo}

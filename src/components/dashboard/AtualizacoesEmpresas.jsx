@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { useDadosEmpresa } from "@/components/empresa/acompanhamento/base";
 import {
   dataEmpresa,
@@ -13,15 +13,19 @@ export default function AtualizacoesEmpresas({ abrirSolicitacao, atualizar }) {
   );
   const eventos = dados?.atualizacoes || [];
   return (
-    <details className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <summary className="flex min-h-14 cursor-pointer items-center gap-3 px-5 py-4 text-sm font-semibold text-gray-800">
-        <Bell className="h-4 w-4 text-[#0a3d7c]" />
+    <details className="siga-card siga-card-interativo siga-expansivel">
+      <summary className="siga-cabecalho-expansivel flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 focus-visible:outline-blue-600">
+        <Bell className="h-4 w-4 shrink-0 text-[#0a3d7c]" aria-hidden="true" />
         Atualizações das empresas
         <span className="ml-auto rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-800">
           {eventos.length}
         </span>
+        <ChevronDown
+          className="siga-seta-expansao text-slate-500"
+          aria-hidden="true"
+        />
       </summary>
-      <div className="border-t border-gray-100 px-5 py-3">
+      <div className="max-h-[min(26rem,55dvh)] overflow-y-auto overscroll-contain border-t border-gray-100 px-4 py-3 sm:px-5">
         {erro ? (
           <p className="text-sm text-red-700">
             {erro}
@@ -38,12 +42,12 @@ export default function AtualizacoesEmpresas({ abrirSolicitacao, atualizar }) {
             Nenhuma atualização de acompanhamento recebida.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="siga-grade-compacta [--siga-coluna-card:18rem]">
             {eventos.map((e) => (
-              <li key={e.id} className="py-3">
+              <li key={e.id} className="min-w-0 rounded-lg bg-slate-50 px-3 py-3">
                 <button
                   type="button"
-                  className="text-left text-sm text-gray-800 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  className="w-full break-words rounded-md text-left text-sm text-gray-800 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 motion-safe:transition-colors"
                   onClick={() => {
                     atualizar();
                     abrirSolicitacao(e.solicitacaoId);

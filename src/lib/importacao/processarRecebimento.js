@@ -1,6 +1,6 @@
 import { normalizar, normalizarTipoCurso } from "./baseAcademica";
 import { hashDados, ErroRecebimento } from "./recebimentos";
-import { calcularIdade } from "../alunos/dadosPessoais";
+import { calcularIdade, GENEROS_CADASTRO } from "../alunos/dadosPessoais";
 
 const dia = (valor) =>
   valor ? new Date(valor).toISOString().slice(0, 10) : null;
@@ -181,8 +181,10 @@ async function salvarCadastroAluno(transacao, recebimento, contexto) {
     termo: dados.termo,
   };
   // Campo opcional em branco não apaga informação administrativa existente.
-  for (const chave of ["genero", "telefone", "endereco", "cep"])
+  for (const chave of ["telefone", "endereco", "cep"])
     if (dados[chave]) dadosPersistencia[chave] = dados[chave];
+  if (GENEROS_CADASTRO.includes(dados.genero))
+    dadosPersistencia.genero = dados.genero;
   if (!contexto.atual)
     Object.assign(dadosPersistencia, {
       statusIndicacao: "Disponível",
@@ -288,6 +290,21 @@ export async function processarRecebimento(prisma, id) {
           },
         });
         return { estado: "IGNORADO", ignorado: true };
+      }
+      if (
+        recebimento.tipo === "ALUNO" &&
+        !contexto.atual &&
+        !GENEROS_CADASTRO.includes(recebimento.dados.genero)
+      ) {
+        await transacao.recebimentoCadastro.update({
+          where: { id },
+          data: {
+            estado: "INVALIDO",
+            processadoEm: new Date(),
+            erros: ["Selecione Feminino ou Masculino."],
+          },
+        });
+        return { estado: "INVALIDO" };
       }
       const { entidade, matriculaId } =
         recebimento.tipo === "EMPRESA"

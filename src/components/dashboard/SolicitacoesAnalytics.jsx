@@ -15,10 +15,10 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
   const total = dadosStatus.reduce((soma, item) => soma + item.valor, 0);
 
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,30rem)]">
       <DashboardCard
         aria-label="Volume mensal de solicitações"
-        className="xl:col-span-2"
+        className="siga-entrada"
       >
         <DashboardCardHeader
           eyebrow="Evolução mensal"
@@ -28,7 +28,7 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
         />
         <div className={dashboardStyles.body}>
           {dadosMensais.some((item) => item.solicitacoes > 0) ? (
-            <ul className="mt-4 flex h-44 items-end gap-2 border-b border-gray-100 pb-2">
+            <ul className="mt-4 flex h-44 items-end gap-1 border-b border-gray-100 pb-2 sm:gap-2 xl:h-56">
               {dadosMensais.map((item) => (
                 <li
                   key={item.chave}
@@ -46,14 +46,14 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
                     aria-hidden="true"
                   >
                     <div
-                      className="w-full rounded-t-md bg-[#0a3d7c]"
+                      className="w-full rounded-t-md bg-[#0a3d7c] motion-safe:transition-[height] motion-safe:duration-300"
                       style={{
                         height: `${(item.solicitacoes / maxSolicitacoes) * 100}%`,
                       }}
                     />
                   </div>
                   <span
-                    className="whitespace-nowrap text-[10px] font-medium text-gray-500 sm:text-xs"
+                    className="text-center text-[10px] font-medium text-gray-600 [overflow-wrap:anywhere] sm:text-xs"
                     aria-hidden="true"
                   >
                     {item.rotulo}
@@ -69,14 +69,17 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
         </div>
         <DashboardCardFooter>Volume por mês de recebimento</DashboardCardFooter>
       </DashboardCard>
-      <DashboardCard aria-label="Distribuição por situação">
+      <DashboardCard
+        aria-label="Distribuição por situação"
+        className="siga-entrada"
+      >
         <DashboardCardHeader
           eyebrow="Acompanhamento"
           title="Situação das solicitações"
-          description="Ativas e finalizadas pela coordenação."
+          description="Solicitações ativas e encerradas."
           icon={PieChart}
         />
-        <div className={`${dashboardStyles.body} flex-1`}>
+        <div className={`${dashboardStyles.body} grid flex-1 content-center`}>
           {total > 0 ? (
             <ul className="mt-4 space-y-3">
               {dadosStatus.map((item) => {
@@ -97,7 +100,7 @@ export function SolicitacoesAnalytics({ dadosStatus = [], dadosMensais = [] }) {
                       aria-hidden="true"
                     >
                       <div
-                        className={`h-full rounded-full ${situacao.pontoClasse}`}
+                        className={`h-full rounded-full motion-safe:transition-[width] motion-safe:duration-300 ${situacao.pontoClasse}`}
                         style={{ width: `${percentual}%` }}
                       />
                     </div>

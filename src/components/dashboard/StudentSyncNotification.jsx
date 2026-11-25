@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -14,7 +13,6 @@ import {
 } from "@/hooks/useSincronizacaoAlunos";
 
 export default function StudentSyncNotification() {
-  const [aberta, setAberta] = useState(false);
   const {
     isLoading: carregando,
     resposta,
@@ -63,21 +61,12 @@ export default function StudentSyncNotification() {
     Icone = CheckCircle2;
   }
   return (
-    <div
-      className="
-        absolute left-4 right-4 top-4 z-[70]
-        sm:left-auto sm:right-6 sm:w-[370px]
-      "
-      aria-live="polite"
-    >
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg shadow-gray-900/10">
-        <button
-          type="button"
-          onClick={() => setAberta((valor) => !valor)}
-          aria-expanded={aberta}
+    <div className="w-full" aria-live="polite">
+      <details className="siga-card siga-card-interativo siga-expansivel siga-aviso-sync ml-auto overflow-hidden">
+        <summary
           className="
-            flex w-full items-center gap-3 px-4 py-3
-            text-left transition hover:bg-gray-50
+            siga-cabecalho-expansivel flex w-full cursor-pointer items-center gap-3 px-4 py-3
+            text-left hover:bg-gray-50
             focus-visible:outline-none
             focus-visible:ring-2
             focus-visible:ring-inset
@@ -89,7 +78,7 @@ export default function StudentSyncNotification() {
               <span
                 className="
                   absolute inline-flex h-full w-full
-                  animate-ping rounded-full
+                  rounded-full motion-safe:animate-ping
                   bg-blue-400 opacity-75
                 "
               />
@@ -114,60 +103,60 @@ export default function StudentSyncNotification() {
           </div>
 
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${aberta ? "rotate-180" : ""}`}
+            className="siga-seta-expansao text-gray-500"
             aria-hidden="true"
           />
-        </button>
+        </summary>
 
-        {aberta && (
-          <div className="border-t border-gray-100 px-4 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-500">Intervalo automático</p>
+        <div className="border-t border-gray-100 px-4 py-4">
+          <dl className="flex flex-wrap gap-3">
+            <div className="min-w-0 grow basis-44 rounded-lg bg-slate-50 px-3 py-2.5">
+              <dt className="text-xs text-gray-600">Intervalo automático</dt>
 
-              <p className="text-xs font-semibold text-blue-900">
+              <dd className="mt-1 text-sm font-semibold text-blue-900">
                 {minutos} minutos
-              </p>
+              </dd>
             </div>
 
             {ultimaSincronizacao && (
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <p className="text-xs text-gray-500">Última sincronização</p>
+              <div className="min-w-0 grow basis-44 rounded-lg bg-slate-50 px-3 py-2.5">
+                <dt className="text-xs text-gray-600">Última sincronização</dt>
 
-                <p className="text-xs font-medium text-gray-700">
+                <dd className="mt-1 text-sm font-medium text-gray-700">
                   {formatarDataHora(ultimaSincronizacao)}
-                </p>
+                </dd>
               </div>
             )}
+          </dl>
 
-            {erro && (
-              <div className="mt-3 rounded-lg bg-red-50 p-3 text-xs leading-relaxed text-red-700">
-                {erro}
-              </div>
-            )}
+          {erro && (
+            <div className="mt-3 rounded-lg bg-red-50 p-3 text-xs leading-relaxed text-red-700">
+              {erro}
+            </div>
+          )}
 
-            {resposta?.recebimentos && (
-              <p className="mt-3 rounded-lg bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
-                {resposta.recebimentos.erro ||
-                  `${resposta.recebimentos.alunos?.criados || 0} alunos criados e ${resposta.recebimentos.alunos?.atualizados || 0} atualizados. ${resposta.recebimentos.empresas?.criados || 0} empresas criadas e ${resposta.recebimentos.empresas?.atualizados || 0} atualizadas. ${(resposta.recebimentos.alunos?.invalidos || 0) + (resposta.recebimentos.empresas?.invalidos || 0)} envios inválidos. ${(resposta.recebimentos.alunos?.falhas || 0) + (resposta.recebimentos.empresas?.falhas || 0)} falhas de processamento. ${resposta.recebimentos.alterados} respostas alteradas na origem precisam de um novo envio.`}
-              </p>
-            )}
+          {resposta?.recebimentos && (
+            <p className="mt-3 rounded-lg bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
+              {resposta.recebimentos.erro ||
+                `${resposta.recebimentos.alunos?.criados || 0} alunos criados e ${resposta.recebimentos.alunos?.atualizados || 0} atualizados. ${resposta.recebimentos.empresas?.criados || 0} empresas criadas e ${resposta.recebimentos.empresas?.atualizados || 0} atualizadas. ${(resposta.recebimentos.alunos?.invalidos || 0) + (resposta.recebimentos.empresas?.invalidos || 0)} envios inválidos. ${(resposta.recebimentos.alunos?.falhas || 0) + (resposta.recebimentos.empresas?.falhas || 0)} falhas de processamento. ${resposta.recebimentos.alterados} respostas alteradas na origem precisam de um novo envio.`}
+            </p>
+          )}
 
-            {resposta?.recebimentos?.espelho?.falha && (
-              <p
-                role="alert"
-                className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800"
-              >
-                {resposta.recebimentos.espelho.mensagem}
-              </p>
-            )}
-            {!resposta && !erro && (
-              <p className="mt-3 text-xs leading-relaxed text-gray-500">
-                A primeira sincronização será executada automaticamente.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+          {resposta?.recebimentos?.espelho?.falha && (
+            <p
+              role="alert"
+              className="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800"
+            >
+              {resposta.recebimentos.espelho.mensagem}
+            </p>
+          )}
+          {!resposta && !erro && (
+            <p className="mt-3 text-xs leading-relaxed text-gray-500">
+              A primeira sincronização será executada automaticamente.
+            </p>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

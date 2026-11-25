@@ -67,7 +67,7 @@ function DetalhePedido({ pedidoId, voltar }) {
   const [selecionado, setSelecionado] = useState(null);
   const p = dados?.solicitacao;
   return (
-    <div className="space-y-5">
+    <div className="siga-entrada space-y-5">
       <button
         type="button"
         onClick={voltar}
@@ -83,17 +83,17 @@ function DetalhePedido({ pedidoId, voltar }) {
         </p>
       )}
       {p && !erro && (
-        <>
+        <div className="min-w-0 space-y-5">
           <section className={`${estilosEmpresa.superficie} p-5 sm:p-7`}>
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
                   SOL-{p.id.slice(0, 6).toUpperCase()}
                 </p>
                 <h2
                   data-foco-acompanhamento
                   tabIndex={-1}
-                  className="mt-2 text-xl font-semibold text-slate-900"
+                  className="mt-2 break-words text-xl font-semibold text-slate-900"
                 >
                   {p.cursos}
                 </h2>
@@ -103,7 +103,7 @@ function DetalhePedido({ pedidoId, voltar }) {
               </div>
               <SituacaoPedido pedido={p} />
             </div>
-            <dl className="mt-6 grid grid-cols-2 gap-5 border-y border-slate-200 py-5 sm:grid-cols-4">
+            <dl className="mt-6 grid grid-cols-2 gap-4 border-y border-slate-200 py-5 sm:grid-cols-3">
               {[
                 ["Vagas solicitadas", p.quantidadeVagas],
                 ["Faixa etária", `${p.idadeMinima} a ${p.idadeMaxima} anos`],
@@ -135,7 +135,7 @@ function DetalhePedido({ pedidoId, voltar }) {
             {p.observacoes && (
               <div className="mt-5">
                 <p className="text-xs text-slate-500">Observações enviadas</p>
-                <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+                <p className="mt-1 max-w-prose whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
                   {p.observacoes}
                 </p>
               </div>
@@ -144,14 +144,17 @@ function DetalhePedido({ pedidoId, voltar }) {
               <ProgressoVagas pedido={p} />
             </div>
           </section>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="siga-grade-compacta [--siga-coluna-card:9rem]">
             {[
               ["Indicados", p.resumo.indicados],
               ["Em processo", p.resumo.emProcesso],
               ["Contratados", p.resumo.contratados],
               ["Participações encerradas", p.resumo.encerrados],
             ].map(([rotulo, valor]) => (
-              <div key={rotulo} className={`${estilosEmpresa.superficie} p-4`}>
+              <div
+                key={rotulo}
+                className={`${estilosEmpresa.superficie} p-3.5`}
+              >
                 <p className="text-xs text-slate-500">{rotulo}</p>
                 <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">
                   {valor}
@@ -230,7 +233,7 @@ function DetalhePedido({ pedidoId, voltar }) {
               />
             )}
           </section>
-        </>
+        </div>
       )}
       {selecionado && (
         <PainelAlunoEmpresa
@@ -244,13 +247,13 @@ function DetalhePedido({ pedidoId, voltar }) {
 }
 
 export default function SolicitacoesEmpresa({
+  consulta,
   selecionadaId,
   selecionar,
   novaSolicitacao,
 }) {
-  const { dados, carregando, erro, recarregar } = useDadosEmpresa(
-    "/empresas/solicitacao",
-  );
+  const { dados, carregando, erro, recarregar } = consulta;
+  const solicitacoes = dados?.solicitacoes ?? [];
   if (selecionadaId)
     return (
       <DetalhePedido
@@ -260,74 +263,97 @@ export default function SolicitacoesEmpresa({
       />
     );
   return (
-    <section aria-label="Minhas solicitações">
-      <div className="mb-5 flex justify-end">
+    <section
+      aria-labelledby="solicitacoes-enviadas-titulo"
+      aria-busy={carregando && !dados}
+      className="siga-card siga-card-empresa"
+    >
+      <header className="siga-cabecalho-card flex flex-wrap items-center justify-between gap-4 rounded-t-[calc(var(--siga-raio-card)-1px)] border-b border-orange-200/70 px-4 py-4 sm:px-6">
+        <div>
+          <h2
+            id="solicitacoes-enviadas-titulo"
+            className="text-lg font-semibold text-slate-900"
+          >
+            Solicitações enviadas
+          </h2>
+          {dados && (
+            <p className="mt-1 text-sm text-slate-600">
+              {solicitacoes.length}{" "}
+              {solicitacoes.length === 1 ? "registro" : "registros"}
+            </p>
+          )}
+        </div>
         <button
           type="button"
           className={estilosEmpresa.primario}
           onClick={novaSolicitacao}
         >
           Nova solicitação
-          <ArrowUpRight className="h-4 w-4" />
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </button>
-      </div>
-      {erro ? (
-        <FalhaEmpresa mensagem={erro} tentar={recarregar} />
-      ) : carregando && !dados ? (
-        <p role="status" className="py-10 text-center text-sm text-slate-500">
-          Carregando solicitações…
-        </p>
-      ) : !dados?.solicitacoes.length ? (
-        <div className={`${estilosEmpresa.superficie} p-10 text-center`}>
-          <ClipboardList className="mx-auto mb-3 h-8 w-8 text-orange-300" />
-          <p className="font-medium text-slate-700">
-            Nenhuma solicitação enviada
+      </header>
+      <div className="rounded-b-[calc(var(--siga-raio-card)-1px)] bg-stone-100/65 p-3 sm:p-5">
+        {erro ? (
+          <FalhaEmpresa mensagem={erro} tentar={recarregar} />
+        ) : carregando && !dados ? (
+          <p role="status" className="py-10 text-center text-sm text-slate-500">
+            Carregando solicitações…
           </p>
-          <p className="mt-2 text-sm text-slate-500">
-            Crie um pedido para informar o perfil dos aprendizes que sua empresa
-            procura.
-          </p>
-        </div>
-      ) : (
-        <ul className="grid gap-4 md:grid-cols-2">
-          {dados.solicitacoes.map((p) => (
-            <li
-              key={p.id}
-              className={`${estilosEmpresa.superficie} flex flex-col p-5`}
-            >
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
-                  SOL-{p.id.slice(0, 6).toUpperCase()}
+        ) : !solicitacoes.length ? (
+          <div className="px-4 py-10 text-center">
+            <ClipboardList
+              className="mx-auto mb-3 h-8 w-8 text-orange-500"
+              aria-hidden="true"
+            />
+            <p className="font-medium text-slate-700">
+              Nenhuma solicitação enviada
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Crie um pedido para informar o perfil dos aprendizes que sua
+              empresa procura.
+            </p>
+          </div>
+        ) : (
+          <ul className="siga-grade-cards grid-cols-1 md:grid-cols-2">
+            {solicitacoes.map((p) => (
+              <li
+                key={p.id}
+                className={`${estilosEmpresa.superficie} flex flex-col p-5`}
+              >
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
+                    SOL-{p.id.slice(0, 6).toUpperCase()}
+                  </p>
+                  <SituacaoPedido pedido={p} />
+                </div>
+                <h3 className="break-words text-base font-semibold leading-6 text-slate-900">
+                  {p.cursos}
+                </h3>
+                <p className="mt-2 text-xs text-slate-500">
+                  Enviada em {dataEmpresa(p.criadoEm)} · {p.quantidadeVagas}{" "}
+                  {p.quantidadeVagas === 1 ? "vaga" : "vagas"}
                 </p>
-                <SituacaoPedido pedido={p} />
-              </div>
-              <h3 className="text-base font-semibold leading-6 text-slate-900">
-                {p.cursos}
-              </h3>
-              <p className="mt-2 text-xs text-slate-500">
-                Enviada em {dataEmpresa(p.criadoEm)} · {p.quantidadeVagas}{" "}
-                {p.quantidadeVagas === 1 ? "vaga" : "vagas"}
-              </p>
-              <div className="my-5 flex flex-wrap gap-3 text-xs text-slate-500">
-                <span>{p.resumo.indicados} indicados</span>
-                <span>{p.resumo.emProcesso} em processo</span>
-                <span>{p.resumo.contratados} contratados</span>
-              </div>
-              <div className="mt-auto">
-                <ProgressoVagas pedido={p} />
-                <button
-                  type="button"
-                  onClick={() => selecionar(p.id)}
-                  className={`mt-5 w-full ${estilosEmpresa.secundario}`}
-                >
-                  Acompanhar solicitação
-                  <ArrowUpRight className="h-4 w-4" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                <div className="my-5 flex flex-wrap gap-3 text-xs text-slate-500">
+                  <span>{p.resumo.indicados} indicados</span>
+                  <span>{p.resumo.emProcesso} em processo</span>
+                  <span>{p.resumo.contratados} contratados</span>
+                </div>
+                <div className="mt-auto">
+                  <ProgressoVagas pedido={p} />
+                  <button
+                    type="button"
+                    onClick={() => selecionar(p.id)}
+                    className={`mt-5 w-full ${estilosEmpresa.secundario}`}
+                  >
+                    Acompanhar solicitação
+                    <ArrowUpRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

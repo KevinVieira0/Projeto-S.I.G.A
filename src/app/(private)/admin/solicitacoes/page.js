@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Mail, RefreshCw } from "lucide-react";
 import DashboardCard, {
   DashboardCardHeader,
@@ -13,6 +13,7 @@ import { SolicitacoesAnalytics } from "@/components/dashboard/SolicitacoesAnalyt
 import { apiClient } from "@/lib/api/axiosClient";
 import { contarPorSituacao } from "@/lib/dashboard/solicitacoesResumo";
 import AtualizacoesEmpresas from "@/components/dashboard/AtualizacoesEmpresas";
+import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 
 export default function AdminSolicitacoesPage() {
   const [dados, setDados] = useState(null);
@@ -21,7 +22,9 @@ export default function AdminSolicitacoesPage() {
   const [versao, setVersao] = useState(0);
   const [selecionadaId, setSelecionadaId] = useState(null);
   const [busca, setBusca] = useState("");
-  const [situacao, setSituacao] = useState("todas");
+  const [historico, setHistorico] = useState(false);
+  const primeiraCarga = carregando && !dados;
+  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1));
 
   useEffect(() => {
     const controlador = new AbortController();
@@ -50,27 +53,31 @@ export default function AdminSolicitacoesPage() {
   }, [versao]);
 
   const solicitacoes = dados?.solicitacoes || [];
+  const naSecao = solicitacoes.filter((item) => item.ativa !== historico);
   const selecionada = solicitacoes.find((item) => item.id === selecionadaId);
   const normalizar = (valor) =>
     String(valor || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase();
-  const visiveis = solicitacoes.filter(
-    (item) =>
-      (situacao === "todas" ||
-        (situacao === "ativas" ? item.ativa : !item.ativa)) &&
-      normalizar(
-        [
-          item.empresa?.razaoSocial,
-          item.empresa?.nomeFantasia,
-          item.cursos,
-          item.id,
-        ].join(" "),
-      ).includes(normalizar(busca.trim())),
+  const visiveis = naSecao.filter((item) =>
+    normalizar(
+      [
+        item.empresa?.razaoSocial,
+        item.empresa?.nomeFantasia,
+        item.cursos,
+        item.id,
+      ].join(" "),
+    ).includes(normalizar(busca.trim())),
   );
+  if (historico)
+    visiveis.sort(
+      (a, b) =>
+        Date.parse(b.encerradaEm || b.criadoEm) -
+        Date.parse(a.encerradaEm || a.criadoEm),
+    );
 
-  function atualizarSolicitacao(alteracao) {
+  const atualizarSolicitacao = useCallback((alteracao) => {
     if (!alteracao) {
       setVersao((valor) => valor + 1);
       return;
@@ -88,20 +95,20 @@ export default function AdminSolicitacoesPage() {
         },
       };
     });
-  }
+  }, []);
 
   return (
-    <div className="space-y-6 p-5 sm:p-8" aria-busy={carregando}>
+    <div className="siga-pagina siga-entrada space-y-6" aria-busy={carregando}>
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Solicitações</h1>
         <p className="mt-1 text-sm text-gray-500">
           Acompanhe os pedidos de aprendizes enviados pelas empresas parceiras.
         </p>
       </header>
-      {!carregando && !erro && (
+      {dados && !erro && (
         <SolicitacoesAnalytics
-          dadosStatus={dados?.analytics?.statusData}
-          dadosMensais={dados?.analytics?.monthlyData}
+          dadosStatus={dados.analytics?.statusData}
+          dadosMensais={dados.analytics?.monthlyData}
         />
       )}
       <AtualizacoesEmpresas
@@ -112,38 +119,57 @@ export default function AdminSolicitacoesPage() {
         <DashboardCardHeader
           headingId="solicitacoes-titulo"
           eyebrow="Empresas parceiras"
-          title="Solicitações recebidas"
+          title={
+            historico ? "Histórico de solicitações" : "Solicitações ativas"
+          }
           description="Consulte os pedidos, indique alunos e acompanhe a situação de cada solicitação."
           icon={Mail}
         />
-        <div className="flex flex-wrap gap-3 border-b border-gray-100 px-5 py-4">
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-gray-500">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-gray-100 px-4 py-4 sm:px-5">
+          <div
+            role="group"
+            aria-label="Situação das solicitações"
+            className="flex min-w-0 flex-wrap gap-2"
+          >
+            <button
+              type="button"
+              aria-pressed={!historico}
+              onClick={() => setHistorico(false)}
+              className={
+                historico
+                  ? dashboardStyles.secondaryAction
+                  : dashboardStyles.primaryAction
+              }
+            >
+              Ativas
+            </button>
+            <button
+              type="button"
+              aria-pressed={historico}
+              onClick={() => setHistorico(true)}
+              className={
+                historico
+                  ? dashboardStyles.primaryAction
+                  : dashboardStyles.secondaryAction
+              }
+            >
+              Histórico de solicitações
+            </button>
+          </div>
+          <label className="flex w-full min-w-0 max-w-md flex-col gap-1 text-xs text-gray-600 sm:flex-[1_1_16rem]">
             Buscar solicitação
             <input
               value={busca}
-              disabled={carregando}
+              disabled={primeiraCarga}
               maxLength={150}
               onChange={(evento) => setBusca(evento.target.value)}
               placeholder="Empresa, curso ou número da solicitação"
               className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </label>
-          <label className="flex flex-col gap-1 text-xs text-gray-500">
-            Situação
-            <select
-              value={situacao}
-              disabled={carregando}
-              onChange={(evento) => setSituacao(evento.target.value)}
-              className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="todas">Todas</option>
-              <option value="ativas">Ativas</option>
-              <option value="finalizadas">Finalizadas</option>
-            </select>
-          </label>
         </div>
         <div className={dashboardStyles.body}>
-          {carregando ? (
+          {primeiraCarga ? (
             <p
               role="status"
               className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500"
@@ -167,12 +193,14 @@ export default function AdminSolicitacoesPage() {
             </div>
           ) : visiveis.length === 0 ? (
             <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-12 text-center text-sm text-gray-500">
-              {solicitacoes.length
+              {naSecao.length
                 ? "Nenhuma solicitação encontrada para os filtros selecionados."
-                : "Nenhuma solicitação cadastrada até o momento."}
+                : historico
+                  ? "Nenhuma solicitação no histórico."
+                  : "Nenhuma solicitação ativa."}
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            <div className="siga-grade-cards">
               {visiveis.map((item) => (
                 <SolicitacaoCard
                   key={item.id}
@@ -185,8 +213,8 @@ export default function AdminSolicitacoesPage() {
         </div>
         <DashboardCardFooter className="justify-between">
           <span>
-            {!carregando && !erro
-              ? `${visiveis.length} de ${solicitacoes.length} solicitações`
+            {dados && !erro
+              ? `${visiveis.length} de ${naSecao.length} solicitações`
               : "Pedidos das empresas parceiras"}
           </span>
           <span>Mais recentes primeiro</span>

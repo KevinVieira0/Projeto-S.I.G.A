@@ -12,13 +12,14 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 import { buscarResumoDashboard } from "@/lib/api/dashboardService";
+import { periodosPanorama } from "@/lib/dashboard/periodoPanorama";
+import { useRecorte } from "./RecortesDaVisao";
 import DashboardCard, {
   DashboardCardHeader,
   DashboardCardFooter,
   dashboardStyles,
 } from "./DashboardCard";
 
-const PERIODOS = [7, 30, 90];
 const RAIO = 58;
 const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
 const CONFIGURACAO = {
@@ -59,10 +60,11 @@ const CONFIGURACAO = {
 export default function OverviewStatusCard({
   showViewToggle: mostrarAlternancia = true,
   initialView: visaoInicial = "alunos",
+  ativo = true,
 }) {
   const id = useId();
   const [visao, setVisao] = useState(visaoInicial);
-  const [periodo, setPeriodo] = useState("todos");
+  const [periodo, setPeriodo] = useRecorte("panorama", "todos");
   const [resumo, setResumo] = useState(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -93,11 +95,12 @@ export default function OverviewStatusCard({
     [periodo],
   );
   useEffect(() => {
+    if (!ativo) return;
     const controlador = new AbortController();
     carregarResumo(controlador.signal);
     return () => controlador.abort();
-  }, [carregarResumo, versao]);
-  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1));
+  }, [ativo, carregarResumo, versao]);
+  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1), ativo);
   const dadosAtivos = resumo?.[visao];
   const configuracao = CONFIGURACAO[visao];
   const identidadeDosDados = useMemo(
@@ -131,11 +134,12 @@ export default function OverviewStatusCard({
     setPeriodo(evento.target.value === "todos" ? "todos" : Number(evento.target.value));
   }
   return (
-    <DashboardCard className="overflow-hidden" aria-labelledby={`${id}-titulo`} lift>
+    <DashboardCard className="siga-panorama overflow-hidden" aria-labelledby={`${id}-titulo`} lift>
       <DashboardCardHeader
         headingId={`${id}-titulo`}
         eyebrow="Visão geral"
         title="Panorama do período"
+        className="siga-panorama-cabecalho"
       >
         <div className="flex flex-wrap items-center gap-2">
           {mostrarAlternancia && (
@@ -170,10 +174,10 @@ export default function OverviewStatusCard({
             <select
               value={periodo}
               onChange={selecionarPeriodo}
-              className="h-9 appearance-none rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-xs font-medium text-gray-700 outline-none transition hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="siga-acao siga-controle h-9 appearance-none rounded-lg py-1.5 pl-3 pr-8 text-xs font-medium text-gray-700 outline-none hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="todos">Todo o período</option>
-              {PERIODOS.map((quantidadeDeDias) => (
+              {periodosPanorama.map((quantidadeDeDias) => (
                 <option key={quantidadeDeDias} value={quantidadeDeDias}>
                   {quantidadeDeDias} dias
                 </option>
@@ -189,7 +193,7 @@ export default function OverviewStatusCard({
         role={mostrarAlternancia ? "tabpanel" : "region"}
         aria-labelledby={mostrarAlternancia ? `${id}-${visao}-tab` : undefined}
         aria-label={mostrarAlternancia ? undefined : configuracao.titulo}
-        className={`transition duration-200 ${carregando && resumo ? "opacity-50" : "opacity-100"}`}
+        className={`siga-panorama-corpo grid content-center motion-safe:transition-opacity motion-safe:duration-200 ${carregando && resumo ? "opacity-50" : "opacity-100"}`}
         aria-live="polite"
       >
         {carregando && !resumo ? (
@@ -200,9 +204,9 @@ export default function OverviewStatusCard({
             onRetry={() => setVersao((valorAtual) => valorAtual + 1)}
           />
         ) : (
-          <div className="grid grid-cols-[132px_1fr] items-center gap-3 px-4 py-5 sm:grid-cols-[160px_1fr] sm:gap-5 sm:px-6 xl:grid-cols-[132px_1fr] xl:gap-3 xl:px-4 2xl:grid-cols-[160px_1fr] 2xl:gap-5 2xl:px-6">
-            <div className="relative mx-auto h-32 w-32 sm:h-36 sm:w-36 xl:h-32 xl:w-32 2xl:h-36 2xl:w-36">
-              <div className="absolute inset-[18px] rounded-full bg-gray-50 transition duration-300 group-hover:bg-blue-50/60" />
+          <div className="siga-panorama-conteudo grid items-center gap-3 px-4 py-4 sm:px-5">
+            <div className="relative mx-auto h-28 w-28">
+              <div className="absolute inset-[18px] rounded-full bg-gray-50 group-hover:bg-blue-50/60 motion-safe:transition-colors motion-safe:duration-300" />
               <svg
                 viewBox="0 0 160 160"
                 className="relative h-full w-full -rotate-90 overflow-visible"
@@ -273,7 +277,7 @@ export default function OverviewStatusCard({
       </div>
 
       <DashboardCardFooter>
-        <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-blue-50 text-[#0a3d7c] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
+        <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-blue-50 text-[#0a3d7c]">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
 
@@ -284,7 +288,7 @@ export default function OverviewStatusCard({
           className="ml-auto inline-flex flex-none items-center gap-1 text-xs font-semibold text-[#0a3d7c] transition hover:text-blue-700"
         >
           Ver detalhes
-          <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-150 hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
         </Link>
       </DashboardCardFooter>
     </DashboardCard>
@@ -307,7 +311,7 @@ function TabButton({
       aria-controls={controles}
       aria-selected={ativo}
       onClick={onClick}
-      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${ativo ? "bg-white text-[#0a3d7c] shadow-sm" : "text-gray-500 hover:-translate-y-px hover:text-gray-800"}`}
+      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 motion-safe:transition motion-safe:duration-200 ${ativo ? "bg-white text-[#0a3d7c] shadow-sm" : "text-gray-500 hover:text-gray-800 motion-safe:hover:-translate-y-px"}`}
     >
       <Icon className="h-3.5 w-3.5" />
       {children}
@@ -341,7 +345,7 @@ function ChartSegments({ categorias, total, configuracao, animar, onHighlight })
         strokeLinecap="round"
         strokeDasharray={dasharray}
         strokeDashoffset={dashoffset}
-        className="cursor-pointer drop-shadow-sm transition-all duration-500 ease-out hover:opacity-75"
+        className="cursor-pointer drop-shadow-sm transition-[stroke-dasharray,stroke-dashoffset,opacity] duration-200 ease-out hover:opacity-75 motion-reduce:transition-none"
         onMouseEnter={() => onHighlight(categoria)}
         onMouseLeave={() => onHighlight(null)}
       />
@@ -358,7 +362,7 @@ function LegendItem({ categoria, total, visual, animar, onHighlight }) {
       onMouseLeave={() => onHighlight(null)}
       onFocus={() => onHighlight(categoria)}
       onBlur={() => onHighlight(null)}
-      className="grid min-h-11 w-full grid-cols-[10px_1fr_auto_auto] items-center gap-x-2 rounded-lg px-2 py-1.5 text-left transition duration-200 hover:translate-x-0.5 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      className="grid min-h-11 w-full grid-cols-[10px_1fr_auto_auto] items-center gap-x-2 rounded-lg px-2 py-1.5 text-left hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 motion-safe:transition motion-safe:duration-200 motion-safe:hover:translate-x-0.5"
     >
       <span className={`h-2.5 w-2.5 rounded-full ${visual.dotClass}`} />
       <span className="truncate text-xs text-gray-600">{categoria.label}</span>
@@ -370,7 +374,7 @@ function LegendItem({ categoria, total, visual, animar, onHighlight }) {
       </span>
       <span className="col-start-2 col-end-5 mt-1 h-1 overflow-hidden rounded-full bg-gray-100">
         <span
-          className={`block h-full rounded-full transition-[width] duration-500 ease-out ${visual.barClass}`}
+          className={`block h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out ${visual.barClass}`}
           style={{ width: animar ? `${percentual}%` : "0%" }}
         />
       </span>
@@ -384,7 +388,7 @@ function ResumoRodape({ visao, dados, periodo }) {
   }
   if (visao === "alunos") {
     return (
-      <p className="min-w-0 flex-1 truncate text-xs text-gray-500">
+      <p className="min-w-0 grow basis-24 break-words text-xs text-gray-500">
         <strong className="font-semibold text-gray-800">
           {dados.indicados} indicados
         </strong>{" "}
@@ -394,7 +398,7 @@ function ResumoRodape({ visao, dados, periodo }) {
     );
   }
   return (
-    <p className="min-w-0 flex-1 truncate text-xs text-gray-500">
+    <p className="min-w-0 grow basis-24 break-words text-xs text-gray-500">
       <strong className="font-semibold text-gray-800">
         {dados.solicitacoes} solicitações
       </strong>{" "}
@@ -406,16 +410,16 @@ function ResumoRodape({ visao, dados, periodo }) {
 
 function LoadingState() {
   return (
-    <div className="grid grid-cols-[132px_1fr] items-center gap-4 px-5 py-6 sm:grid-cols-[160px_1fr]">
-      <div className="mx-auto h-32 w-32 animate-pulse rounded-full border-[17px] border-gray-100" />
-      <div className="space-y-4">
-        <div className="h-4 w-32 animate-pulse rounded bg-gray-100" />
+    <div className="siga-panorama-conteudo grid items-center gap-4 px-4 py-4">
+      <div className="mx-auto h-28 w-28 animate-pulse rounded-full border-[17px] border-gray-100 motion-reduce:animate-none" />
+      <div className="min-w-0 space-y-4">
+        <div className="h-4 w-32 max-w-full animate-pulse rounded bg-gray-100 motion-reduce:animate-none" />
         {[72, 48, 35].map((largura) => (
           <div key={largura} className="space-y-2">
-            <div className="h-3 w-24 animate-pulse rounded bg-gray-100" />
+            <div className="h-3 w-24 rounded bg-gray-100 motion-safe:animate-pulse" />
             <div className="h-1 rounded-full bg-gray-100">
               <div
-                className="h-full animate-pulse rounded-full bg-gray-200"
+                className="h-full rounded-full bg-gray-200 motion-safe:animate-pulse"
                 style={{ width: `${largura}%` }}
               />
             </div>

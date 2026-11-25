@@ -3,12 +3,12 @@
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
   Columns3,
-  Download,
   Filter,
   ListFilter,
   RefreshCw,
@@ -17,8 +17,13 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { listarAlunos } from "@/lib/api/alunosService";
+import { baixarArquivo } from "@/lib/api/baixarArquivo";
+import {
+  filtrarAlunosDaTabela,
+  ordenarAlunosDaTabela,
+} from "@/lib/alunos/filtrosTabela";
 import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
 import DashboardCard, {
   DashboardCardHeader,
@@ -27,6 +32,7 @@ import DashboardCard, {
 } from "./DashboardCard";
 import StudentEditor from "../alunos/StudentEditor";
 import StudentDetails from "../alunos/StudentDetails";
+import MenuExportar from "./MenuExportar";
 
 const TAMANHOS_PAGINA = [5, 10, 25, 50];
 const COLUNAS = [
@@ -63,6 +69,7 @@ const COLUNAS_EXPORTACAO = [
 ];
 
 export default function StudentsTable({ gestao = false }) {
+  const grupoDeFiltros = useId();
   const [editor, setEditor] = useState(null);
   const [alunoDetalhado, setAlunoDetalhado] = useState(null);
   const [mensagem, setMensagem] = useState("");
@@ -106,33 +113,14 @@ export default function StudentsTable({ gestao = false }) {
       a.localeCompare(b, "pt-BR"),
     );
   }, [alunos]);
-  const alunosFiltrados = useMemo(() => {
-    const termoBusca = busca.trim().toLocaleLowerCase("pt-BR");
-    return alunos.filter((aluno) => {
-      const combinaBusca =
-        !termoBusca ||
-        [aluno.nome, aluno.email, aluno.curso, aluno.turma, aluno.cpf]
-          .filter(Boolean)
-          .some((valor) =>
-            String(valor).toLocaleLowerCase("pt-BR").includes(termoBusca),
-          );
-      const combinaStatus =
-        statusSelecionados.length === 0 ||
-        statusSelecionados.includes(aluno.statusIndicacao || "Sem status");
-      return combinaBusca && combinaStatus;
-    });
-  }, [alunos, busca, statusSelecionados]);
-  const alunosOrdenados = useMemo(() => {
-    return [...alunosFiltrados].sort((a, b) => {
-      const valorA = a[ordenacao.key] ?? "";
-      const valorB = b[ordenacao.key] ?? "";
-      const resultado = String(valorA).localeCompare(String(valorB), "pt-BR", {
-        numeric: true,
-        sensitivity: "base",
-      });
-      return ordenacao.direction === "asc" ? resultado : -resultado;
-    });
-  }, [alunosFiltrados, ordenacao]);
+  const alunosFiltrados = useMemo(
+    () => filtrarAlunosDaTabela(alunos, busca, statusSelecionados),
+    [alunos, busca, statusSelecionados],
+  );
+  const alunosOrdenados = useMemo(
+    () => ordenarAlunosDaTabela(alunosFiltrados, ordenacao),
+    [alunosFiltrados, ordenacao],
+  );
   const totalPaginas = Math.max(
     1,
     Math.ceil(alunosOrdenados.length / tamanhoPagina),
@@ -196,7 +184,10 @@ export default function StudentsTable({ gestao = false }) {
     alunosOrdenados.length,
   );
   return (
-    <DashboardCard aria-labelledby="alunos-tabela-titulo">
+    <DashboardCard
+      aria-labelledby="alunos-tabela-titulo"
+      className="siga-card-fosco"
+    >
       <DashboardCardHeader
         headingId="alunos-tabela-titulo"
         eyebrow="Cadastros"
@@ -209,14 +200,16 @@ export default function StudentsTable({ gestao = false }) {
       />
       <div className={dashboardStyles.body}>
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            <div className="relative min-w-[240px] flex-1 sm:max-w-sm">
+          <div className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2">
+            <div className="relative min-w-0 basis-full sm:min-w-[180px] sm:max-w-sm sm:flex-1">
               <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
+                aria-label="Buscar aluno"
                 value={busca}
                 onChange={(evento) => setBusca(evento.target.value)}
                 placeholder="Filtrar por nome, e-mail, CPF, curso..."
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                maxLength={255}
+                className={dashboardStyles.searchField}
               />
               {busca && (
                 <button
@@ -230,19 +223,26 @@ export default function StudentsTable({ gestao = false }) {
               )}
             </div>
 
-            <details className="relative">
+            <details
+              name={grupoDeFiltros}
+              className="siga-menu-expansivel sm:relative"
+            >
               <summary
-                className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}
+                className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Filter className="h-4 w-4 text-gray-500" />
+                <Filter className="h-4 w-4" aria-hidden="true" />
                 Status
                 {statusSelecionados.length > 0 && (
                   <span className="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[11px] text-gray-600">
                     {statusSelecionados.length}
                   </span>
                 )}
+                <ChevronDown
+                  className="siga-seta-expansao"
+                  aria-hidden="true"
+                />
               </summary>
-              <div className="absolute left-0 z-30 mt-2 min-w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+              <div className="siga-card siga-vidro-elevado absolute inset-x-0 top-full z-30 mt-2 p-2 sm:right-auto sm:min-w-52">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Filtrar status
                 </p>
@@ -274,14 +274,21 @@ export default function StudentsTable({ gestao = false }) {
               </div>
             </details>
 
-            <details className="relative">
+            <details
+              name={grupoDeFiltros}
+              className="siga-menu-expansivel sm:relative"
+            >
               <summary
-                className={`cursor-pointer list-none ${dashboardStyles.secondaryAction}`}
+                className={`siga-cabecalho-expansivel cursor-pointer ${dashboardStyles.secondaryAction}`}
               >
-                <Columns3 className="h-4 w-4 text-gray-500" />
+                <Columns3 className="h-4 w-4" aria-hidden="true" />
                 Colunas
+                <ChevronDown
+                  className="siga-seta-expansao"
+                  aria-hidden="true"
+                />
               </summary>
-              <div className="absolute left-0 z-30 mt-2 min-w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+              <div className="siga-card siga-vidro-elevado absolute inset-x-0 top-full z-30 mt-2 p-2 sm:right-auto sm:min-w-48">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Exibir colunas
                 </p>
@@ -317,34 +324,16 @@ export default function StudentsTable({ gestao = false }) {
               Novo aluno
             </button>
           )}
-          <details className="relative self-start xl:self-auto">
-            <summary
-              className={`cursor-pointer list-none ${dashboardStyles.primaryAction}`}
-            >
-              <Download className="h-4 w-4" />
-              Exportar
-            </summary>
-            <div className="absolute right-0 z-30 mt-2 min-w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-              <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Formato do arquivo
-              </p>
-              <ExportOption
-                label="CSV (.csv)"
-                onClick={() => exportar("csv")}
-              />
-              <ExportOption
-                label="Excel (.xls)"
-                onClick={() => exportar("xls")}
-              />
-              <ExportOption
-                label="JSON (.json)"
-                onClick={() => exportar("json")}
-              />
-              <p className="mt-2 border-t border-gray-100 px-2 pt-2 text-[11px] leading-4 text-gray-400">
-                Exporta todos os registros que correspondem aos filtros atuais.
-              </p>
-            </div>
-          </details>
+          <MenuExportar
+            visao="alunos"
+            filtro={{ busca, status: statusSelecionados, ordenacao }}
+            desabilitado={carregando || Boolean(erro)}
+            opcoes={[
+              { rotulo: "CSV (.csv)", acao: () => exportar("csv") },
+              { rotulo: "Excel (.xls)", acao: () => exportar("xls") },
+              { rotulo: "JSON (.json)", acao: () => exportar("json") },
+            ]}
+          />
         </div>
 
         {mensagem && (
@@ -362,21 +351,34 @@ export default function StudentsTable({ gestao = false }) {
           </div>
         )}
 
-        <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
+        <div aria-busy={carregando} className="siga-moldura-tabela mt-4">
+          <div
+            className="siga-rolagem-tabela"
+            role="region"
+            aria-label="Tabela de alunos"
+            tabIndex={0}
+          >
+            <table className="siga-tabela min-w-full text-sm">
+              <thead>
                 <tr>
                   {colunasVisiveis.map((coluna) => (
                     <th
                       key={coluna.key}
-                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+                      scope="col"
+                      aria-sort={
+                        ordenacao.key === coluna.key
+                          ? ordenacao.direction === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : undefined
+                      }
+                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
                     >
                       {coluna.sortable ? (
                         <button
                           type="button"
                           onClick={() => alternarOrdenacao(coluna.key)}
-                          className="inline-flex items-center gap-1.5 hover:text-gray-900"
+                          className="siga-acao inline-flex items-center gap-1.5 rounded-sm hover:text-[#0a3d7c] focus-visible:outline-blue-600"
                         >
                           {coluna.label}
                           {ordenacao.key === coluna.key &&
@@ -394,7 +396,7 @@ export default function StudentsTable({ gestao = false }) {
                   {gestao && (
                     <th
                       scope="col"
-                      className="sticky right-0 z-10 border-l border-gray-200 bg-gray-50 px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500"
+                      className="siga-tabela-acoes px-4 py-3 text-right text-xs font-semibold uppercase"
                     >
                       Ações
                     </th>
@@ -402,7 +404,7 @@ export default function StudentsTable({ gestao = false }) {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody>
                 {carregando ? (
                   <tr>
                     <td
@@ -416,7 +418,9 @@ export default function StudentsTable({ gestao = false }) {
                   alunosDaPagina.map((aluno) => (
                     <tr
                       key={aluno.id}
-                      className={`transition-colors motion-reduce:transition-none ${alunoDetalhado === aluno.id ? "bg-blue-50/80" : "hover:bg-gray-50/80"} ${gestao ? "cursor-pointer" : ""}`}
+                      data-registro=""
+                      data-selecionado={alunoDetalhado === aluno.id}
+                      className={gestao ? "cursor-pointer" : undefined}
                       onClick={
                         gestao
                           ? (evento) => {
@@ -460,12 +464,12 @@ export default function StudentsTable({ gestao = false }) {
                         </td>
                       ))}
                       {gestao && (
-                        <td className="sticky right-0 border-l border-gray-100 bg-white px-4 py-3 text-right whitespace-nowrap">
+                        <td className="siga-tabela-acoes whitespace-nowrap px-4 py-3 text-right">
                           <button
                             type="button"
                             aria-label={`Editar ${aluno.nome}`}
                             title="Editar aluno"
-                            className="rounded-lg p-2 text-blue-700 hover:bg-blue-50"
+                            className="siga-acao rounded-lg p-2 text-blue-700 hover:bg-blue-100 focus-visible:outline-blue-600"
                             onClick={() => {
                               setMensagem("");
                               setEditor({ modo: "editar", alunoId: aluno.id });
@@ -477,7 +481,7 @@ export default function StudentsTable({ gestao = false }) {
                             type="button"
                             aria-label={`Excluir ${aluno.nome}`}
                             title="Excluir aluno"
-                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                            className="siga-acao rounded-lg p-2 text-red-600 hover:bg-red-50 focus-visible:outline-red-600"
                             onClick={() => {
                               setMensagem("");
                               setEditor({ modo: "excluir", alunoId: aluno.id });
@@ -510,7 +514,8 @@ export default function StudentsTable({ gestao = false }) {
           <select
             value={tamanhoPagina}
             onChange={(evento) => setTamanhoPagina(Number(evento.target.value))}
-            className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            aria-label="Linhas por página"
+            className="siga-controle siga-acao h-9 rounded-lg px-2 text-sm text-gray-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
             {TAMANHOS_PAGINA.map((size) => (
               <option key={size} value={size}>
@@ -625,22 +630,9 @@ function PaginationButton({ children, label: rotulo, disabled, onClick }) {
       aria-label={rotulo}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40"
+      className={dashboardStyles.pageAction}
     >
       {children}
-    </button>
-  );
-}
-
-function ExportOption({ label: rotulo, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-    >
-      <Download className="h-4 w-4 text-gray-400" />
-      {rotulo}
     </button>
   );
 }
@@ -740,16 +732,4 @@ function escaparXml(valor) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
-}
-
-function baixarArquivo(nomeArquivo, conteudo, tipoArquivo) {
-  const blob = new Blob([conteudo], { type: tipoArquivo });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = nomeArquivo;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }

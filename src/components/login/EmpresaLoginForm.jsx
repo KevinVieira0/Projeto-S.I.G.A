@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Controller } from "react-hook-form";
 import { Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { useEmpresaLogin } from "@/hooks/useEmpresaLogin";
+import { useEmpresaLogin } from "./useEmpresaLogin";
 import CnpjInput from "@/components/ui/CnpjInput";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";

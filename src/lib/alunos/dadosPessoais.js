@@ -1,5 +1,7 @@
 import { todayInSaoPaulo } from "../validations/solicitacaoSchema";
 
+export const GENEROS_CADASTRO = ["Feminino", "Masculino"];
+
 export function calcularIdade(nascimento, hoje = todayInSaoPaulo()) {
   const anos = Number(hoje.slice(0, 4)) - Number(nascimento.slice(0, 4));
   const aniversarioPendente = hoje.slice(5) < nascimento.slice(5);
@@ -16,7 +18,8 @@ export function gerarDadosAlunoTeste() {
   } while (/^(\d)\1{8}$/.test(cpf));
   for (let tamanho = 9; tamanho <= 10; tamanho++) {
     const soma = [...cpf].reduce(
-      (total, digito, indice) => total + Number(digito) * (tamanho + 1 - indice),
+      (total, digito, indice) =>
+        total + Number(digito) * (tamanho + 1 - indice),
       0,
     );
     const resto = soma % 11;
@@ -29,7 +32,7 @@ export function gerarDadosAlunoTeste() {
     dataNascimento: `${ano}-03-15`,
     email: `aluno.teste.${cpf}@example.invalid`,
     celular: "11000000000",
-    genero: "Prefiro não informar",
+    genero: "Feminino",
     telefone: "",
     endereco: "",
     cep: "",

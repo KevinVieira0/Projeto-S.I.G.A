@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function Tooltip({ text }) {
+export default function AjudaCampoSolicitacao({ text }) {
   const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex items-center">

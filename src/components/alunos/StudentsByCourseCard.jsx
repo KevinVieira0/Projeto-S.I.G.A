@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { BarChart3, GraduationCap, RefreshCw } from "lucide-react";
 import { buscarAlunosPorCurso } from "@/lib/api/dashboardService";
 import { useAtualizacaoDashboard } from "@/hooks/useAtualizacaoDashboard";
+import { useRecorte } from "@/components/dashboard/RecortesDaVisao";
 import DashboardCard, {
   DashboardCardHeader,
   DashboardCardFooter,
@@ -12,34 +13,36 @@ import DashboardCard, {
 
 const numero = (valor) => valor.toLocaleString("pt-BR");
 
-export default function StudentsByCourseCard() {
-  const [dados, setDados] = useState(null);
-  const [erro, setErro] = useState("");
-  const [carregando, setCarregando] = useState(true);
+export default function StudentsByCourseCard({ ativo = true }) {
+  const [resultado, setResultado] = useState(null);
   const [versao, setVersao] = useState(0);
+  const [status, setStatus] = useRecorte("curso", "todos");
   const idTitulo = useId();
+  const resultadoAtual = resultado?.status === status ? resultado : null;
+  const dados = resultadoAtual?.dados;
+  const erro = resultadoAtual?.erro;
+  const carregando = !resultadoAtual;
+
   useEffect(() => {
+    if (!ativo) return;
     const controlador = new AbortController();
-    setCarregando(true);
-    setErro("");
-    buscarAlunosPorCurso({ signal: controlador.signal })
-      .then((resposta) => {
-        if (!controlador.signal.aborted) setDados(resposta);
+    buscarAlunosPorCurso({ status, signal: controlador.signal })
+      .then((dados) => {
+        if (!controlador.signal.aborted) setResultado({ status, dados });
       })
       .catch((erroCapturado) => {
         if (!controlador.signal.aborted) {
-          setErro(
-            erroCapturado.response?.data?.mensagem ||
+          setResultado({
+            status,
+            erro:
+              erroCapturado.response?.data?.mensagem ||
               "Não foi possível carregar os alunos por curso.",
-          );
+          });
         }
-      })
-      .finally(() => {
-        if (!controlador.signal.aborted) setCarregando(false);
       });
     return () => controlador.abort();
-  }, [versao]);
-  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1));
+  }, [ativo, status, versao]);
+  useAtualizacaoDashboard(() => setVersao((valor) => valor + 1), ativo);
   return (
     <DashboardCard aria-labelledby={idTitulo} lift>
       <DashboardCardHeader
@@ -47,9 +50,32 @@ export default function StudentsByCourseCard() {
         eyebrow="Distribuição de alunos"
         title="Alunos por curso"
         icon={BarChart3}
-      />
+      >
+        <div
+          role="group"
+          aria-label="Filtrar alunos no gráfico por curso"
+          className="siga-controle inline-flex flex-wrap rounded-lg p-1"
+        >
+          {Object.entries({ todos: "Todos", disponiveis: "Disponíveis" }).map(
+            ([id, rotulo]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={status === id}
+                onClick={() => setStatus(id)}
+                className={`siga-acao rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-blue-600 ${status === id ? "bg-blue-50 text-[#0a3d7c] ring-1 ring-inset ring-blue-200" : "text-gray-600 hover:text-gray-900"}`}
+              >
+                {rotulo}
+              </button>
+            ),
+          )}
+        </div>
+      </DashboardCardHeader>
 
-      <div className="flex flex-1 flex-col px-4 py-4 sm:px-5" aria-busy={carregando}>
+      <div
+        className="flex flex-1 flex-col px-4 py-4 sm:px-5"
+        aria-busy={carregando}
+      >
         {carregando ? (
           <div
             role="status"
@@ -68,7 +94,10 @@ export default function StudentsByCourseCard() {
             </p>
             <button
               type="button"
-              onClick={() => setVersao((atual) => atual + 1)}
+              onClick={() => {
+                setResultado(null);
+                setVersao((atual) => atual + 1);
+              }}
               className={`mt-3 ${dashboardStyles.secondaryAction}`}
             >
               Tentar novamente
@@ -79,16 +108,18 @@ export default function StudentsByCourseCard() {
             role="status"
             className="flex min-h-[216px] flex-col items-center justify-center text-center"
           >
-            <GraduationCap className="h-8 w-8 text-gray-400" aria-hidden="true" />
+            <GraduationCap
+              className="h-8 w-8 text-gray-400"
+              aria-hidden="true"
+            />
             <p className="mt-3 text-sm font-medium text-gray-700">
-              Nenhum aluno cadastrado
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              Os cursos aparecerão após a sincronização dos alunos.
+              {status === "disponiveis"
+                ? "Nenhum aluno disponível"
+                : "Nenhum aluno cadastrado"}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto py-1">
+          <div className="flex min-w-0 flex-1 flex-col justify-center py-1">
             <CourseChart cursos={dados.cursos} />
           </div>
         )}
@@ -100,7 +131,11 @@ export default function StudentsByCourseCard() {
             ? `${dados.cursos.length} de ${numero(dados.totalCursos)} cursos · maiores totais`
             : "Cursos com mais alunos"}
         </span>
-        <span>Todos os cadastros</span>
+        <span>
+          {status === "disponiveis"
+            ? "Alunos disponíveis"
+            : "Todos os cadastros"}
+        </span>
       </DashboardCardFooter>
     </DashboardCard>
   );
@@ -114,13 +149,14 @@ function CourseChart({ cursos }) {
     Math.ceil(Math.max(...cursos.map((curso) => curso.total)) / 4),
   );
   const teto = passo * 4;
-  const selecionado = ativo === null ? null : cursos[ativo];
+  const indiceAtivo = cursos.findIndex(({ curso }) => curso === ativo);
+  const selecionado = cursos[indiceAtivo];
   return (
-    <div className="relative min-h-[216px] min-w-[280px]">
+    <div className="relative min-h-[216px] min-w-0">
       <p className="mb-2 text-[11px] text-gray-500">Alunos</p>
       <div className="relative pl-9">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-32"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[var(--siga-altura-barras,8rem)]"
           aria-hidden="true"
         >
           {[4, 3, 2, 1, 0].map((nivel) => (
@@ -139,23 +175,26 @@ function CourseChart({ cursos }) {
 
         <div
           className="relative grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${cursos.length}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${cursos.length}, minmax(0, 1fr))`,
+          }}
         >
           {cursos.map((curso, indice) => (
             <button
               key={curso.curso}
               type="button"
               aria-label={`${curso.curso}: ${numero(curso.total)} alunos. Ver divisão por turno.`}
-              aria-describedby={ativo === indice ? idTooltip : undefined}
+              aria-describedby={ativo === curso.curso ? idTooltip : undefined}
               onPointerEnter={(evento) => {
-                if (evento.pointerType === "mouse") setAtivo(indice);
+                if (evento.pointerType === "mouse") setAtivo(curso.curso);
               }}
               onPointerLeave={(evento) => {
-                if (document.activeElement !== evento.currentTarget) setAtivo(null);
+                if (document.activeElement !== evento.currentTarget)
+                  setAtivo(null);
               }}
-              onFocus={() => setAtivo(indice)}
+              onFocus={() => setAtivo(curso.curso)}
               onBlur={() => setAtivo(null)}
-              onClick={() => setAtivo(indice)}
+              onClick={() => setAtivo(curso.curso)}
               onKeyDown={(evento) => {
                 if (evento.key === "Escape") {
                   evento.preventDefault();
@@ -164,9 +203,9 @@ function CourseChart({ cursos }) {
               }}
               className="group min-w-0 rounded-md text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              <span className="flex h-32 items-end justify-center rounded-t-md transition-colors group-hover:bg-blue-50/60 group-focus-visible:bg-blue-50/60 motion-reduce:transition-none">
+              <span className="flex h-[var(--siga-altura-barras,8rem)] items-end justify-center rounded-t-md transition-colors group-hover:bg-blue-50/60 group-focus-visible:bg-blue-50/60 motion-reduce:transition-none">
                 <span
-                  className={`course-bar block w-7 max-w-[65%] rounded-t-md transition-colors duration-200 motion-reduce:transition-none ${ativo === indice ? "bg-[#0a3d7c]" : "bg-[#3678c7]"}`}
+                  className={`course-bar block w-7 max-w-[65%] rounded-t-md transition-colors duration-200 motion-reduce:transition-none ${ativo === curso.curso ? "bg-[#0a3d7c]" : "bg-[#3678c7]"}`}
                   style={{
                     height: `${(curso.total / teto) * 100}%`,
                     animationDelay: `${indice * 60}ms`,
@@ -187,9 +226,9 @@ function CourseChart({ cursos }) {
           key={selecionado.curso}
           id={idTooltip}
           role="tooltip"
-          className="course-tooltip pointer-events-none absolute top-0 z-20 w-56 max-w-full rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-blue-950/10"
+          className="course-tooltip siga-card siga-vidro-elevado pointer-events-none absolute top-0 z-20 w-56 max-w-full p-3"
           style={{
-            left: `max(0px, min(calc(${((ativo + 0.5) / cursos.length) * 100}% - 112px), calc(100% - 224px)))`,
+            left: `max(0px, min(calc(${((indiceAtivo + 0.5) / cursos.length) * 100}% - 112px), calc(100% - 224px)))`,
           }}
         >
           <p className="break-words text-xs font-semibold text-gray-900">
@@ -216,21 +255,34 @@ function CourseChart({ cursos }) {
       <style jsx>{`
         .course-bar {
           transform-origin: bottom;
-          animation: course-bar-grow 550ms cubic-bezier(.22, 1, .36, 1) both;
+          animation: course-bar-grow 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         .course-tooltip {
           animation: course-tooltip-enter 160ms ease-out both;
         }
         @keyframes course-bar-grow {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
+          from {
+            transform: scaleY(0);
+          }
+          to {
+            transform: scaleY(1);
+          }
         }
         @keyframes course-tooltip-enter {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         @media (prefers-reduced-motion: reduce) {
-          .course-bar, .course-tooltip { animation: none; }
+          .course-bar,
+          .course-tooltip {
+            animation: none;
+          }
         }
       `}</style>
     </div>

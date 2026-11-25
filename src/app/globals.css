@@ -6,6 +6,8 @@
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
+    --siga-raio-card: 0.75rem;
+    --siga-recuo-tela: clamp(0.75rem, 2.1vw, 2.5rem);
   }
   .dark {
     --background: oklch(0.145 0 0);
@@ -16,5 +18,398 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .siga-pagina {
+    min-width: 0;
+    padding: clamp(1.25rem, 2.2vw, 2.25rem) var(--siga-recuo-tela);
+  }
+
+  .siga-rolagem-tabela {
+    position: relative;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .siga-rolagem-tabela:focus-visible {
+    outline: 2px solid var(--siga-acento-card, #0a3d7c);
+    outline-offset: -2px;
+  }
+
+  .siga-card,
+  .siga-vidro {
+    --siga-acento-card: #0a3d7c;
+    --siga-borda-card: #c3d4e7;
+    --siga-foco-card: #98b6d8;
+    --siga-brilho-card: rgb(31 89 154 / 8%);
+    --siga-tinta-vidro: 188 217 250;
+    --siga-face-vidro: #fafcff;
+    --siga-aresta-vidro:
+      inset 0 1px 1px #fff, inset 0 -1px 1px rgb(var(--siga-tinta-vidro) / 50%);
+    --siga-sombra-vidro: 0 12px 26px -20px rgb(20 57 100 / 29%);
+    --siga-transicao-vidro:
+      background-position 560ms cubic-bezier(0.2, 0.65, 0.25, 1),
+      border-color 180ms ease, box-shadow 180ms ease;
+    min-width: 0;
+    border: 1px solid var(--siga-borda-card);
+    background:
+      linear-gradient(
+          117deg,
+          transparent 34%,
+          rgb(255 255 255 / 62%) 50%,
+          transparent 64%
+        )
+        100% 0 / 240% 100% no-repeat,
+      radial-gradient(
+        ellipse at 100% 100%,
+        rgb(var(--siga-tinta-vidro) / 34%),
+        transparent 73%
+      ),
+      linear-gradient(151deg, rgb(255 255 255 / 88%), transparent 65%),
+      var(--siga-face-vidro);
+    background-clip: padding-box;
+    box-shadow: var(--siga-aresta-vidro), var(--siga-sombra-vidro);
+  }
+
+  .siga-card {
+    border-radius: var(--siga-raio-card);
+  }
+
+  .siga-card-admin {
+    border-top-color: var(--siga-foco-card);
+  }
+
+  .siga-card-empresa {
+    --siga-acento-card: #a64a15;
+    --siga-borda-card: #e4cfc1;
+    --siga-foco-card: #d69b74;
+    --siga-brilho-card: rgb(211 110 52 / 9%);
+    --siga-tinta-vidro: 253 214 180;
+    --siga-face-vidro: #fffdfb;
+  }
+
+  .siga-card-fosco {
+    --siga-borda-card: #cbd7e4;
+    --siga-sombra-vidro: 0 8px 24px -19px rgb(20 57 100 / 28%);
+    background: linear-gradient(155deg, #fff 18%, #f5f8fb);
+  }
+
+  .siga-vidro-elevado {
+    --siga-sombra-vidro: 0 14px 32px -13px rgb(20 57 100 / 25%);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .siga-vidro-elevado {
+      --siga-face-vidro: rgb(250 252 255 / 87%);
+      -webkit-backdrop-filter: blur(12px) saturate(112%);
+      backdrop-filter: blur(12px) saturate(112%);
+    }
+
+    .siga-vidro-elevado.siga-card-empresa {
+      --siga-face-vidro: rgb(255 252 249 / 88%);
+    }
+
+    .siga-vidro-elevado::backdrop {
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+    }
+  }
+
+  .siga-cabecalho-card,
+  .siga-rodape-card {
+    background: linear-gradient(110deg, rgb(255 255 255 / 70%), transparent);
+  }
+
+  .siga-card-fosco > :is(.siga-cabecalho-card, .siga-rodape-card) {
+    background: #f5f8fb;
+  }
+
+  .siga-card-interativo:is(:hover, :focus-within),
+  .siga-card-fosco:focus-within {
+    border-color: var(--siga-foco-card);
+    box-shadow:
+      var(--siga-aresta-vidro),
+      0 0 0 1px var(--siga-brilho-card),
+      0 10px 24px -14px var(--siga-brilho-card);
+  }
+
+  .siga-controle {
+    border: 1px solid #cdd9e5;
+    background-color: #fff;
+    box-shadow: inset 0 1px 2px rgb(30 59 91 / 5%);
+  }
+
+  .siga-acao-primaria {
+    background-image: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 10%),
+      transparent 70%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 19%),
+      0 2px 4px rgb(20 57 100 / 9%);
+  }
+
+  .siga-moldura-tabela {
+    --siga-cabecalho-tabela: #eef3f8;
+    --siga-borda-tabela: #d8e2ed;
+    --siga-separador-tabela: #e5edf4;
+    --siga-linha-alterna: #f8fafc;
+    --siga-linha-destaque: #ebf3fc;
+    overflow: hidden;
+    border: 1px solid var(--siga-borda-tabela);
+    border-radius: 0.6875rem;
+    background: #fff;
+  }
+
+  .siga-card-empresa .siga-moldura-tabela {
+    --siga-cabecalho-tabela: #f7f3ef;
+    --siga-borda-tabela: #e7ded6;
+    --siga-separador-tabela: #eee7e0;
+    --siga-linha-alterna: #fcfaf8;
+    --siga-linha-destaque: #fdf0e5;
+  }
+
+  .siga-moldura-tabela.siga-rolagem-tabela {
+    overflow-x: auto;
+  }
+
+  .siga-tabela {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .siga-tabela th {
+    border-block-end: 1px solid var(--siga-borda-tabela);
+    background-color: var(--siga-cabecalho-tabela);
+    color: #47586d;
+  }
+
+  .siga-tabela th[aria-sort] {
+    color: var(--siga-acento-card);
+  }
+
+  .siga-tabela tbody tr:nth-child(even) {
+    --siga-fundo-linha: var(--siga-linha-alterna);
+  }
+
+  .siga-tabela
+    tbody
+    tr[data-registro]:is(:hover, :focus-within, [data-selecionado="true"]) {
+    --siga-fundo-linha: var(--siga-linha-destaque);
+  }
+
+  .siga-tabela tbody td {
+    background-color: var(--siga-fundo-linha, #fff);
+  }
+
+  .siga-tabela tbody tr:not(:last-child) td {
+    border-block-end: 1px solid var(--siga-separador-tabela);
+  }
+
+  .siga-tabela .siga-tabela-acoes {
+    position: sticky;
+    inset-inline-end: 0;
+    z-index: 1;
+    border-inline-start: 1px solid var(--siga-borda-tabela);
+  }
+
+  .siga-panorama {
+    container: cartao-panorama / inline-size;
+  }
+
+  @container cartao-panorama (max-width: 23rem) {
+    .siga-panorama .siga-panorama-cabecalho {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .siga-panorama-corpo {
+    container: panorama / inline-size;
+  }
+
+  @container panorama (min-width: 27rem) {
+    .siga-panorama-conteudo {
+      grid-template-columns: 7rem minmax(0, 1fr);
+    }
+  }
+
+  .siga-grade-compacta {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(100%, var(--siga-coluna-card, 14rem)), 1fr)
+    );
+    gap: 0.75rem;
+  }
+
+  .siga-grade-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18.5rem), 1fr));
+    gap: 0.875rem;
+  }
+
+  .siga-cabecalho-expansivel {
+    list-style: none;
+  }
+
+  .siga-cabecalho-expansivel::-webkit-details-marker {
+    display: none;
+  }
+
+  .siga-seta-expansao {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  details[open] > summary .siga-seta-expansao,
+  button[aria-expanded="true"] > .siga-seta-expansao {
+    transform: rotate(180deg);
+  }
+
+  .siga-aviso-sync {
+    width: 100%;
+    max-inline-size: 23.125rem;
+  }
+
+  .siga-aviso-sync[open] {
+    max-inline-size: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :is(.siga-card, .siga-vidro) {
+      transition: var(--siga-transicao-vidro);
+    }
+
+    .siga-card-interativo:not(.siga-card-fosco):is(:hover, :focus-within) {
+      background-position:
+        0 0,
+        center,
+        center;
+    }
+
+    .siga-tabela :is(th, td) {
+      transition:
+        background-color 170ms ease,
+        color 170ms ease;
+    }
+
+    .siga-tabela tbody tr[data-registro]:nth-child(-n + 6) {
+      animation: siga-revelar-linha 230ms ease-out backwards;
+    }
+
+    .siga-tabela tbody tr[data-registro]:nth-child(n + 3) {
+      animation-delay: 24ms;
+    }
+
+    .siga-tabela tbody tr[data-registro]:nth-child(n + 5) {
+      animation-delay: 48ms;
+    }
+
+    .siga-entrada:not([hidden]),
+    .siga-expansivel[open] > :not(summary),
+    .siga-menu-expansivel[open] > :not(summary),
+    .siga-dialogo[open]::backdrop {
+      animation: siga-aparecer 180ms ease-out;
+    }
+
+    .siga-dialogo[open],
+    .siga-grade-cards > :nth-child(-n + 6) {
+      animation: siga-entrar 210ms ease-out backwards;
+    }
+
+    .siga-grade-cards > :nth-child(2n) {
+      animation-delay: 35ms;
+    }
+
+    .siga-acao {
+      transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 140ms ease;
+    }
+
+    .siga-acao:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .siga-seta-expansao {
+      transition: transform 200ms ease-out;
+    }
+
+    .siga-card.siga-aviso-sync {
+      transition:
+        max-inline-size 240ms ease-in-out,
+        var(--siga-transicao-vidro);
+    }
+
+    @supports (interpolate-size: allow-keywords) and
+      selector(details::details-content) {
+      .siga-expansivel::details-content {
+        interpolate-size: allow-keywords;
+        overflow: clip;
+        contain: layout;
+        block-size: 0;
+        transition:
+          block-size 240ms ease-in-out,
+          content-visibility 240ms allow-discrete;
+      }
+
+      .siga-expansivel[open]::details-content {
+        block-size: auto;
+      }
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce),
+    (prefers-contrast: more),
+    (forced-colors: active) {
+    :is(.siga-card, .siga-vidro, .siga-cabecalho-card, .siga-rodape-card) {
+      background: #fff;
+    }
+
+    .siga-vidro-elevado,
+    .siga-vidro-elevado::backdrop {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
+
+@keyframes siga-revelar-linha {
+  from {
+    opacity: 0.68;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes siga-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes siga-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

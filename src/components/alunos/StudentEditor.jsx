@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api/axiosClient";
-import { gerarDadosAlunoTeste } from "@/lib/alunos/dadosPessoais";
+import {
+  gerarDadosAlunoTeste,
+  GENEROS_CADASTRO,
+} from "@/lib/alunos/dadosPessoais";
 import { dashboardStyles } from "../dashboard/DashboardCard";
 
 // NEXT_PUBLIC_ permite usar a opção no navegador. Reinicie o dev após alterá-la.
@@ -171,7 +174,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
         evento.preventDefault();
         if (!salvando) onClose();
       }}
-      className="fixed inset-0 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-2xl border-0 bg-white p-0 shadow-2xl backdrop:bg-slate-950/40"
+      className="siga-dialogo siga-card siga-card-admin siga-vidro-elevado fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto p-0 backdrop:bg-slate-950/40"
     >
       <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div>
@@ -207,7 +210,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
               role="status"
               className="flex items-center gap-2 text-sm text-gray-500"
             >
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />
               Carregando cadastro…
             </p>
           ) : excluir ? (
@@ -258,16 +261,24 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                   Gênero
                   <select
                     className={classeCampo}
+                    aria-label="Gênero"
+                    required={!editar}
                     value={formulario.genero}
                     onChange={(evento) => mudar("genero", evento.target.value)}
                   >
-                    {[
-                      "",
-                      "Masculino",
-                      "Feminino"
-                    ].map((valor) => (
+                    <option value="" disabled={!editar} hidden={!editar}>
+                      {editar ? "Não informado" : "Selecione"}
+                    </option>
+                    {editar &&
+                      formulario.genero &&
+                      !GENEROS_CADASTRO.includes(formulario.genero) && (
+                        <option value={formulario.genero} disabled>
+                          {formulario.genero}
+                        </option>
+                      )}
+                    {GENEROS_CADASTRO.map((valor) => (
                       <option key={valor} value={valor}>
-                        {valor || "Não informado"}
+                        {valor}
                       </option>
                     ))}
                   </select>
@@ -379,32 +390,31 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
                     </select>
                   </label>
                 </div>
-                  <div className="flex flex-row flex-wrap gap-3 pt-3 justify-center items-center">
-                    
-                    <div className="flex items-center justify-center bg-green-200 rounded-lg px-3 py-1.5">
-                      <p className="text-xs leading-tight text-green-600 text-center m-0">
-                        Indicado: encaminhado à empresa.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-center bg-blue-200 rounded-lg px-3 py-1.5">
-                      <p className="text-xs leading-tight text-blue-600 text-center m-0">
-                        Em processo: aguardando aceitação.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-center bg-purple-200 rounded-lg px-3 py-1.5">
-                      <p className="text-xs leading-tight text-purple-600 text-center m-0">
-                        Empregado: contratação confirmada.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-center bg-red-200 rounded-lg px-3 py-1.5">
-                      <p className="text-xs leading-tight text-red-600 text-center m-0">
-                        Disponível: sem vínculo.
-                      </p>
-                    </div>
+                <div className="flex flex-row flex-wrap gap-3 pt-3 justify-center items-center">
+                  <div className="flex items-center justify-center bg-green-200 rounded-lg px-3 py-1.5">
+                    <p className="text-xs leading-tight text-green-600 text-center m-0">
+                      Indicado: encaminhado à empresa.
+                    </p>
                   </div>
+
+                  <div className="flex items-center justify-center bg-blue-200 rounded-lg px-3 py-1.5">
+                    <p className="text-xs leading-tight text-blue-600 text-center m-0">
+                      Em processo: aguardando aceitação.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center bg-purple-200 rounded-lg px-3 py-1.5">
+                    <p className="text-xs leading-tight text-purple-600 text-center m-0">
+                      Empregado: contratação confirmada.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center bg-red-200 rounded-lg px-3 py-1.5">
+                    <p className="text-xs leading-tight text-red-600 text-center m-0">
+                      Disponível: sem vínculo.
+                    </p>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -434,7 +444,7 @@ export default function StudentEditor({ alunoId, modo, onClose, onSaved }) {
           >
             {salvando ? (
               <>
-                <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 inline h-4 w-4 animate-spin motion-reduce:animate-none" />
                 Salvando…
               </>
             ) : excluir ? (

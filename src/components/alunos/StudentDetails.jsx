@@ -174,7 +174,7 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
           fechar();
       }}
       data-fechando={fechando || undefined}
-      className="student-details fixed m-0 overflow-hidden border-0 p-0 text-gray-900"
+      className="student-details siga-vidro siga-vidro-elevado fixed m-0 overflow-hidden p-0 text-gray-900"
     >
       <header className="z-10 flex shrink-0 items-center justify-between gap-4 border-b border-gray-200/70 border-t-[3px] border-t-[#0a3d7c] bg-white/80 px-5 py-5 backdrop-blur-xl sm:px-7">
         <div className="flex min-w-0 items-center gap-3">
@@ -268,7 +268,7 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
           aluno && (
             <>
               <section
-                className="rounded-xl border border-blue-100/80 bg-blue-50/80 p-4 sm:p-5"
+                className="siga-card border-blue-200 bg-blue-50/80 p-4"
                 aria-label="Situação profissional"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -354,10 +354,7 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
                 {aluno.matriculas.length ? (
                   <div className="space-y-3">
                     {aluno.matriculas.map((m) => (
-                      <div
-                        key={m.id}
-                        className="rounded-xl border border-gray-200/80 bg-white/65 p-4"
-                      >
+                      <div key={m.id} className="siga-card bg-white/70 p-3.5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <h4 className="text-sm font-semibold text-gray-900">
                             {m.turma.curso.nome}
@@ -610,19 +607,9 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
           height: 100dvh;
           max-height: 100dvh;
           flex-direction: column;
-          border-left: 1px solid rgba(255, 255, 255, 0.9);
+          border-width: 0 0 0 1px;
           border-radius: 24px 0 0 24px;
-          background: #f8fafc;
-          box-shadow: -16px 0 60px rgba(15, 23, 42, 0.16);
-        }
-        @supports (
-          (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-        ) {
-          .student-details {
-            background: rgba(248, 250, 252, 0.92);
-            backdrop-filter: blur(32px) saturate(115%);
-            -webkit-backdrop-filter: blur(32px) saturate(115%);
-          }
+          --siga-sombra-vidro: -16px 0 60px rgba(15, 23, 42, 0.16);
         }
         .student-details[open] {
           display: flex;
@@ -630,8 +617,6 @@ export default function StudentDetails({ alunoId, onClose, onEdit }) {
         }
         .student-details::backdrop {
           background: rgba(15, 23, 42, 0.22);
-          backdrop-filter: blur(3px);
-          -webkit-backdrop-filter: blur(3px);
           animation: backdrop-enter 220ms ease-out both;
         }
         .student-details[data-fechando] {
@@ -700,7 +685,7 @@ function Situacao({ valor }) {
 }
 function Secao({ titulo, Icone, children }) {
   return (
-    <section className="min-w-0 rounded-xl border border-gray-200 p-4 sm:p-5">
+    <section className="siga-card bg-white/80 p-4">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
         <Icone className="h-4 w-4 shrink-0 text-[#0a3d7c]" />
         {titulo}

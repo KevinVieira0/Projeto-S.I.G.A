@@ -1,10 +1,41 @@
 import { NextResponse } from "next/server";
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
+import { criarEmpresa } from "@/lib/empresas/gestao";
+import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
+import { filtrarEmpresasDaTabela, ordemDaTabelaDeEmpresas, statusDasEmpresas } from "@/lib/empresas/filtrosTabela";
 
 export const runtime = "nodejs";
 
 export const dynamic = "force-dynamic";
+
+export async function POST(requisicao) {
+  const { error, session } = await authorize(requisicao, "admin");
+  if (error) return error;
+  try {
+    const empresa = await criarEmpresa(
+      prisma,
+      session.dados.id,
+      await requisicao.json(),
+    );
+    return NextResponse.json(
+      { empresa, espelho: await tentarEspelharBase(prisma) },
+      { status: 201, headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (erro) {
+    const jsonInvalido = erro instanceof SyntaxError;
+    return NextResponse.json(
+      {
+        mensagem: erro.status
+          ? erro.message
+          : jsonInvalido
+            ? "JSON inválido."
+            : "Não foi possível cadastrar a empresa.",
+      },
+      { status: erro.status || (jsonInvalido ? 400 : 500) },
+    );
+  }
+}
 
 export async function GET(requisicao) {
   const { error: erroCapturado } = await authorize(requisicao, "admin");
@@ -18,40 +49,21 @@ export async function GET(requisicao) {
     pagina < 1 ||
     pagina > 1_000_000 ||
     busca.length > 150 ||
-    !["todos", "ativas", "autorizadas", "aguardando", "inativas"].includes(status)
+    !statusDasEmpresas.includes(status)
   ) {
-    return NextResponse.json({ mensagem: "Filtros inválidos." }, { status: 400 });
+    return NextResponse.json(
+      { mensagem: "Filtros inválidos." },
+      { status: 400 },
+    );
   }
-  const filtroStatus = {
-    todos: {},
-    ativas: { ativa: true },
-    autorizadas: { ativa: true, autorizada: true },
-    aguardando: { ativa: true, autorizada: false },
-    inativas: { ativa: false },
-  }[status];
-  const where = {
-    ...filtroStatus,
-    ...(busca
-      ? {
-          OR: ["razaoSocial", "nomeFantasia", "cnpj", "email"].map((campo) => ({
-            [campo]: {
-              contains:
-                campo === "cnpj" && /^[\d.\/\-\s]+$/.test(busca)
-                  ? busca.replace(/\D/g, "") || busca
-                  : busca,
-              mode: "insensitive",
-            },
-          })),
-        }
-      : {}),
-  };
+  const where = filtrarEmpresasDaTabela(busca, status);
   try {
     const [total, itens] = await prisma.$transaction(
       [
         prisma.empresa.count({ where }),
         prisma.empresa.findMany({
           where,
-          orderBy: [{ razaoSocial: "asc" }, { id: "asc" }],
+          orderBy: ordemDaTabelaDeEmpresas,
           skip: (pagina - 1) * 25,
           take: 25,
           select: {

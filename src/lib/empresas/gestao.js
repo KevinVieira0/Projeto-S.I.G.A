@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { hash } from "bcryptjs";
+import { isValidCnpjFormat, onlyDigits } from "@/lib/validations/cnpjUtils";
 
 export class ErroGestaoEmpresa extends Error {
   constructor(mensagem, status = 400) {
@@ -61,6 +62,81 @@ const empresaSchema = z
   })
   .strict();
 
+const cadastroEmpresaSchema = z
+  .object({
+    razaoSocial: z.string().trim().min(1, "Informe a razão social.").max(255),
+    nomeFantasia: z
+      .string()
+      .trim()
+      .max(255)
+      .optional()
+      .transform((valor) => valor || null),
+    cnpj: z
+      .string()
+      .trim()
+      .max(18)
+      .refine(
+        (valor) => /^[\d.\/\-]+$/.test(valor) && isValidCnpjFormat(valor),
+        "Informe um CNPJ válido.",
+      )
+      .transform(onlyDigits),
+    email: z
+      .string()
+      .trim()
+      .max(255)
+      .email("Informe um e-mail válido.")
+      .toLowerCase(),
+    telefone: z
+      .string()
+      .trim()
+      .max(20)
+      .refine(
+        (valor) =>
+          /^[+\d\s().-]+$/.test(valor) && /^\d{10,13}$/.test(onlyDigits(valor)),
+        "Informe um telefone com DDD.",
+      )
+      .transform(onlyDigits),
+    contribuinte: z
+      .enum(["Sim", "Não", "Não informado"])
+      .transform((valor) =>
+        valor === "Não informado" ? null : valor === "Sim",
+      ),
+  })
+  .strict();
+
+async function iniciarCadastro(transacao, administradorId) {
+  // Compartilhado com a entrada por formulário e o espelho da planilha.
+  await transacao.$executeRaw`SELECT pg_advisory_xact_lock(741004)`;
+  const administrador = await transacao.administrador.findUnique({
+    where: { id: administradorId },
+    select: { ativo: true },
+  });
+  if (!administrador?.ativo)
+    throw new ErroGestaoEmpresa("Acesso administrativo inválido.", 403);
+}
+
+export async function criarEmpresa(prisma, administradorId, entrada) {
+  const validacao = cadastroEmpresaSchema.safeParse(entrada);
+  if (!validacao.success)
+    throw new ErroGestaoEmpresa(validacao.error.issues[0].message);
+  try {
+    return await prisma.$transaction(
+      async (transacao) => {
+        await iniciarCadastro(transacao, administradorId);
+        return transacao.empresa.create({
+          data: { ...validacao.data, ativa: true, autorizada: false },
+          select: camposEmpresa,
+        });
+      },
+      { timeout: 30000, maxWait: 10000 },
+    );
+  } catch (erro) {
+    if (erro.code === "P2002")
+      throw new ErroGestaoEmpresa("Já existe uma empresa com este CNPJ.", 409);
+    throw erro;
+  }
+}
+
 export function conferirIdEmpresa(id) {
   if (!z.string().uuid().safeParse(id).success)
     throw new ErroGestaoEmpresa("Identificador de empresa inválido.");
@@ -79,14 +155,7 @@ export async function editarEmpresa(prisma, administradorId, id, entrada) {
   const senhaHash = senhaAcesso ? await hash(senhaAcesso, 12) : null;
   return prisma.$transaction(
     async (transacao) => {
-      // Compartilhado com a entrada por formulário e o espelho da planilha.
-      await transacao.$executeRaw`SELECT pg_advisory_xact_lock(741004)`;
-      const administrador = await transacao.administrador.findUnique({
-        where: { id: administradorId },
-        select: { ativo: true },
-      });
-      if (!administrador?.ativo)
-        throw new ErroGestaoEmpresa("Acesso administrativo inválido.", 403);
+      await iniciarCadastro(transacao, administradorId);
       const empresa = await transacao.empresa.findUnique({
         where: { id },
         select: { atualizadoEm: true },

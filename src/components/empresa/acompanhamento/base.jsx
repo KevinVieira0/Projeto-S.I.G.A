@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@/lib/api/axiosClient";
 
 export const estilosEmpresa = {
-  superficie:
-    "min-w-0 rounded-2xl border border-slate-300 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:border-orange-400 hover:shadow-[0_0_0_1px_rgba(249,115,22,0.12),0_8px_24px_-8px_rgba(249,115,22,0.24)] motion-reduce:transition-none",
+  superficie: "siga-card siga-card-empresa siga-card-interativo",
   primario:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+    "siga-acao siga-acao-primaria inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   secundario:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
+    "siga-acao siga-controle inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:border-orange-300 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50",
   campo:
-    "min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
+    "siga-acao siga-controle min-h-10 w-full rounded-xl px-3 py-2 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100",
 };
 export const rotulosParticipacao = {
   INDICADO: "Indicado",
@@ -28,13 +27,34 @@ const cores = {
   APROVADO: "bg-violet-50 text-violet-800 ring-violet-600/15",
   CONTRATADO: "bg-emerald-50 text-emerald-800 ring-emerald-600/15",
 };
-export function SeloParticipacao({ status }) {
+export function SeloParticipacao({ status, rotulo }) {
   return (
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${cores[status] || "bg-slate-100 text-slate-600 ring-slate-500/15"}`}
     >
-      {rotulosParticipacao[status] || status}
+      {rotulo ?? (rotulosParticipacao[status] || status)}
     </span>
+  );
+}
+export function CartaoLateralEmpresa({ id, titulo, icone: Icone, children }) {
+  return (
+    <section
+      aria-labelledby={id}
+      className={`${estilosEmpresa.superficie} p-4 sm:px-5`}
+    >
+      <header className="mb-2.5 flex items-center justify-between gap-2.5">
+        <h2
+          id={id}
+          className="min-w-0 text-lg font-semibold leading-snug tracking-tight text-slate-950"
+        >
+          {titulo}
+        </h2>
+        <span className="shrink-0 rounded-lg border border-orange-200 bg-orange-50/80 p-2 text-orange-800">
+          <Icone className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </header>
+      {children}
+    </section>
   );
 }
 export function dataEmpresa(valor, hora = false) {

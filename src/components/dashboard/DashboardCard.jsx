@@ -1,21 +1,24 @@
 import React from "react";
 
 export const dashboardStyles = {
-  surface:
-    "group relative flex min-w-0 flex-col rounded-2xl border border-gray-200 border-t-[3px] border-t-[#0a3d7c] bg-white shadow-sm duration-300 hover:shadow-xl hover:shadow-blue-950/10 motion-reduce:transition-none",
+  surface: "siga-card siga-card-admin group relative flex min-w-0 flex-col",
   header:
-    "flex min-h-[85px] flex-col gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between",
+    "siga-cabecalho-card flex flex-col gap-3 rounded-t-[calc(var(--siga-raio-card)-1px)] border-b border-slate-200/80 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5",
   eyebrow:
     "text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0a3d7c]",
   title: "mt-1 text-lg font-semibold text-gray-900",
   description: "mt-1 text-sm text-gray-500",
-  body: "min-w-0 px-5 py-5",
+  body: "min-w-0 px-4 py-4 sm:px-5",
   footer:
-    "mt-auto flex min-h-12 flex-wrap items-center gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/80 px-5 py-3 text-xs text-gray-500",
+    "siga-rodape-card mt-auto flex flex-wrap items-center gap-2 rounded-b-[calc(var(--siga-raio-card)-1px)] border-t border-slate-200/80 px-4 py-2.5 text-xs text-gray-600 sm:px-5",
   primaryAction:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none",
+    "siga-acao siga-acao-primaria inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-lg border border-[#0a3d7c] bg-[#0a3d7c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#125198] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
   secondaryAction:
-    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg  border border-gray-200 bg-[#0a3d7c] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a75dc] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none",
+    "siga-acao siga-controle inline-flex min-h-10 max-w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#174777] hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+  searchField:
+    "siga-controle siga-acao h-10 w-full rounded-lg pl-9 pr-9 text-sm text-gray-900 outline-none placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-100",
+  pageAction:
+    "siga-controle siga-acao inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-[#0a3d7c] focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-40",
   error:
     "rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700",
 };
@@ -29,7 +32,7 @@ export default function DashboardCard({
   return (
     <section
       {...props}
-      className={`${dashboardStyles.surface} ${lift ? "transition hover:-translate-y-0.5 motion-reduce:transform-none" : "transition-shadow"} ${className}`}
+      className={`${dashboardStyles.surface} ${lift ? "siga-card-interativo" : ""} ${className}`}
     >
       {children}
     </section>
@@ -42,10 +45,11 @@ export function DashboardCardHeader({
   eyebrow: categoria,
   description: descricao,
   icon: Icon,
+  className = "",
   children,
 }) {
   return (
-    <header className={dashboardStyles.header}>
+    <header className={`${dashboardStyles.header} ${className}`}>
       <div className="min-w-0">
         {categoria && <p className={dashboardStyles.eyebrow}>{categoria}</p>}
         <h2 id={idTitulo} className={dashboardStyles.title}>
@@ -60,7 +64,7 @@ export function DashboardCardHeader({
           {children}
           {Icon && (
             <Icon
-              className="h-5 w-5 shrink-0 text-[#0a3d7c] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
+              className="h-5 w-5 shrink-0 text-[#0a3d7c]"
               aria-hidden="true"
             />
           )}

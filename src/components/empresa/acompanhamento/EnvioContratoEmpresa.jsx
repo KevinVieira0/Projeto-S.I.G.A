@@ -69,7 +69,7 @@ export default function EnvioContratoEmpresa({
   return (
     <form
       onSubmit={enviar}
-      className="space-y-4 rounded-xl border border-orange-200 bg-white/80 p-4"
+      className="siga-card siga-card-empresa space-y-4 bg-white/80 p-4"
     >
       <div>
         <h4 className="text-sm font-semibold text-slate-900">

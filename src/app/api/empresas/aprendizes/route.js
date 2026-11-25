@@ -2,6 +2,8 @@ import { z } from "zod";
 import { authorize } from "@/lib/auth/authorize";
 import { prisma } from "@/lib/prisma";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
+import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
+import { filtroParticipacaoPendente } from "@/lib/solicitacoes/participacoes";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,7 @@ const filtrosSchema = z.object({
     .default("CONTRATADO"),
   pagina: z.coerce.number().int().min(1).max(100000).default(1),
   busca: z.string().trim().max(150).default(""),
+  pendencia: z.enum(["INDICADO", "APROVADO"]).optional(),
 });
 export async function GET(requisicao) {
   const { error, session } = await authorize(requisicao, "empresa");
@@ -20,15 +23,22 @@ export async function GET(requisicao) {
   );
   if (!filtros.success)
     return jsonEmpresa({ mensagem: "Filtros inválidos." }, 400);
-  const { situacao, pagina, busca } = filtros.data;
+  const { situacao, pagina, busca, pendencia } = filtros.data;
   const empresaId = session.dados.id;
+  const filtroPendencia = pendencia
+    ? filtroParticipacaoPendente(empresaId, pendencia)
+    : null;
   const where = {
     empresaAtualId: empresaId,
-    status:
-      situacao === "todos"
-        ? { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] }
-        : situacao,
-    aluno: { arquivadoEm: null },
+    ...(filtroPendencia
+      ? { participacoes: { some: filtroPendencia } }
+      : {
+          status:
+            situacao === "todos"
+              ? { in: ["INDICADO", "EM_PROCESSO", "CONTRATADO"] }
+              : situacao,
+        }),
+    aluno: { arquivadoEm: null, empresaId },
     ...(busca
       ? {
           OR: [
@@ -43,6 +53,7 @@ export async function GET(requisicao) {
       : {}),
   };
   try {
+    await encerrarSolicitacoesVencidas(prisma, { empresaId });
     const { total, matriculas } = await prisma.$transaction(
       async (tx) => ({
         total: await tx.matricula.count({ where }),
@@ -64,7 +75,7 @@ export async function GET(requisicao) {
               },
             },
             participacoes: {
-              where: {
+              where: filtroPendencia ?? {
                 solicitacao: { idEmpresa: empresaId },
                 status: {
                   in: ["INDICADO", "EM_PROCESSO", "APROVADO", "CONTRATADO"],

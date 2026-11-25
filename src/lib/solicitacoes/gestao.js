@@ -2,7 +2,11 @@ import { z } from "zod";
 import { selectAluno } from "@/lib/alunos/gestao";
 import { idadeAluno, matriculaCompativel } from "./requisitos";
 import { todayInSaoPaulo } from "@/lib/validations/solicitacaoSchema";
-import { registrarParticipacao } from "./participacoes";
+import { estadosEmAberto, registrarParticipacao } from "./participacoes";
+import {
+  encerrarSeVencida,
+  encerrarSolicitacoesVencidas,
+} from "./encerramento";
 
 export class ErroGestaoSolicitacao extends Error {
   constructor(mensagem, status = 400) {
@@ -22,6 +26,29 @@ const indicacaoSchema = z
       .max(50),
   })
   .strict();
+
+const paginaSchema = z.coerce.number().int().min(1).max(100000).default(1);
+const tamanhoPagina = 20;
+
+function filtrosDisponibilidade(solicitacaoId, excluidos) {
+  return {
+    status: "DISPONIVEL",
+    classificacaoPendente: false,
+    empresaAtualId: null,
+    aluno: {
+      arquivadoEm: null,
+      empregado: false,
+      statusIndicacao: "Disponível",
+      empresaId: null,
+      ...(excluidos ? { id: { notIn: excluidos } } : {}),
+      participacoes: {
+        none: {
+          OR: [{ solicitacaoId }, { status: { in: estadosEmAberto } }],
+        },
+      },
+    },
+  };
+}
 
 function validar(schema, entrada) {
   const resultado = schema.safeParse(entrada);
@@ -63,100 +90,121 @@ export async function alterarEstadoSolicitacao(
       "Solicitações finalizadas não podem ser reativadas.",
       409,
     );
-  return prisma.$transaction(
+  const resultado = await prisma.$transaction(
     async (transacao) => {
       await iniciarOperacao(transacao, administradorId);
       const atual = await obterSolicitacao(transacao, id);
+      if (await encerrarSeVencida(transacao, atual)) return null;
       if (atual.ativa !== dados.ativaAnterior)
         throw new ErroGestaoSolicitacao(
           "A situação mudou. Confira os dados atualizados e tente novamente.",
           409,
         );
+      if (!atual.ativa) {
+        const { ativa, encerradaEm, motivoEncerramento } = atual;
+        return { id, ativa, encerradaEm, motivoEncerramento };
+      }
       return transacao.solicitacao.update({
         where: { id },
-        data: { ativa: dados.ativa },
-        select: { id: true, ativa: true },
+        data: {
+          ativa: false,
+          encerradaEm: new Date(),
+          motivoEncerramento: "COORDENACAO",
+        },
+        select: {
+          id: true,
+          ativa: true,
+          encerradaEm: true,
+          motivoEncerramento: true,
+        },
       });
     },
     { timeout: 30000, maxWait: 10000 },
   );
+  if (!resultado)
+    throw new ErroGestaoSolicitacao(
+      "A solicitação já foi encerrada por falta de retorno.",
+      409,
+    );
+  return resultado;
 }
 
 export async function listarIndicacoes(prisma, id, parametros = {}) {
-  const { busca, pagina } = validar(
+  const { busca, pagina, paginaDisponiveis } = validar(
     z.object({
       busca: z.string().trim().max(150).default(""),
-      pagina: z.coerce.number().int().min(1).max(100000).default(1),
+      pagina: paginaSchema,
+      paginaDisponiveis: paginaSchema,
     }),
     parametros,
   );
+  await encerrarSolicitacoesVencidas(prisma, { id });
   const solicitacao = await obterSolicitacao(prisma, id);
-  const eventos = await prisma.historicoAcompanhamento.findMany({
-    where: { solicitacaoId: id, novoStatus: "INDICADO" },
-    orderBy: [{ registradoEm: "desc" }, { id: "desc" }],
+  const matricula = {
     select: {
-      id: true,
-      registradoEm: true,
-      matricula: {
-        select: {
-          alunoId: true,
-          aluno: { select: { nome: true, statusIndicacao: true } },
-          turma: {
-            select: { codigo: true, curso: { select: { nome: true } } },
-          },
+      alunoId: true,
+      aluno: { select: { nome: true, statusIndicacao: true } },
+      turma: { select: { codigo: true, curso: { select: { nome: true } } } },
+    },
+  };
+  const [participacoes, eventosAnteriores] = await Promise.all([
+    prisma.participacaoSolicitacao.findMany({
+      where: { solicitacaoId: id },
+      select: { id: true, status: true, criadoEm: true, matricula },
+    }),
+    prisma.historicoAcompanhamento.findMany({
+      where: {
+        solicitacaoId: id,
+        novoStatus: "INDICADO",
+        matricula: {
+          aluno: { participacoes: { none: { solicitacaoId: id } } },
         },
       },
-    },
-  });
-  const indicacoes = eventos.map((evento) => ({
-    id: evento.id,
-    alunoId: evento.matricula.alunoId,
-    nome: evento.matricula.aluno.nome,
-    status: evento.matricula.aluno.statusIndicacao,
-    curso: evento.matricula.turma.curso.nome,
-    turma: evento.matricula.turma.codigo,
-    indicadoEm: evento.registradoEm,
-  }));
-  const participacoes = await prisma.participacaoSolicitacao.findMany({
-    where: { solicitacaoId: id },
-    select: { alunoId: true, status: true },
-  });
-  const rotulos = {
+      select: { id: true, registradoEm: true, matricula },
+    }),
+  ]);
+  const situacoes = {
     INDICADO: "Indicado",
     EM_PROCESSO: "Em processo",
     APROVADO: "Aprovado — aguardando formalização",
     CONTRATADO: "Contratado",
     NAO_CONTRATADO: "Não contratado",
     DESISTIU: "Desistiu",
-    CANCELADO: "Encerrado pela coordenação",
+    CANCELADO: "Encerrado",
   };
-  for (const indicacao of indicacoes) {
-    const participacao = participacoes.find(
-      (p) => p.alunoId === indicacao.alunoId,
-    );
-    if (participacao) indicacao.status = rotulos[participacao.status];
-  }
-  const tamanhoPagina = 20;
+  const indicacoes = [...participacoes, ...eventosAnteriores]
+    .map(({ id, matricula, status, criadoEm, registradoEm }) => ({
+      id,
+      alunoId: matricula.alunoId,
+      nome: matricula.aluno.nome,
+      status: situacoes[status] ?? matricula.aluno.statusIndicacao,
+      curso: matricula.turma.curso.nome,
+      turma: matricula.turma.codigo,
+      indicadoEm: criadoEm ?? registradoEm,
+    }))
+    .sort((a, b) => b.indicadoEm - a.indicadoEm);
+  const estado = {
+    ativa: solicitacao.ativa,
+    encerradaEm: solicitacao.encerradaEm,
+    motivoEncerramento: solicitacao.motivoEncerramento,
+    indicacoes,
+    pagina,
+    paginaDisponiveis,
+    tamanhoPagina,
+  };
   if (!solicitacao.ativa)
     return {
-      ativa: false,
-      indicacoes,
+      ...estado,
       alunos: [],
+      disponiveis: [],
       total: 0,
-      pagina,
-      tamanhoPagina,
+      totalDisponiveis: 0,
     };
   const where = {
-    status: "DISPONIVEL",
-    classificacaoPendente: false,
-    empresaAtualId: null,
-    aluno: {
-      arquivadoEm: null,
-      empregado: false,
-      statusIndicacao: "Disponível",
-      empresaId: null,
-      id: { notIn: indicacoes.map((item) => item.alunoId) },
-    },
+    ...filtrosDisponibilidade(
+      id,
+      indicacoes.map((item) => item.alunoId),
+    ),
     ...(busca
       ? {
           OR: [
@@ -190,19 +238,12 @@ export async function listarIndicacoes(prisma, id, parametros = {}) {
     },
   });
   const hoje = todayInSaoPaulo();
-  // Filtra antes de paginar para manter totais corretos e aceitar diferenças de acentuação nos cursos.
-  const compativeis = matriculas.filter((matricula) =>
-    matriculaCompativel(solicitacao, matricula, hoje),
-  );
-  return {
-    ativa: true,
-    indicacoes,
-    total: compativeis.length,
-    pagina,
-    tamanhoPagina,
-    alunos: compativeis
-      .slice((pagina - 1) * tamanhoPagina, pagina * tamanhoPagina)
-      .map((matricula) => ({
+  const alunosPorId = new Map();
+  for (const matricula of matriculas) {
+    const recomendado = matriculaCompativel(solicitacao, matricula, hoje);
+    const anterior = alunosPorId.get(matricula.alunoId);
+    if (!anterior || (!anterior.recomendado && recomendado)) {
+      alunosPorId.set(matricula.alunoId, {
         matriculaId: matricula.id,
         alunoId: matricula.alunoId,
         nome: matricula.aluno.nome,
@@ -210,7 +251,20 @@ export async function listarIndicacoes(prisma, id, parametros = {}) {
         curso: matricula.turma.curso.nome,
         turma: matricula.turma.codigo,
         periodo: matricula.turma.turno,
-      })),
+        recomendado,
+      });
+    }
+  }
+  const disponiveis = [...alunosPorId.values()];
+  const recomendados = disponiveis.filter((aluno) => aluno.recomendado);
+  const paginar = (alunos, numero) =>
+    alunos.slice((numero - 1) * tamanhoPagina, numero * tamanhoPagina);
+  return {
+    ...estado,
+    total: recomendados.length,
+    totalDisponiveis: disponiveis.length,
+    alunos: paginar(recomendados, pagina),
+    disponiveis: paginar(disponiveis, paginaDisponiveis),
   };
 }
 
@@ -218,10 +272,12 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
   const { matriculaIds } = validar(indicacaoSchema, entrada);
   if (new Set(matriculaIds).size !== matriculaIds.length)
     throw new ErroGestaoSolicitacao("A seleção contém matrículas repetidas.");
-  return prisma.$transaction(
+  const resultado = await prisma.$transaction(
     async (transacao) => {
       await iniciarOperacao(transacao, administradorId);
       const solicitacao = await obterSolicitacao(transacao, id);
+      const agora = new Date();
+      if (await encerrarSeVencida(transacao, solicitacao, agora)) return null;
       if (!solicitacao.ativa)
         throw new ErroGestaoSolicitacao(
           "Esta solicitação está finalizada e não recebe novas indicações.",
@@ -233,15 +289,14 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
           409,
         );
       const matriculas = await transacao.matricula.findMany({
-        where: { id: { in: matriculaIds } },
+        where: { id: { in: matriculaIds }, ...filtrosDisponibilidade(id) },
         include: {
           aluno: { select: selectAluno },
-          turma: { select: { curso: { select: { nome: true } } } },
         },
       });
       if (matriculas.length !== matriculaIds.length)
         throw new ErroGestaoSolicitacao(
-          "Uma matrícula não foi encontrada. Atualize a lista.",
+          "Um dos alunos não está mais disponível para esta solicitação. Atualize a lista.",
           409,
         );
       const alunoIds = matriculas.map((matricula) => matricula.alunoId);
@@ -261,30 +316,6 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
           "Um dos alunos já foi indicado para esta solicitação. Atualize a lista.",
           409,
         );
-      const hoje = todayInSaoPaulo();
-      for (const matricula of matriculas) {
-        const aluno = matricula.aluno;
-        if (
-          aluno.arquivadoEm ||
-          aluno.empregado ||
-          aluno.statusIndicacao !== "Disponível" ||
-          aluno.empresaId ||
-          matricula.status !== "DISPONIVEL" ||
-          matricula.empresaAtualId ||
-          matricula.classificacaoPendente
-        ) {
-          throw new ErroGestaoSolicitacao(
-            "Um dos alunos não está mais disponível. Atualize a lista e selecione novamente.",
-            409,
-          );
-        }
-        if (!matriculaCompativel(solicitacao, matricula, hoje)) {
-          throw new ErroGestaoSolicitacao(
-            "Um dos alunos não atende aos requisitos da solicitação. Atualize a lista e selecione novamente.",
-            409,
-          );
-        }
-      }
       for (const matricula of matriculas) {
         await registrarParticipacao(transacao, matricula, id, administradorId);
         await transacao.matricula.update({
@@ -310,6 +341,7 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
             statusAnterior: matricula.status,
             novoStatus: "INDICADO",
             origem: "SOLICITACAO",
+            registradoEm: agora,
           },
         });
         await transacao.auditoriaAluno.create({
@@ -327,8 +359,19 @@ export async function indicarAlunos(prisma, administradorId, id, entrada) {
           },
         });
       }
+      if (!solicitacao.primeiraIndicacaoEm)
+        await transacao.solicitacao.update({
+          where: { id },
+          data: { primeiraIndicacaoEm: agora },
+        });
       return { quantidade: matriculas.length };
     },
     { timeout: 30000, maxWait: 10000 },
   );
+  if (!resultado)
+    throw new ErroGestaoSolicitacao(
+      "A solicitação já foi encerrada por falta de retorno.",
+      409,
+    );
+  return resultado;
 }

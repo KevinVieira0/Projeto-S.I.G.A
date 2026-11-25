@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authorize } from "@/lib/auth/authorize";
+import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
 import {
   contarPorSituacao,
   solicitacoesPorMes,
@@ -12,6 +13,7 @@ export async function GET(request) {
   try {
     const { error } = await authorize(request, "admin");
     if (error) return error;
+    await encerrarSolicitacoesVencidas(prisma);
 
     const registros = await prisma.solicitacao.findMany({
       orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
