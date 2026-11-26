@@ -4,7 +4,8 @@ import { obterPedidoEmpresa } from "@/lib/solicitacoes/participacoes";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 
 export const dynamic = "force-dynamic";
-export async function GET(requisicao, { params }) {
+export async function GET(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "empresa");
   if (error) return error;
   try {

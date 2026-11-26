@@ -21,7 +21,8 @@ const falha = (erro) =>
     erro.status || (erro instanceof SyntaxError ? 400 : 500),
   );
 
-export async function GET(requisicao, { params }) {
+export async function GET(requisicao, props) {
+  const params = await props.params;
   const { error } = await authorize(requisicao, "admin");
   if (error) return error;
   try {
@@ -38,7 +39,8 @@ export async function GET(requisicao, { params }) {
   }
 }
 
-export async function POST(requisicao, { params }) {
+export async function POST(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "admin");
   if (error) return error;
   try {

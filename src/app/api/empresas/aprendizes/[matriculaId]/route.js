@@ -9,7 +9,8 @@ import { camposComprovante } from "@/lib/contratos/comprovantes";
 import { encerrarSolicitacoesVencidas } from "@/lib/solicitacoes/encerramento";
 
 export const dynamic = "force-dynamic";
-export async function GET(requisicao, { params }) {
+export async function GET(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "empresa");
   if (error) return error;
   try {

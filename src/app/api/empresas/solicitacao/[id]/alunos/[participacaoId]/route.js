@@ -8,7 +8,8 @@ import { tentarEspelharBase } from "@/lib/importacao/espelharBase";
 import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 
 export const dynamic = "force-dynamic";
-export async function GET(requisicao, { params }) {
+export async function GET(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "empresa");
   if (error) return error;
   try {
@@ -24,7 +25,8 @@ export async function GET(requisicao, { params }) {
     return erroEmpresa(erro);
   }
 }
-export async function PATCH(requisicao, { params }) {
+export async function PATCH(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "empresa");
   if (error) return error;
   try {

@@ -11,7 +11,8 @@ const json = (dados, status = 200) =>
     headers: { "Cache-Control": "no-store" },
   });
 
-export async function PATCH(requisicao, { params }) {
+export async function PATCH(requisicao, props) {
+  const params = await props.params;
   const { error: erro, session: sessao } = await authorize(requisicao, "admin");
   if (erro) return erro;
   try {

@@ -69,8 +69,10 @@ async function alterar(requisicao, parametros, excluir) {
   }
 }
 
-export const PATCH = (requisicao, { params: parametros }) =>
-  alterar(requisicao, parametros, false);
+export async function PATCH(requisicao, { params }) {
+  return alterar(requisicao, await params, false);
+}
 
-export const DELETE = (requisicao, { params: parametros }) =>
-  alterar(requisicao, parametros, true);
+export async function DELETE(requisicao, { params }) {
+  return alterar(requisicao, await params, true);
+}

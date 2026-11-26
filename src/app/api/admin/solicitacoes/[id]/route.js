@@ -5,7 +5,8 @@ import { alterarEstadoSolicitacao } from "@/lib/solicitacoes/gestao";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(requisicao, { params }) {
+export async function PATCH(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "admin");
   if (error) return error;
   try {

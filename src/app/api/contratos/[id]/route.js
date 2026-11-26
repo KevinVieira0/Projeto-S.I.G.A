@@ -5,7 +5,8 @@ import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export async function GET(requisicao, { params }) {
+export async function GET(requisicao, props) {
+  const params = await props.params;
   const perfil = new URL(requisicao.url).searchParams.get("perfil");
   if (perfil && !["admin", "empresa"].includes(perfil))
     return jsonEmpresa({ mensagem: "Perfil inválido." }, 400);

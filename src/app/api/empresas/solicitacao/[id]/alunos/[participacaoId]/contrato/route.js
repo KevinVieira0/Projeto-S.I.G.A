@@ -7,7 +7,8 @@ import { jsonEmpresa, erroEmpresa } from "@/lib/empresas/respostas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export async function POST(requisicao, { params }) {
+export async function POST(requisicao, props) {
+  const params = await props.params;
   const { error, session } = await authorize(requisicao, "empresa", {
     tipoConteudo: "multipart/form-data",
   });

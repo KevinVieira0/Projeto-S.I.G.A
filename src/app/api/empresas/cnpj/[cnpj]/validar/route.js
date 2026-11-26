@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_requisicao, { params: parametros }) {
+export async function GET(_requisicao, props) {
+  const parametros = await props.params;
   const cnpj = parametros.cnpj.replace(/\D/g, "");
   if (!/^\d{14}$/.test(cnpj)) {
     return NextResponse.json(

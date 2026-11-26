@@ -10,7 +10,8 @@ const json = (dados, status = 200) =>
     headers: { "Cache-Control": "no-store" },
   });
 
-export async function GET(requisicao, { params: parametros }) {
+export async function GET(requisicao, props) {
+  const parametros = await props.params;
   const { error: erro } = await authorize(requisicao, "admin");
   if (erro) return erro;
   try {

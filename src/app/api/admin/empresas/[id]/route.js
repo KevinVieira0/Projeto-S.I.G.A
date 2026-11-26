@@ -36,7 +36,8 @@ export async function GET(requisicao, { params: parametros }) {
 }
 }
 
-export async function PATCH(requisicao, { params: parametros }) {
+export async function PATCH(requisicao, props) {
+  const parametros = await props.params;
   const { error: erro, session: sessao } = await authorize(requisicao, "admin");
   if (erro) return erro;
   try {
